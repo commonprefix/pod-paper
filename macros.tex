@@ -31,3 +31,72 @@
 \DeclareMathOperator{\Ex}{\mathbb{E}}
 
 \newcommand{\getsrandomly}{\overset{\$}{\gets}}
+
+% Comments
+\newcommand{\oa}[1]{{\color{blue}{ #1 }}}
+\newcommand{\bd}[1]{{\color{olive}{ #1 }}}
+\newcommand{\hue}[1]{\textcolor{brown}{#1}}
+\newcommand{\wip}[1]{{\hue{WIP: #1}}}
+
+%  POD
+\newcommand{\op}[1]{\textsl{#1}}
+\newcommand{\opwrite}[1]{\op{write(#1)}\xspace}
+\newcommand{\opwriteret}[1]{\op{write\_return(#1)}\xspace}
+\newcommand{\opwritedeps}[1]{\op{store(#1)}\xspace}
+\newcommand{\opread}[1]{\op{read(#1)}\xspace}
+\newcommand{\opreadall}[1]{\op{read(#1)}\xspace}
+\newcommand{\opreadallret}[1]{\op{read\_return(#1)}\xspace}
+\newcommand{\opgetdeps}[1]{\op{get\_deps(#1)}\xspace}
+\newcommand{\opidentify}[1]{\op{identify(#1)}\xspace}
+\newcommand{\opbcast}[1]{\op{broadcast(#1)}\xspace}
+\newcommand{\opdel}[1]{\op{deliver(#1)}\xspace}
+\newcommand{\opsign}[1]{\op{Sign(#1)}\xspace}
+\newcommand{\opmin}[1]{\op{min(#1)}\xspace}
+\newcommand{\opmax}[1]{\op{max(#1)}\xspace}
+\newcommand{\opmed}[1]{\op{med(#1)}\xspace}
+\newcommand{\opvalid}[1]{\op{valid(#1)}\xspace}
+\newcommand{\opdisperse}[1]{\op{disperse(#1)}\xspace}
+\newcommand{\opretrieve}[1]{\op{retrieve(#1)}\xspace}
+
+\newcommand{\operand}[1]{\textsf{#1}}
+% \newcommand{\tx}{\operand{tx}\xspace}
+\newcommand{\deptx}{\operand{deptx}\xspace}
+\newcommand{\deptxid}{\operand{txid}\xspace}
+\newcommand{\txid}{\operand{txid}\xspace}
+\newcommand{\round}{\operand{r}\xspace}
+\newcommand{\rexp}{\ensuremath{\round_\text{exp}}\xspace}
+\newcommand{\rrec}{\ensuremath{\round_\text{rec}}\xspace}
+\newcommand{\rmin}{\ensuremath{\round_\text{min}}\xspace}
+\newcommand{\rmax}{\ensuremath{\round_\text{max}}\xspace}
+\newcommand{\rinterval}{\ensuremath{[\rmin, \rmax]}\xspace}
+\newcommand{\rreported}{\ensuremath{\round_\text{rep}}\xspace}
+\newcommand{\rperf}{\ensuremath{\round_\text{perf}}\xspace}
+\newcommand{\rloc}{\ensuremath{\round_\text{loc}}\xspace}
+\newcommand{\txmiss}{\ensuremath{\txset_\text{miss}}\xspace}
+\newcommand{\txfinal}{\ensuremath{\txset_\text{final}}\xspace}
+\newcommand{\inclist}{\ensuremath{L}\xspace}
+
+\newcommand{\user}{\operand{user}\xspace}
+\newcommand{\timestamp}{\operand{ts}\xspace}
+\newcommand{\cert}{\ensuremath{\pi}\xspace}
+\newcommand{\Cert}{\ensuremath{\Pi}\xspace}
+\newcommand{\txset}{\operand{T}\xspace}
+\newcommand{\final}{\operand{f}\xspace}
+\newcommand{\parack}{\ensuremath{u}\xspace}
+\newcommand{\parwrite}{\ensuremath{v}\xspace}
+\newcommand{\POD}{\ensuremath{D}\xspace}
+\newcommand{\limbo}{\ensuremath{L}\xspace}
+
+\newcommand{\returns}{\ensuremath{\rightarrow}\xspace}
+\newcommand{\dotparagraph}[1]{\paragraph*{#1.}}
+\newcommand{\recorded}{recorded\xspace}
+\newcommand{\finalized}{finalized\xspace}
+\newcommand{\zo}{\ensuremath{\{ 0, 1\}\xspace}}
+
+% for pseudocode
+\newcommand{\return}{\State{\textbf{return}}\xspace}
+\newcommand{\st}{\textbf{such that}\xspace}
+\newcommand{\andl}{\textbf{and}\xspace}
+\newcommand{\msgwrite}{\text{WRITE}\xspace}
+\newcommand{\msgread}{\text{READ}\xspace}
+\newcommand{\msgprecommit}{\text{PRECOMMIT}\xspace}
