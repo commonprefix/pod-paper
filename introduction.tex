@@ -1,2 +1,44 @@
 \section{Introduction}
-\cite{bitcoin}
+Recent literature has recognized the redundancy of consensus for implementing simple asset-transfer systems,
+given that users do not share accounts.
+Such schemes have been described in theory and deployed in the real world.
+Yet, their focus has been mainly on payment systems and not arbitrary distributed applications.
+
+Censorship resistance is, on the other hand, an important feature of decentralized systems,
+missing from many state-of-the-art and even deployed consensus protocols.
+In leader-based protocols the leader arbitrarily selects the transactions to be included in the new block.
+% In a model where at most $f$ of the $n$ replicas can be malicious, the adversary can delay honest transactions by $f$ blocks.
+Similarly, in permissionless and dynamically-available protocols, such as Bitcoin and Ethereum,
+the miner or the block builder have similar power.
+Multiple works have proposed solutions.
+One approach employs multiple leaders, which inevitably leads to duplication of transactions in the output of the protocol.
+Other solutions employ cryptography, such threshold or time-based encryption, which sacrifice efficiency.
+
+
+In this work we develop \emph{Partially Ordered Dataset (POD)},
+a primitive that allows censorship-resistant recording of arbitrary messages (which we refer to as \emph{transactions}, as common in the literature).
+POD can be used as the base for a wide range of consensus-less applications, such as payment systems,
+auctions with non-omission guarantees, and storing feeds for decentralized social media.
+
+POD associates transactions with \emph{timestamps}.
+It does not guarantee full ordering, as classical consensus mechanisms do, but instead results in a `fluctuating order'.
+That is, honest users may observe different timestamps for each transaction, yet the timestamps will be within a restricted and well-defined interval,
+and users will agree on the set of observed transactions.
+Moreover, POD uses the notion of a \emph{past-perfect} timestamp, akin to a `final' block in classical consensus algorithms.
+When a timestamp becomes past-perfect, honest users are guaranteed that no more transactions will ever be output with
+a timestamp smaller than the past-perfect.
+
+By giving up on total order we result in a high-performant layer in terms of both throughput and latency.
+The construction of POD is very simple. Replicas can run the code for Certificate Transparency to record transactions with timestamps,
+with addition of a Merkle Mountain Range (MMR) data structure, which allows light clients to bloom-filter for inclusion efficiently.
+Clients use the mean among the responses from 2/3 of the replicas.
+
+\dotparagraph{Research goals}\oa{Check}
+Pod operates in a permissioned fashion among a committee (akin to Streamlet, HotStuff),
+but we're exploring to make it semi-permissioned as well (proof-of-stake–capable, akin to Tendermint).
+We provide resilience and some guarantees in the full Byzantine model, assuming an adversary that controls $f < n/3$ replicas,
+and we are exploring ways to introduce rational arguments to the replicas.
+Additional ordering guarantees are optional and provided in a `flexible', per-client manner, based on local beliefs and requirements.
+Similar techniques have been used to resolve the dilemma between dynamically available and safe-under-asynchrony blockchains~\cite{DBLP:conf/sp/NeuTT21}.
+We are exploring mechanisms to bring the rate of fluctuation down with time,
+so that the system converges to full consensus, but the main guarantees are provided pre-consensus.
