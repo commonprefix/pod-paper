@@ -8,7 +8,7 @@ Multiple solutions have been proposed.
 One approach employs multiple parallel leaders~\cite{DBLP:journals/corr/abs-1906-05552,DBLP:conf/sirocco/AvarikiotiHSVWW23, DBLP:conf/nsdi/YangPAKT22,DBLP:journals/corr/abs-2307-10185,DBLP:conf/ccs/MillerXCSS16,DBLP:conf/eurosys/DanezisKSS22}, which inevitably leads to duplication of transactions in the output of the protocol.
 Other solutions employ cryptography~\cite{DBLP:conf/ccs/MillerXCSS16, DBLP:conf/aft/ZhangMQBEF23, DBLP:conf/crypto/CachinKPS01,Malkhi2022MaximalEV}, such as threshold or time-based encryption, which sacrifice efficiency.
 
-In a different line of work, recent literature has recognized the redundancy of consensus for implementing asset-transfer systems~\cite{journals/dc/GuerraouiKMPS22}.
+In a different line of work, recent literature has recognized the redundancy of consensus for implementing asset-transfer systems~\cite{DBLP:journals/dc/GuerraouiKMPS22}.
 Such schemes have been described in theory~\cite{DBLP:journals/corr/abs-1909-10926, DBLP:conf/dsn/CollinsGKKMPPST20} and deployed in the real world~\cite{DBLP:conf/aft/BaudetDS20}.
 Yet, the proposed protocols are tailor-made for payment systems or for specific blockchains and cannot  be used for arbitrary distributed applications.
 
@@ -65,11 +65,11 @@ or by having the reading client engage in a two-round protocol with the replicas
 \dotparagraph{Scope}
 This proposal includes, but is not limited to, the following items.
 \begin{itemize}[left=0pt,itemindent=0pt]
-    \item POD operates in a permissioned fashion among a committee (akin to Streamlet, HotStuff),
-    but we are exploring to make it semi-permissioned as well (proof-of-stake–capable, akin to Tendermint).
-    \item We provide resilience and some guarantees in the full Byzantine model, assuming an adversary that controls $f < n/3$ replicas,
-    and we are exploring ways to introduce rational arguments to the replicas.
-    \item Explore the idea of providing `flaxible', per-client ordering guarantees, based on local beliefs. Similar techniques have been used to resolve the dilemma between dynamically available and safe-under-asynchrony blockchains~\cite{DBLP:conf/sp/NeuTT21}.
+    \item Make POD work in a semi-permissioned model (proof-of-stake–capable, akin to Tendermint~\cite{DBLP:journals/corr/abs-1807-04938}).
+    % Our current design works in a permissioned model (akin to HotStuff, Streamlet, and others).
+    \item Explore ways to introduce rational arguments to the replicas.
+    % We provide resilience and some guarantees in the full Byzantine model, assuming an adversary that controls $f < n/3$ replicas,
+    \item Explore the idea of providing `flexible', per-client ordering guarantees, based on local beliefs. Similar techniques have been used to resolve the dilemma between dynamically available and safe-under-asynchrony blockchains~\cite{DBLP:conf/sp/NeuTT21}.
     \item Explore mechanisms to bring the rate of timestamp fluctuation down with time,  so that the system converges to full consensus.
     \item Implement and evaluate POD based on an existing codebase, such as Google's Certificate Transparency implementation\footnote{\url{https://github.com/google/certificate-transparency-go}} or FastPay~\cite{DBLP:conf/aft/BaudetDS20}.
 \end{itemize}

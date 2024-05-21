@@ -1,3 +1,40 @@
+@article{DBLP:journals/corr/abs-1909-10926,
+  author       = {Jakub Sliwinski and
+                  Roger Wattenhofer},
+  title        = {{ABC:} Asynchronous Blockchain without Consensus},
+  journal      = {CoRR},
+  volume       = {abs/1909.10926},
+  year         = {2019},
+  url          = {http://arxiv.org/abs/1909.10926},
+  eprinttype    = {arXiv},
+  eprint       = {1909.10926},
+  timestamp    = {Fri, 27 Sep 2019 13:04:21 +0200},
+  biburl       = {https://dblp.org/rec/journals/corr/abs-1909-10926.bib},
+  bibsource    = {dblp computer science bibliography, https://dblp.org}
+}
+@inproceedings{DBLP:conf/dsn/CollinsGKKMPPST20,
+  author       = {Daniel Collins and
+                  Rachid Guerraoui and
+                  Jovan Komatovic and
+                  Petr Kuznetsov and
+                  Matteo Monti and
+                  Matej Pavlovic and
+                  Yvonne{-}Anne Pignolet and
+                  Dragos{-}Adrian Seredinschi and
+                  Andrei Tonkikh and
+                  Athanasios Xygkis},
+  title        = {Online Payments by Merely Broadcasting Messages},
+  booktitle    = {50th Annual {IEEE/IFIP} International Conference on Dependable Systems
+                  and Networks, {DSN} 2020, Valencia, Spain, June 29 - July 2, 2020},
+  pages        = {26--38},
+  publisher    = {{IEEE}},
+  year         = {2020},
+  url          = {https://doi.org/10.1109/DSN48063.2020.00023},
+  doi          = {10.1109/DSN48063.2020.00023},
+  timestamp    = {Tue, 16 May 2023 16:25:08 +0200},
+  biburl       = {https://dblp.org/rec/conf/dsn/CollinsGKKMPPST20.bib},
+  bibsource    = {dblp computer science bibliography, https://dblp.org}
+}
 @inproceedings{DBLP:conf/sp/NeuTT21,
   author       = {Joachim Neu and
                   Ertem Nusret Tas and
@@ -305,6 +342,7 @@
   publisher    = {{ACM}},
   year         = {2016}
 }
+
 
 
 
