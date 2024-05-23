@@ -1,5 +1,7 @@
-\section{System} \label{sec:system}
+\section{Partially Ordered Datasets (POD)} \label{sec:system}
+We define the notion of Partially Ordered Datasets (POD), which allow a set of \emph{clients} to obtain a partially ordered list of transactions from a set of \emph{replicas} with censorship-freeness guarantees and accountability for safety violations. Before we define the syntax and security guarantees for PODs, we present basic notation and the model we consider. 
 
+\subsection{Model}
 
 \dotparagraph{Notation}
 We distinguish two types of parties, $n$ \emph{replicas} and an unlimited number of \emph{clients}.
@@ -12,12 +14,20 @@ We call a party -- replica or client -- \emph{correct}, if it follows the protoc
 % Importantly, a malicious client cannot break any safety property of the system.
 % \end{remark}
 
-\dotparagraph{Model}
-We use the notion of a \emph{round}: each transaction gets associated with a specific round. We say the transaction becomes \emph{\recorded} at that round. \bd{There's a confusion between the definition of a round as a unit of time during which communication takes place and the use of rounds as  timestamps for specific transactions. We also lack a definition of synchronous/semi-synchronous communication.}
-We also use the notions of a \emph{Partially Ordered Dataset} and a \emph{past-perfect round}.
+\dotparagraph{Modeling Time}
+We assume that time proceeds in \emph{rounds} and that parties have loosely synchronized clocks allowing them to determine the current round. Each party keeps a local round counter that is used to assign timestamps to transactions and protocol messages as needed. Without loss of generality, our analysis can be extended to a model with loosely synchronized clocks where two honest parties may have two different round counters $r_1,r_2$ such that $|r_1-r_2|=\delta$ for a finite $\delta$.
+
+\dotparagraph{Modeling Network Synchrony}
+In the synchronous model, we assume that every message is delivered within a \emph{known} finite delay of $\Delta$ rounds. In the partially synchronous model, we assume that messages are delivered within a known finite delay of $\Delta$ rounds only \emph{after} an unknown but finite period of time called the Global Stabilization Time (GST). Messages sent before the GST may be delivered only $\Delta$ rounds after the GST. Finally, in the asynchronous model, we assume that messages are delivered within an \emph{unknown} but finite delay $\Delta$.
+
+%We use the notion of a \emph{round}: each transaction gets associated with a specific round. We say the transaction becomes \emph{\recorded} at that round. \bd{There's a confusion between the definition of a round as a unit of time during which communication takes place and the use of rounds as  timestamps for specific transactions. We also lack a definition of synchronous/semi-synchronous communication.}
+
+\subsection{POD Syntax}
+
+We first define the notions of a \emph{Partially Ordered Dataset} and a \emph{past-perfect round}.
 
 \begin{definition}[Partially Ordered Dataset (POD)]
-A \emph{Partially Ordered Dataset (POD)} is a finite sequence of pairs, $\POD = (\round, \txset)$,
+A \emph{Partially Ordered Dataset (POD)} is a finite sequence of pairs, $\POD =\{(\round, \txset),\ldots,(\round', \txset')\}$,
 where \round is a round and \txset is a set of transactions.
 For an entry $ (\round, \txset)$, notation $\POD[\round]$ returns \txset.
 \end{definition}
@@ -37,7 +47,7 @@ A POD protocol exposes the following methods.
     % \item \opread{\cert} \returns (\tx, [$\deptxid_1, \ldots$]) or 
     \item input event \opreadall{} 
     \item output event \opreadallret{\round, \limbo, \POD, \Cert}
-    \oa{ \item \opidentify{\cert, \Cert} \returns $P' \subset P$ }
+    \item \opidentify{\cert, \Cert} \returns $P' \subset P$ 
 \end{itemize}
 
 
@@ -49,14 +59,16 @@ A transaction, for which an honest client has obtained a record certificate, is 
 Users call~\opreadall{} to read the transactions in the bulletin.
 Upon completion, the protocol outputs \opreadallret{\round, \limbo, \POD, \Cert},
 where \round is a round, called the \emph{past perfect} round, \limbo is a set of transactions, \POD is a POD, and \Cert is a \emph{past-perfect certificate}.
-For each entry $(\round', \txset)$ in $\POD$, we say that transactions in \txset became \emph{\finalized} at round $\round'$.
+For each entry $(\round', \txset)$ in $\POD$, we say that transactions in \txset became \emph{\finalized} at round $\round'$. Users call \item \opidentify{\cert, \Cert} \returns $P' \subset P$ to identify the set $P'$ of parties who vouched for the finalization of a $\tx$, where $\Cert$ is a POD and $\pi$ is the certificate returned by  $\opwriteret{\tx, \cert}$.
 
 \end{definition}
 % \oa{Do we need a ``state'' and timestamps?}
 % \bd{We may need some notion of a timestamped batch of transactions, so that it is possible to audit which transactions we were processed by an application accessing this ledger at a certain point in time. The transactions in a batch don't have to be ordered but we may need total order on the batches. With the auction application in mind, the question here is to determined which transactions were taken into consideration each time the auction was executed.}
 % \oa{I tried to do that with the notions of \POD and \round.}
 
-It satisfies the following properties.
+\subsection{POD Security Guarantees}
+
+A POD satisfies the following properties.
 
 \dotparagraph{Properties (informal)}
 \begin{description}
@@ -68,7 +80,7 @@ It satisfies the following properties.
     We need a way to indicate the round \round of the POD that the auction considered,
     and we need to guarantee that all bids in the POD with round \round or smaller were seen by the auction.
     This is be achieved using the \emph{last finalized} round $\round$ return by \opreadallret{}: we guarantee that all transactions in \txset with a round $\round' \leq \round$ will be read by all honest parties.
-    \item[Light-client friendly]\wip{Define formally.}
+    \item[Light-client friendly] There exists a succinct description of the current state of the POD that can be used to verify that a subset of  pairs $ (\round, \txset)$ is record in the POD. Succinctness in this context means that the size of the state description and verification times are independent from the total size of the POD.
     
 \end{description}
 
@@ -92,13 +104,12 @@ It satisfies the following properties.
             % \oa{I don't think we need to say when/in how many rounds it returns, it's more of a benchmark thing.}
             % \bd{Agreed. We may want to model an upper bound on the delay for this ``eventually'' at some point in order to capture ``responsiveness'', \textit{i.e.} show that liveness is achieved as fast the network delay allows. However, this does not seem necessary for basic security definitions.}  
 
-        \item[\finalized within \parwrite with accountability:]
+        \item[Included within \parwrite with accountability:]
         Assume the protocol outputs \opwriteret{\tx, \cert} to an honest client at round $\round_1$, for some transaction \tx.
-        Then, if an honest client calls \opreadall{} at round $\round_2 \geq \round_1 + \parwrite$, one of the following holds.
+        Then, if an honest client calls \opreadall{} at round $\round_2 \geq \round_1 + \parwrite$, one of the following holds:
         (1) The protocol will output
         \opreadallret{$\round, \cdot, \POD, \Cert$},
-        such that $\round \leq \round_2$ and \POD contains an entry $(\round', \txset)$ with $\round' \leq \round$ and $\tx \in \txset$.
-        \oa{A bit too complicated. High level: After \parwrite, \tx will appear in the POD and it will be visible to all.}
+        such that $\round \leq \round_2$ and \POD contains an entry $(\round', \txset)$ with $\round' \leq \round$ and $\tx \in \txset$ (\textit{e.g.} after \parwrite, \tx will appear in the POD and it will be visible to all.)
         (2) The POD \POD and certificates \cert and \Cert identify a set of replicas $P'$ that have misbehaved.
 
         % \item[Correctness]
@@ -114,20 +125,19 @@ It satisfies the following properties.
 
     \item{Safety}
     \begin{description}
-        \item[Persistent writes:]
+        \item[Transaction safety:]
         Assume \opreadallret{} returns $(\cdot, \cdot, \POD_1, \cdot)$ to an honest client and $(\cdot, \cdot, \POD_2, \cdot)$ to another.
-        Then, if a transaction $\tx$ satisfies $\tx \in \POD_1[\round]$ and $\tx \in \POD_2[\round']$, for some $\round$ and $\round'$, then $\round = \round'$.
+        Then, if a transaction $\tx$ satisfies $\tx \in \POD_1[\round]$ and $\tx \in \POD_2[\round']$, for some $\round$ and $\round'$, then $|\round - \round'| < D$, where $D$ is a \emph{wiggle} parameter.
+        
+   
 
-        \item[``Everybody-can-see'' writes:]
-        Assume \opreadallret{} returns $(\round_1, \cdot, \POD_1, \cdot)$ to an honest client and $(\round_2, \cdot, \POD_2, \cdot)$ to another.
-        Then, $\POD_1[\round] = \POD_2[\round]$, for all $\round \leq \min(\round_1, \round_2)$.
-        \wip{We also need that the past-perfect round does not decrease.}
+        \item[Perfection Safety:]
+        Assume \opreadallret{} returns $(\round_1, \cdot, \POD_1, \cdot)$ to an honest client $P_1$ and $(\round_2, \cdot, \POD_2, \cdot)$ to another client $P_2$ for $\round_2>\round_1$. If $\round_1$ is past-perfect in the view $P_1$, then every transaction $\tx \in \POD_2[\round]$ for a round $\round < \round_1$ satisfies $\tx \in \POD_1[\round']$ for some round $\round'$.
+       
         \item[Fair punishment]
-        No honest replica gets punished as a result of malicious operation.\wip{More precise.}
-        \bd{How do we define validity/unforgeability for $\pi,\Pi$? The ``cannot blame honest replicas'' property lacks some precision. If only one out of the two cases can hold, it still doesn't rule out an adversary forging $\pi,\Pi$ that blame an honest party.}
-        \oa{If $\opidentify{\cert, \Cert} \returns P'$, where \cert is a record certificate for transaction \tx
+        No honest replica gets punished as a result of malicious operation. If $\opidentify{\cert, \Cert} \returns P'$, where \cert is a record certificate for transaction \tx
         and $\Cert$ is a past-perfect certificate for a POD \POD,
-        can only be created if all parties in $P'$ sign \tx and \POD.} \bd{The notion of a record certificate is still unclear. We should intuitively explain what it means and then define it formally. I believe this will be defined similarly to standard existential unforgeability against chosen message attacks for digital signatures, since this certificate is essentially a signature from some parties attesting they have done/will do certain actions. The main thing that is lacking in both the intuitive and formal definitions is explaining whether this certificate shows that certain parties have cheated because they performed certain malicious action or that they have promised to perform a certain honest action and failed to do so, then being identified as cheaters.}
+        can only be created if all parties in $P'$ sign \tx and \POD.
     \end{description}
 \end{enumerate}
 
