@@ -46,7 +46,8 @@ A POD protocol exposes the following methods.
     % \item \opwritedeps{\tx, [$\deptx_1, \ldots$]} \returns \cert
     % \item \opread{\cert} \returns (\tx, [$\deptxid_1, \ldots$]) or 
     \item input event \opreadall{} 
-    \item output event \opreadallret{\round, \limbo, \POD, \Cert}
+    % \item output event \opreadallret{\round, \limbo, \POD, \Cert}
+    \item output event \opreadallret{\round, \POD, \Cert}
     \item \opidentify{\cert, \Cert} \returns $P' \subset P$ 
 \end{itemize}
 
@@ -57,7 +58,7 @@ A transaction, for which an honest client has obtained a record certificate, is 
 % In its more general version, method~\opwritedeps{} allows a user to submit a transaction with dependencies.
 % This could be used, for example, to update or cancel an existing transaction.
 Users call~\opreadall{} to read the transactions in the bulletin.
-Upon completion, the protocol outputs \opreadallret{\round, \limbo, \POD, \Cert},
+Upon completion, the protocol outputs \opreadallret{\round, \POD, \Cert},
 where \round is a round, called the \emph{past perfect} round, \limbo is a set of transactions, \POD is a POD, and \Cert is a \emph{past-perfect certificate}.
 For each entry $(\round', \txset)$ in $\POD$, we say that transactions in \txset became \emph{\finalized} at round $\round'$. Users call \item \opidentify{\cert, \Cert} \returns $P' \subset P$ to identify the set $P'$ of parties who vouched for the finalization of a $\tx$, where $\Cert$ is a POD and $\pi$ is the certificate returned by  $\opwriteret{\tx, \cert}$.
 
@@ -108,7 +109,7 @@ A POD satisfies the following properties.
         Assume the protocol outputs \opwriteret{\tx, \cert} to an honest client at round $\round_1$, for some transaction \tx.
         Then, if an honest client calls \opreadall{} at round $\round_2 \geq \round_1 + \parwrite$, one of the following holds:
         (1) The protocol will output
-        \opreadallret{$\round, \cdot, \POD, \Cert$},
+        \opreadallret{$\round, \cdot, \Cert$},
         such that $\round \leq \round_2$ and \POD contains an entry $(\round', \txset)$ with $\round' \leq \round$ and $\tx \in \txset$ (\textit{e.g.} after \parwrite, \tx will appear in the POD and it will be visible to all.)
         (2) The POD \POD and certificates \cert and \Cert identify a set of replicas $P'$ that have misbehaved.
 
@@ -126,13 +127,13 @@ A POD satisfies the following properties.
     \item{Safety}
     \begin{description}
         \item[Transaction safety:]
-        Assume \opreadallret{} returns $(\cdot, \cdot, \POD_1, \cdot)$ to an honest client and $(\cdot, \cdot, \POD_2, \cdot)$ to another.
+        Assume \opreadallret{} returns $(\cdot, \POD_1, \cdot)$ to an honest client and $(\cdot, \POD_2, \cdot)$ to another.
         Then, if a transaction $\tx$ satisfies $\tx \in \POD_1[\round]$ and $\tx \in \POD_2[\round']$, for some $\round$ and $\round'$, then $|\round - \round'| < D$, where $D$ is a \emph{wiggle} parameter.
         
    
 
         \item[Perfection Safety:]
-        Assume \opreadallret{} returns $(\round_1, \cdot, \POD_1, \cdot)$ to an honest client $P_1$ and $(\round_2, \cdot, \POD_2, \cdot)$ to another client $P_2$ for $\round_2>\round_1$. If $\round_1$ is past-perfect in the view $P_1$, then every transaction $\tx \in \POD_2[\round]$ for a round $\round < \round_1$ satisfies $\tx \in \POD_1[\round']$ for some round $\round'$.
+        Assume \opreadallret{} returns $(\round_1, \POD_1, \cdot)$ to an honest client $P_1$ and $(\round_2, \POD_2, \cdot)$ to another client $P_2$ for $\round_2>\round_1$. If $\round_1$ is past-perfect in the view $P_1$, then every transaction $\tx \in \POD_2[\round]$ for a round $\round < \round_1$ satisfies $\tx \in \POD_1[\round']$ for some round $\round'$.
        
         \item[Fair punishment]
         No honest replica gets punished as a result of malicious operation. If $\opidentify{\cert, \Cert} \returns P'$, where \cert is a record certificate for transaction \tx
