@@ -29,7 +29,7 @@ read responses and does the following.
 First, it sets $\rperf$ to be the \emph{minimum} of the received \round values.
 Seconds, it sets $\txfinal$ to be the union of all transactions in the responses.
 Using the client-gossip technique, the client can make sure that \rperf is a past-perfect round and that \txfinal contains \emph{all} the transactions with \recorded round $\rrec \leq \rperf$.
-\wip{}
+The client outputs $(\rperf, \txfinal, \Cert)$, where \Cert contains the responses it received from the replicas.
 \oa{TODO. I believe the second read is not necessary. In GST, all \tx from the first read will be written after $\Delta$.}
 \oa{See \Cref{lem:perfect-round-txs}.}
 
@@ -84,7 +84,7 @@ Using the client-gossip technique, the client can make sure that \rperf is a pas
             \EndIf
         \EndFor
         \Let{\rperf}{\opmin{$\{ \round_i \}_{i\in[2f+1]}$}}
-        \return (\rperf,\txfinal)
+        \return (\rperf,\txfinal, \oa{\Cert})
     \EndFunction
 \end{algorithmic}
 \end{algorithm}

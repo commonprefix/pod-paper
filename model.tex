@@ -59,8 +59,9 @@ A transaction, for which an honest client has obtained a record certificate, is 
 % This could be used, for example, to update or cancel an existing transaction.
 Users call~\opreadall{} to read the transactions in the bulletin.
 Upon completion, the protocol outputs \opreadallret{\round, \POD, \Cert},
-where \round is a round, called the \emph{past perfect} round, \limbo is a set of transactions, \POD is a POD, and \Cert is a \emph{past-perfect certificate}.
-For each entry $(\round', \txset)$ in $\POD$, we say that transactions in \txset became \emph{\finalized} at round $\round'$. Users call \item \opidentify{\cert, \Cert} \returns $P' \subset P$ to identify the set $P'$ of parties who vouched for the finalization of a $\tx$, where $\Cert$ is a POD and $\pi$ is the certificate returned by  $\opwriteret{\tx, \cert}$.
+where \round is the \emph{past-perfect} round, \POD is a POD, and \Cert is a \emph{past-perfect certificate}.
+For each entry $(\round', \txset)$ in $\POD$, we say that transactions in \txset became \emph{\finalized} at round $\round'$.
+Users call \opidentify{\cert, \Cert} \returns $P' \subset P$ to identify the set $P'$ of parties who vouched for the finalization of a $\tx$, where $\Cert$ is a POD and $\pi$ is the certificate returned by  $\opwriteret{\tx, \cert}$.
 
 \end{definition}
 % \oa{Do we need a ``state'' and timestamps?}
@@ -93,7 +94,7 @@ A POD satisfies the following properties.
             \item[Acknowledged within \parack:]
             Assume an honest client calls \opwrite{\tx} at round \round.
             Then the protocol will output \opwriteret{\tx, \cert} by round $\round + \parack$.
-            
+            \oa{We can make \parack as low as $2\delta$ or $3\delta$.}
             % \item[Fast \finalized]
             % Assume a client $\user$ obtains a certificate \cert for a transaction \tx,
             % where \cert identifies a set of parties $P$.
@@ -110,9 +111,10 @@ A POD satisfies the following properties.
         Then, if an honest client calls \opreadall{} at round $\round_2 \geq \round_1 + \parwrite$, one of the following holds:
         (1) The protocol will output
         \opreadallret{$\round, \cdot, \Cert$},
-        such that $\round \leq \round_2$ and \POD contains an entry $(\round', \txset)$ with $\round' \leq \round$ and $\tx \in \txset$ (\textit{e.g.} after \parwrite, \tx will appear in the POD and it will be visible to all.)
+        for some $\round \leq \round_2$, such that \POD contains an entry $(\round', \txset)$ with $\round' \leq \round$ and $\tx \in \txset$.
+        % (\textit{i.e.} after \parwrite, \tx will appear in the POD and it will be visible to all.)
         (2) The POD \POD and certificates \cert and \Cert identify a set of replicas $P'$ that have misbehaved.
-
+        \oa{I think we can get $\parwrite = 1$. The intuition is that, as long as the write operation returns, there will be at least $2f+1$ correct replicas that have \tx, and at least $f+1$ of them will return it to consequent reads.}
         % \item[Correctness]
         % A call \opread{\cert}, where \cert is a valid certificate, returns the transaction \tx for which \cert was produced.
         
@@ -128,13 +130,45 @@ A POD satisfies the following properties.
     \begin{description}
         \item[Transaction safety:]
         Assume \opreadallret{} returns $(\cdot, \POD_1, \cdot)$ to an honest client and $(\cdot, \POD_2, \cdot)$ to another.
-        Then, if a transaction $\tx$ satisfies $\tx \in \POD_1[\round]$ and $\tx \in \POD_2[\round']$, for some $\round$ and $\round'$, then $|\round - \round'| < D$, where $D$ is a \emph{wiggle} parameter.
-        
-   
+        If a transaction $\tx$ satisfies $\tx \in \POD_1[\round]$ and $\tx \in \POD_2[\round']$, for some $\round$ and $\round'$, then $|\round - \round'| < \parwiggle$, where $\parwiggle$ is a \emph{wiggle} parameter.
 
-        \item[Perfection Safety:]
-        Assume \opreadallret{} returns $(\round_1, \POD_1, \cdot)$ to an honest client $P_1$ and $(\round_2, \POD_2, \cdot)$ to another client $P_2$ for $\round_2>\round_1$. If $\round_1$ is past-perfect in the view $P_1$, then every transaction $\tx \in \POD_2[\round]$ for a round $\round < \round_1$ satisfies $\tx \in \POD_1[\round']$ for some round $\round'$.
-       
+        \item[Past-perfection safety:]
+        Assume \opreadallret{} returns $(\round_1, \POD_1, \cdot)$ and $(\round_2, \POD_2, \cdot)$ to two honest clients,
+        for $\round_2 \geq \round_1$.
+        % If $\round_1$ is past-perfect in the view of $P_1$, then
+        If $\tx \in \POD_2[\round]$, for some round $\round < \round_1$, then $\tx \in \POD_1[\round']$,
+        for some round $\round' \leq r_1$.
+        \oa{I think this doesn't hold. Proof would have been: Since $r<r_1$, $P_1$ must have received $2f+1$ timestamps
+        whose median is $r<r_1$, hence at least $f+1$ of them must be smaller than $r_1$. Out of replicas that hold these $f+1$ timestamps,
+        it could be the case that $P_2$ only receives $1$ when reading. What does $P_2$ do here? It cannot do client-gossip, because this 1 
+        might be a malicious party inserting sending a transaction only to $P_2$.
+        
+        I also think this property rephrases the definition of $r_1$ being past-perfect: It says that $\tx$ must have already been in
+        $\POD_1$, it cannot appear with recorded round $<r_1$. Hence, our construction does not return past-perfect rounds.
+        
+        It holds the other way round, though, like this: 
+        \item[Past-perfection completeness:] If $\tx \in \POD_1[\round]$, for some round $\round < \round_1$, then $\tx \in \POD_2[\round']$ for some round $\round' \leq r_1$}.
+        
+        \oa{Now this says that \tx cannot be removed from the response of $\opreadall{}$.
+        
+        If we had both properties, then any $D_1$ and $D_2$ (from responses $(\round_1, \POD_1, \cdot)$ and $(\round_2, \POD_2, \cdot)$) will contain the same set of transactions with recorded round $\min(r_1, r_2)$. This would give us agreement on a set of transactions (and each transaction associated with a `wiggling' timestamp $<\min(r_1, r_2)$).
+        Since we achieve agreement, I assume the Past-perfection safety needs some synchrony assumption in order to work.
+        
+        We can have the client performing $\opread{}$ do client-gossip, re-writing even the transaction \tx it has received from 1 replica, and then do the second \opread{} within $\Delta$, and \emph{assume} that all honest replicas return \tx and some timestamp this time.
+        This actually says that all read operations happen fast enough, and then $P_2$ will also see \tx in $\POD_2$.
+        
+        Actually I think the client does not even need to do the second \opread{}, just write the transactions back and assume honest replicas will receive them within time $\delta$.
+        \item[Past-perfection safety after $\delta$:]
+        Assume \opreadallret{} returns $(\round_1, \POD_1, \cdot)$ and $(\round_2, \POD_2, \cdot)$ to two honest clients,
+        for $\round_2 \geq \round_1 + \delta$.
+        In a period of synchrony, 
+        if $\tx \in \POD_2[\round]$, for some round $\round < \round_1$, then $\tx \in \POD_1[\round']$,
+        for some round $\round' \leq r_1$.
+        More precisely, $\POD_1[\round] = \POD_2[\round]$, for all $\round \leq \round_1$.
+        
+        There is a tradeoff here: Say $\round_2 \geq \round_1 + T$ in the previous property. The bigger the $T$, the more likely it is
+        that all honest replicas will deliver a transaction within time $T$, but also the more we have to wait to make sure that $\round_1$ becomes past-perfect.
+        }
         \item[Fair punishment]
         No honest replica gets punished as a result of malicious operation. If $\opidentify{\cert, \Cert} \returns P'$, where \cert is a record certificate for transaction \tx
         and $\Cert$ is a past-perfect certificate for a POD \POD,
