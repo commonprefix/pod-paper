@@ -211,4 +211,5 @@ The client outputs $(\rperf, \txfinal, \Cert)$, where \Cert contains the respons
 \begin{enumerate}
     \item Replicas with secondaries to handle read operations.
     \item Use committees. We can support a weighted model by having replicas lock some stake in a slow-moving chain (such as Ethereum) and rotate the committee every, say, 24 hours.
+    \item We can use `helper' nodes, that know the adresses of all replicas, so that clients can use them, instead of having to contact all replicas.
 \end{enumerate}    
