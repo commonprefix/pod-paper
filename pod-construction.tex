@@ -11,6 +11,18 @@ This technique ensures the client that a round becomes past perfect (\Cref{def:p
 hence the client has a finalized view of the system: a transaction that was re-broadcast will
 eventually reach all honest replicas, hence it cannot get removed from the system in the future.
 
+\begin{definition}[transaction certificate]
+    A \emph{transaction certificate} \cert for transaction \tx is a collection of pairs $(\tx, \round_j)$, for $j \in |\cert|$, such that $|\cert| \geq  \lceil \alpha n \rceil$.
+    We may explicitly denote the size of the certificate as
+    \emph{$x$-certificate}, for any $x \geq \alpha$.
+    When the size is omitted, we imply an \alpha-certificate.
+\end{definition}
+
+\begin{definition}[Confirmed transaction]
+    A transaction is \emph{confirmed} for a client when the client obtains
+    an \alpha-certificate for it.
+\end{definition}
+
 \dotparagraph{The protocol}
 We present the pseudocode for clients in~\Cref{alg:constr1-client} and for replicas in~\Cref{alg:constr1-replica}.
 
@@ -33,59 +45,161 @@ The client outputs $(\rperf, \txfinal, \Cert)$, where \Cert contains the respons
 \oa{TODO. I believe the second read is not necessary. In GST, all \tx from the first read will be written after $\Delta$.}
 \oa{See \Cref{lem:perfect-round-txs}.}
 
+\oa{new:}
 
+Upon receiving a transaction-timestamp pair $(\tx, \tsp)$ from replica $\rep_j$, the client first performs some sanity checks.
+First, \tsp must be equal or larger than $\lts_j$, the most recent timestamp returned by $\rep_j$ (\cref{line:old-tsp}).
+Second, the replica must have not previously returned a different timestamp for \tx (\cref{line:dup-tsp}).
+If any of these is not the case, the client ignores this value and $\rep_j$ can be held accountable.
+If the checks pass, the client records \tsp returned by $\rep_j$ in $\transactions[\tx].\votes$ (\cref{line:rec-tsp})
+and updates $\lts_j$ with \tsp.
 
 \begin{algorithm}
-\caption{Code for a client}
+\caption{Code for a client. We denote  by \certSize the size of a certificate, e.g., $\certSize = \lceil \alpha n  \rceil$.}
 \label{alg:constr1-client}
 \begin{algorithmic}[1]
-    \Function{\opwrite{\tx}}{}
-        \Let{\rexp}{(\text{\wip{now + client's expected network delay}})}
-        \Let{\sigma}{\opsign{(\tx, \rexp)}}
-        \State{Send $(\msgwrite, (\tx, \rexp, \sigma))$ to all replicas}
-        \State{Upon receiving $2f+1$ responses $(\sigma'_i, {\round'}_i, (\tx, \sigma))$, for $i \in [2f+1]$:}
-        \Statex\oa{How can I indent code?}
-        \Let{C}{\{ \sigma'_i \}_{i\in[2f+1]} } 
-        \Let{R}{\{ \round'_i \}_{i\in[2f+1]} } 
-        \Let{\rrec}{\opmed{$R$}}
-        \Let{\rinterval}{[ \opmin{$R$}, \opmax{$R$} ]}
-        \return (\rrec, \rmin, \rmax)
-    \EndFunction
+    \State{$\allreps = \{ \rep_1, \ldots, \rep_n  \} $} \Comment{\text{The set of all replicas}}
+    \Let{ \allLts = \{ \lts_1, \ldots, \lts_n \} }{ \{ 0, \ldots, 0 \}} \Comment{The last timestamp returned by each replica}
+    \Let{\rperf}{0} \Comment{The most recent round deemed perfect by the client}
+    \Let{\transactions}{\emptyset} \Comment{This is a map from $\tx$ to $(\votes, \rmin, \rmax, \rrec)$, initialized to $(\emptyset, 0, \infty, \bot)$ for each \tx, and \votes is a map from replicas to timestamps.}
+    
     \Statex
-    \Function{\opreadall{}}{}
-        \Let{\rloc}{(\text{\wip{now}})}
-        \State{Send \msgread to all replicas}\label{line:first_read}
-        \State{Upon receiving $2f+1$ responses $R_i = (\sigma_i, \round_i, \POD_i)$, for $i \in [2f+1]$, \textbf{such that} valid($R_i$) \andl$ \rloc < \round_i < \rloc + \Delta$:} \Comment{valid($R_i$) iff $\round_i \geq r', \forall r'\in\POD_i$, $\land$ valid($\sigma$), etc }
-        \State{parse $(tx_j, r_j) \gets \POD_i$}
-        \State{\oa{The following can be simplified.}}
-        \Let{\txmiss}{\emptyset}
-        \Let{\txset_1}{ \{\tx | \tx \in \POD_i \text{, for } i \in [2f+1] \} } \label{line:all-txs-first-read}
-        \For{$\tx \in \txset_1$}
-            \If{$|\{ \POD_i | \tx \in \POD_i \}| < 2/3 $}
-                \Let{\txmiss}{\txmiss \cup {\{\tx\}}}
+    
+    \On{receive $(\tx, \tsp)$ from $\rep_j$}
+        \If{$\tsp < \lts_j$}
+            \return \Comment{accountable fault, $\rep_j$ assigned old timestamp to \tx}\label{line:old-tsp}
+        \EndIf
+        \If{$\transactions[\tx] = \bot$}
+            \Let{\transactions[\tx]}{(\votes: \emptyset, \rmin: 0, \rmax: \infty, \rrec: \bot)}
+        \EndIf
+        \If{$\transactions[\tx].\votes[\rep_j] \neq \bot$ \andl $\transactions[\tx].\votes[\rep_j] \neq \tsp$}
+            \return \Comment{accountable fault, $\rep_j$ has sent different timestamp}\label{line:dup-tsp}
+        \EndIf    
+        % \If{$\transactions[\tx].\votes[\rep_j] = \emptyset$}
+        %     \Let{\transactions[\tx].\votes[\rep_j]}{}
+        % \EndIf
+        \Let{\transactions[\tx].\votes[\rep_j]}{\tsp} \label{line:rec-tsp}
+        \Let{\lts_j}{ts}
+        
+        \Statex
+
+        \Let{\rmin}{MinPossibleTs(\tx)}
+        \If{$\transactions[\tx].\rmin < \rmin$}
+            \Let{\transactions[\tx].\rmin}{\rmin}
+            \State{\textbf{output event} RANGE-UPDATE \tx}
+        \EndIf
+        
+        \Statex
+
+        \Let{\rmax}{MaxPossibleTs(\tx)}
+        \If{$\transactions[\tx].\rmax > \rmax$}
+            \Let{\transactions[\tx].\rmax}{\rmax}
+            \State{\textbf{output event} RANGE-UPDATE \tx}
+        \EndIf
+
+        \Statex
+        
+        \Let{\rperf'}{MinPossibleFutureTx()}
+        \If{$\rperf < \rperf' $}
+            \Let{\rperf}{\rperf'}
+            \State{\textbf{output event} PERFECT-ROUND-UPDATE}
+        \EndIf
+
+        \Statex
+
+        \If{$| \transactions[\tx].votes | \geq \certSize$}
+            \Let{prev}{\transactions[\tx].\rrec = \bot}
+            \Let{\transactions[\tx].\rrec}{\med(\transactions[\tx])}
+            \If{$prev = \bot$}
+                \State{\textbf{output event} TX-CONFIRMED \tx}
             \EndIf
-        \EndFor
-        \For{$\tx \in \txmiss$}
-            \State{\opwrite{\tx}}
-        \EndFor
-        \State{\wip{wait $\Delta$}}
-        \Let{\rloc}{(\text{\wip{now}})}
-        \State{Send \msgread to all replicas}\label{line:second_read}
-        \State{Upon receiving $2f+1$ responses $R^2_i = (\sigma^2_i, \round^2_i, \POD^2_i)$, for $i \in [2f+1]$, \textbf{such that} valid($R^2_i$) \andl$ \rloc < \round^2_i < \rloc + \Delta$:}
-        \Let{\txfinal}{\emptyset}
-        \Let{\txset_2}{ \{\tx | \tx \in \POD_i \text{, for } i \in [2f+1] \} }
-        \For{$\tx \in \txset_2$}
-            \If{$|\{ \POD_i | \tx \in \POD_i \}| = X $} \wip{$X = f+1$}
-                \State{let $\round'_i$ be the round of \tx in each $\POD_i$, for $i\in[2f+1]$}
-                \Let{R}{\{ \round'_i \}_{i\in[2f+1]} } 
-                \Let{\rrec}{\opmed{$R$}}
-                \Let{\rinterval}{[ \opmin{$R$}, \opmax{$R$} ]}
-                \Let{\txfinal}{\txfinal \cup {\{(\tx, \rrec, \rmin, \rmax)\}}}
+            \If{$prev \neq \transactions[\tx].\rrec$}
+                \State{\textbf{output event} RECORDED-ROUND-UPDATE \tx}
             \EndIf
+        \EndIf
+    \EndOn
+
+    \Statex
+
+    \Function{MinPossibleTs}{\tx}
+        % \Let{\votedReplicas}{\{\rep_j \in \allreps \mid \rep_j \in \transactions[\tx].\votes \}}
+        \Let{\txVotes}{\transactions[\tx].\votes}
+        % \Let{\missingReplicas}{ \{ \rep_j \in \allreps \mid \rep_j \not \in \transactions[\tx].\votes \} }
+        \For{$\rep_j$ \st $\rep_j \not \in \transactions[\tx].\votes$}
+            \Let{\txVotes[\rep_j]}{\lts_j}
         \EndFor
-        \Let{\rperf}{\opmin{$\{ \round_i \}_{i\in[2f+1]}$}}
-        \return (\rperf,\txfinal, \oa{\Cert})
+        \Let{\txVotes}{\text{sort \txVotes in increasing order}}
+        \return $\med(\txVotes[0: \certSize])$
+    \oa{Account for equivocations}
     \EndFunction
+    
+    \Statex
+
+    \Function{MaxPossibleTs}{\tx}
+        \Let{\txVotes}{\transactions[\tx].\votes}
+        \For{$\rep_j$ \st $\rep_j \not \in \transactions[\tx].\votes$}
+            \Let{\txVotes[\rep_j]}{\infty}
+        \EndFor
+        \Let{\txVotes}{\text{sort \txVotes in increasing order}}
+        \return $\med(\txVotes[(n - \certSize) : n])$
+        \oa{Account for equivocations}
+    \EndFunction
+
+    \Statex
+    \Function{MinPossibleFutureTs}{}
+        \Let{\allLts}{\text{sort \allLts in increasing order}}
+        \return $\med(\allLts[0: \certSize])$
+    \oa{Account for equivocations}
+    \EndFunction
+    
+    % \Statex
+    % \Function{\opwrite{\tx}}{}
+    %     \Let{\rexp}{(\text{\wip{now + client's expected network delay}})}
+    %     \Let{\sigma}{\opsign{(\tx, \rexp)}}
+    %     \State{Send $(\msgwrite, (\tx, \rexp, \sigma))$ to all replicas}
+    %     \State{Upon receiving $2f+1$ responses $(\sigma'_i, {\round'}_i, (\tx, \sigma))$, for $i \in [2f+1]$:}
+    %     \Statex\oa{How can I indent code?}
+    %     \Let{C}{\{ \sigma'_i \}_{i\in[2f+1]} } 
+    %     \Let{R}{\{ \round'_i \}_{i\in[2f+1]} } 
+    %     \Let{\rrec}{\opmed{$R$}}
+    %     \Let{\rinterval}{[ \opmin{$R$}, \opmax{$R$} ]}
+    %     \return (\rrec, \rmin, \rmax)
+    % \EndFunction
+    % \Statex
+    % \Function{\opreadall{}}{}
+    %     \Let{\rloc}{(\text{\wip{now}})}
+    %     \State{Send \msgread to all replicas}\label{line:first_read}
+    %     \State{Upon receiving $2f+1$ responses $R_i = (\sigma_i, \round_i, \POD_i)$, for $i \in [2f+1]$, \textbf{such that} valid($R_i$) \andl$ \rloc < \round_i < \rloc + \Delta$:} \Comment{valid($R_i$) iff $\round_i \geq r', \forall r'\in\POD_i$, $\land$ valid($\sigma$), etc }
+    %     \State{parse $(tx_j, r_j) \gets \POD_i$}
+    %     \State{\oa{The following can be simplified.}}
+    %     \Let{\txmiss}{\emptyset}
+    %     \Let{\txset_1}{ \{\tx | \tx \in \POD_i \text{, for } i \in [2f+1] \} } \label{line:all-txs-first-read}
+    %     \For{$\tx \in \txset_1$}
+    %         \If{$|\{ \POD_i | \tx \in \POD_i \}| < 2/3 $}
+    %             \Let{\txmiss}{\txmiss \cup {\{\tx\}}}
+    %         \EndIf
+    %     \EndFor
+    %     \For{$\tx \in \txmiss$}
+    %         \State{\opwrite{\tx}}
+    %     \EndFor
+    %     \State{\wip{wait $\Delta$}}
+    %     \Let{\rloc}{(\text{\wip{now}})}
+    %     \State{Send \msgread to all replicas}\label{line:second_read}
+    %     \State{Upon receiving $2f+1$ responses $R^2_i = (\sigma^2_i, \round^2_i, \POD^2_i)$, for $i \in [2f+1]$, \textbf{such that} valid($R^2_i$) \andl$ \rloc < \round^2_i < \rloc + \Delta$:}
+    %     \Let{\txfinal}{\emptyset}
+    %     \Let{\txset_2}{ \{\tx | \tx \in \POD_i \text{, for } i \in [2f+1] \} }
+    %     \For{$\tx \in \txset_2$}
+    %         \If{$|\{ \POD_i | \tx \in \POD_i \}| = X $} \wip{$X = f+1$}
+    %             \State{let $\round'_i$ be the round of \tx in each $\POD_i$, for $i\in[2f+1]$}
+    %             \Let{R}{\{ \round'_i \}_{i\in[2f+1]} } 
+    %             \Let{\rrec}{\opmed{$R$}}
+    %             \Let{\rinterval}{[ \opmin{$R$}, \opmax{$R$} ]}
+    %             \Let{\txfinal}{\txfinal \cup {\{(\tx, \rrec, \rmin, \rmax)\}}}
+    %         \EndIf
+    %     \EndFor
+    %     \Let{\rperf}{\opmin{$\{ \round_i \}_{i\in[2f+1]}$}}
+    %     \return (\rperf,\txfinal, \oa{\Cert})
+    % \EndFunction
 \end{algorithmic}
 \end{algorithm}
 
@@ -120,6 +234,12 @@ The client outputs $(\rperf, \txfinal, \Cert)$, where \Cert contains the respons
 \begin{proof}
     By construction.
 \end{proof}
+
+\begin{lemma}
+    If an honest replica sees a transaction, then eventually every honest
+    replica will see it. 
+    \oa{If we use the relayer technique this will happen within $2 \delta$, where $\delta$ is the actual network delay.}
+\end{lemma}
 
 \begin{lemma}
     If an honest client, after GST, specifies $\rexp = \Delta$ and creates a $2/3$-certificate with interval \rinterval, then it holds that $\rmax - \rmin \leq \Delta$.
