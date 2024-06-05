@@ -46,6 +46,10 @@ The client outputs $(\rperf, \txfinal, \Cert)$, where \Cert contains the respons
 \oa{See \Cref{lem:perfect-round-txs}.}
 
 \oa{new:}
+Clients maintain for each transaction the timestamps they have received, as well as a maximum and a minimum timpestamp the transaction could
+be recorded with.
+In the pseudocode (\cref{line-line:txs-map-init}) these are stored in a map from transactions \tx to $(\votes, \rmin, \rmax, \rrec)$,
+initialized to $(\emptyset, 0, \infty, \bot)$ for each \tx, where \votes is a map from replicas to timestamps.
 
 Upon receiving a transaction-timestamp pair $(\tx, \tsp)$ from replica $\rep_j$, the client first performs some sanity checks.
 First, \tsp must be equal or larger than $\lts_j$, the most recent timestamp returned by $\rep_j$ (\cref{line:old-tsp}).
@@ -58,10 +62,10 @@ and updates $\lts_j$ with \tsp.
 \caption{Code for a client. We denote  by \certSize the size of a certificate, e.g., $\certSize = \lceil \alpha n  \rceil$.}
 \label{alg:constr1-client}
 \begin{algorithmic}[1]
-    \State{$\allreps = \{ \rep_1, \ldots, \rep_n  \} $} \Comment{\text{The set of all replicas}}
+    \Let{\allreps}{\{ \rep_1, \ldots, \rep_n  \} } \Comment{\text{The set of all replicas}}
     \Let{ \allLts = \{ \lts_1, \ldots, \lts_n \} }{ \{ 0, \ldots, 0 \}} \Comment{The last timestamp returned by each replica}
     \Let{\rperf}{0} \Comment{The most recent round deemed perfect by the client}
-    \Let{\transactions}{\emptyset} \Comment{This is a map from $\tx$ to $(\votes, \rmin, \rmax, \rrec)$, initialized to $(\emptyset, 0, \infty, \bot)$ for each \tx, and \votes is a map from replicas to timestamps.}
+    \Let{\transactions}{\emptyset} \label{line:txs-map-init}
     
     \Statex
     
@@ -121,37 +125,6 @@ and updates $\lts_j$ with \tsp.
 
     \Statex
 
-    \Function{MinPossibleTs}{\tx}
-        % \Let{\votedReplicas}{\{\rep_j \in \allreps \mid \rep_j \in \transactions[\tx].\votes \}}
-        \Let{\txVotes}{\transactions[\tx].\votes}
-        % \Let{\missingReplicas}{ \{ \rep_j \in \allreps \mid \rep_j \not \in \transactions[\tx].\votes \} }
-        \For{$\rep_j$ \st $\rep_j \not \in \transactions[\tx].\votes$}
-            \Let{\txVotes[\rep_j]}{\lts_j}
-        \EndFor
-        \Let{\txVotes}{\text{sort \txVotes in increasing order}}
-        \return $\med(\txVotes[0: \certSize])$
-    \oa{Account for equivocations}
-    \EndFunction
-    
-    \Statex
-
-    \Function{MaxPossibleTs}{\tx}
-        \Let{\txVotes}{\transactions[\tx].\votes}
-        \For{$\rep_j$ \st $\rep_j \not \in \transactions[\tx].\votes$}
-            \Let{\txVotes[\rep_j]}{\infty}
-        \EndFor
-        \Let{\txVotes}{\text{sort \txVotes in increasing order}}
-        \return $\med(\txVotes[(n - \certSize) : n])$
-        \oa{Account for equivocations}
-    \EndFunction
-
-    \Statex
-    \Function{MinPossibleFutureTs}{}
-        \Let{\allLts}{\text{sort \allLts in increasing order}}
-        \return $\med(\allLts[0: \certSize])$
-    \oa{Account for equivocations}
-    \EndFunction
-    
     % \Statex
     % \Function{\opwrite{\tx}}{}
     %     \Let{\rexp}{(\text{\wip{now + client's expected network delay}})}
@@ -202,6 +175,45 @@ and updates $\lts_j$ with \tsp.
     % \EndFunction
 \end{algorithmic}
 \end{algorithm}
+
+
+\begin{algorithm}
+    \caption{Code for a client (continued). We denote  by \certSize the size of a certificate, e.g., $\certSize = \lceil \alpha n  \rceil$.}
+    \label{alg:constr1-client-statistics}
+    \begin{algorithmic}[1]
+        \Function{MinPossibleTs}{\tx}
+            % \Let{\votedReplicas}{\{\rep_j \in \allreps \mid \rep_j \in \transactions[\tx].\votes \}}
+            \Let{\txVotes}{\transactions[\tx].\votes}
+            % \Let{\missingReplicas}{ \{ \rep_j \in \allreps \mid \rep_j \not \in \transactions[\tx].\votes \} }
+            \For{$\rep_j$ \st $\rep_j \not \in \transactions[\tx].\votes$}
+                \Let{\txVotes[\rep_j]}{\lts_j}
+            \EndFor
+            \Let{\txVotes}{\text{sort \txVotes in increasing order}}
+            \return $\med(\txVotes[0: \certSize])$
+        \oa{Account for equivocations}
+        \EndFunction
+        
+        \Statex
+    
+        \Function{MaxPossibleTs}{\tx}
+            \Let{\txVotes}{\transactions[\tx].\votes}
+            \For{$\rep_j$ \st $\rep_j \not \in \transactions[\tx].\votes$}
+                \Let{\txVotes[\rep_j]}{\infty}
+            \EndFor
+            \Let{\txVotes}{\text{sort \txVotes in increasing order}}
+            \return $\med(\txVotes[(n - \certSize) : n])$
+            \oa{Account for equivocations}
+        \EndFunction
+    
+        \Statex
+        \Function{MinPossibleFutureTs}{}
+            \Let{\allLts}{\text{sort \allLts in increasing order}}
+            \return $\med(\allLts[0: \certSize])$
+        \oa{Account for equivocations}
+        \EndFunction
+       
+    \end{algorithmic}
+    \end{algorithm}
 
 \begin{algorithm}
     \caption{Code for a replica}
