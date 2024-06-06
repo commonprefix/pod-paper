@@ -32,8 +32,42 @@ where \round is a round and \txset is a set of transactions.
 For an entry $ (\round, \txset)$, notation $\POD[\round]$ returns \txset.
 \end{definition}
 
-\begin{definition}[Past-perfect round]\label{def:past-perfect}
-We say that a round $\rperf$ \emph{becomes past perfect} if no new transactions can appear with recorded round $\rrec \leq \rperf$.
+\begin{definition}[Vote]
+    We call a \emph{vote} a transaction-timestamp pair $(\tx, \round)$ signed by a replica.
+\end{definition}
+
+\begin{definition}[Transaction certificate]
+    A \emph{transaction certificate} \txcert is a collection of votes $(\tx, \round_j)$,
+    where $j \in |\txcert|$ and $|\txcert| \geq  \lceil \alpha n \rceil$.
+    We may explicitly denote the size of the certificate, writing
+    \emph{$x$-certificate}, for any $x \geq \alpha$.
+    When the size is omitted, we imply an \alpha-certificate.
+\end{definition}
+
+\begin{definition}[\Recorded transaction and \recorded round] 
+    A transaction becomes \emph{\recorded} for a client when the client obtains
+    a certificate for it (or forms one by obtaining $\lceil \alpha n \rceil$ votes for the transaction).
+    A recorded transaction gets assigned a number \rrec, the \emph{\recorded round}.
+\end{definition}
+
+\begin{definition}[Minimum and maximum transaction bounds]
+    Apart from \rrec, we associate with each transaction two more numbers, the \emph{minimum} (\rmin) and \emph{maximum} (\rmax) round bounds.
+    They bound the \recorded round across all clients and are monotonic. Specifically,
+    (1) if an honest client computes some $\rmin$ and $\rmax$ for a transaction
+    and that transaction becomes \recorded for some (possibly different) client with recorded round $\rrec$, then
+    $\rmin \leq \rrec \leq \rmax$,
+    and (2) if an honest client computes $\rmin$ and $\rmax$, and later updates these values to $\rmin'$ and $\rmax'$,
+    then $\rmin' > \rmin$ and $\rmax' < \rmax$.
+\end{definition}
+The \rmin, \rmax, \rrec are computed from the votes received for that transaction and they are updated when new votes are received.
+Initially, $\rmin=0$ and $\rmax=\infty$.
+
+
+\begin{definition}[Past-perfect round and past-perfection certificate]\label{def:past-perfect}
+We say that a round $\rperf$ becomes \emph{past perfect} in the view of a client
+when the client obtains a past-perfection certificate for \rperf.
+A \emph{past-perfection certificate} \perfcert is a collection of votes from replicas
+that prove that any new transaction that enters the system will be assigned a \recorded round larger than \rperf.
 \end{definition}
 
 \begin{definition}[POD protocol]
@@ -42,26 +76,26 @@ A POD protocol exposes the following methods.
 % Different replicas might report a different round for a \finalized transaction, but the following properties impose conditions on that.
 \begin{itemize}
     \item input event \opwrite{\tx}
-    \item output event \opwriteret{\tx, \cert}
-    % \item \opwritedeps{\tx, [$\deptx_1, \ldots$]} \returns \cert
-    % \item \opread{\cert} \returns (\tx, [$\deptxid_1, \ldots$]) or 
+    \item output event \opwriteret{\tx, \txcert}
+    % \item \opwritedeps{\tx, [$\deptx_1, \ldots$]} \returns \txcert
+    % \item \opread{\txcert} \returns (\tx, [$\deptxid_1, \ldots$]) or 
     \item input event \opreadall{} 
-    % \item output event \opreadallret{\round, \limbo, \POD, \Cert}
-    \item output event \opreadallret{\round, \POD, \Cert}
-    \item \opidentify{\cert, \Cert} \returns $P' \subset P$ 
+    % \item output event \opreadallret{\round, \limbo, \POD, \perfcert}
+    \item output event \opreadallret{\round, \POD, \perfcert}
+    \item \opidentify{\txcert, \perfcert} \returns $P' \subset P$ 
 \end{itemize}
 
 
 Users call~\opwrite{\tx} to write a transaction \tx.
-Upon completion, the protocol outputes \opwriteret{\tx, \cert}, where \cert is a \emph{record certificate}.
+Upon completion, the protocol outputes \opwriteret{\tx, \txcert}, where \txcert is a \emph{record certificate}.
 A transaction, for which an honest client has obtained a record certificate, is called \emph{\recorded}.
 % In its more general version, method~\opwritedeps{} allows a user to submit a transaction with dependencies.
 % This could be used, for example, to update or cancel an existing transaction.
 Users call~\opreadall{} to read the transactions in the bulletin.
-Upon completion, the protocol outputs \opreadallret{\round, \POD, \Cert},
-where \round is the \emph{past-perfect} round, \POD is a POD, and \Cert is a \emph{past-perfect certificate}.
+Upon completion, the protocol outputs \opreadallret{\round, \POD, \perfcert},
+where \round is the \emph{past-perfect} round, \POD is a POD, and \perfcert is a \emph{past-perfect certificate}.
 For each entry $(\round', \txset)$ in $\POD$, we say that transactions in \txset became \emph{\finalized} at round $\round'$.
-Users call \opidentify{\cert, \Cert} \returns $P' \subset P$ to identify the set $P'$ of parties who vouched for the finalization of a $\tx$, where $\Cert$ is a POD and $\pi$ is the certificate returned by  $\opwriteret{\tx, \cert}$.
+Users call \opidentify{\txcert, \perfcert} \returns $P' \subset P$ to identify the set $P'$ of parties who vouched for the finalization of a $\tx$, where $\perfcert$ is a POD and $\pi$ is the certificate returned by  $\opwriteret{\tx, \txcert}$.
 
 \end{definition}
 % \oa{Do we need a ``state'' and timestamps?}
@@ -72,34 +106,33 @@ Users call \opidentify{\cert, \Cert} \returns $P' \subset P$ to identify the set
 
 A POD satisfies the following properties.
 
-\dotparagraph{Properties (informal)}
-\begin{description}
-    \item[Short-term censorship resistance]
-    We want honest clients to be able to submit transactions and get a guarantee that they will be \finalized very quickly -- when the network is good -- ideally in the order of 100ms-2s. Particularly, malicious replicas should not be able to censor honest users or delay their transactions. We find the standard \textbf{liveness} property can capturre this: a transaction by an honest user will be \recorded within at most \parack rounds and \finalized within at most \parwrite rounds.
-    \item[Finality] 
-    We envision applications such as the following: an auction is run by a trusted enity and retrieves its bids from our POD.
-    The auction application uses \opreadall{} for that. 
-    We need a way to indicate the round \round of the POD that the auction considered,
-    and we need to guarantee that all bids in the POD with round \round or smaller were seen by the auction.
-    This is be achieved using the \emph{last finalized} round $\round$ return by \opreadallret{}: we guarantee that all transactions in \txset with a round $\round' \leq \round$ will be read by all honest parties.
-    \item[Light-client friendly] There exists a succinct description of the current state of the POD that can be used to verify that a subset of  pairs $ (\round, \txset)$ is record in the POD. Succinctness in this context means that the size of the state description and verification times are independent from the total size of the POD.
+% \dotparagraph{Properties (informal)}
+% \begin{description}
+%     \item[Short-term censorship resistance]
+%     We want honest clients to be able to submit transactions and get a guarantee that they will be \finalized very quickly -- when the network is good -- ideally in the order of 100ms-2s. Particularly, malicious replicas should not be able to censor honest users or delay their transactions. We find the standard \textbf{liveness} property can capturre this: a transaction by an honest user will be \recorded within at most \parack rounds and \finalized within at most \parwrite rounds.
+%     \item[Finality] 
+%     We envision applications such as the following: an auction is run by a trusted enity and retrieves its bids from our POD.
+%     The auction application uses \opreadall{} for that. 
+%     We need a way to indicate the round \round of the POD that the auction considered,
+%     and we need to guarantee that all bids in the POD with round \round or smaller were seen by the auction.
+%     This is be achieved using the \emph{last finalized} round $\round$ return by \opreadallret{}: we guarantee that all transactions in \txset with a round $\round' \leq \round$ will be read by all honest parties.
+%     \item[Light-client friendly] There exists a succinct description of the current state of the POD that can be used to verify that a subset of  pairs $ (\round, \txset)$ is record in the POD. Succinctness in this context means that the size of the state description and verification times are independent from the total size of the POD.
     
-\end{description}
+% \end{description}
 
-\dotparagraph{Properties (formal)}
 \begin{enumerate}
     \item{Liveness}
     \begin{description}
     
             \item[Acknowledged within \parack:]
             Assume an honest client calls \opwrite{\tx} at round \round.
-            Then the protocol will output \opwriteret{\tx, \cert} by round $\round + \parack$.
+            Then the protocol will output \opwriteret{\tx, \txcert} by round $\round + \parack$.
             \oa{We can make \parack as low as $2\delta$ or $3\delta$.}
             % \item[Fast \finalized]
-            % Assume a client $\user$ obtains a certificate \cert for a transaction \tx,
-            % where \cert identifies a set of parties $P$.
+            % Assume a client $\user$ obtains a certificate \txcert for a transaction \tx,
+            % where \txcert identifies a set of parties $P$.
             % Assume also the maximum round
-            % an honest party in $P$ had observed when it created its contribution for \cert was $\round$.
+            % an honest party in $P$ had observed when it created its contribution for \txcert was $\round$.
             % Then, transaction \tx will be made \textcolor{red}{available} at round $\round'$, for some $\round' \leq \round + \Delta$,
             % or, in other words, an entry $(\tx, \user, \round')$ will appear in $\POD$.
             % \oa{Define $\Delta.$}
@@ -107,22 +140,22 @@ A POD satisfies the following properties.
             % \bd{Agreed. We may want to model an upper bound on the delay for this ``eventually'' at some point in order to capture ``responsiveness'', \textit{i.e.} show that liveness is achieved as fast the network delay allows. However, this does not seem necessary for basic security definitions.}  
 
         \item[Included within \parwrite with accountability:]
-        Assume the protocol outputs \opwriteret{\tx, \cert} to an honest client at round $\round_1$, for some transaction \tx.
+        Assume the protocol outputs \opwriteret{\tx, \txcert} to an honest client at round $\round_1$, for some transaction \tx.
         Then, if an honest client calls \opreadall{} at round $\round_2 \geq \round_1 + \parwrite$, one of the following holds:
         (1) The protocol will output
-        \opreadallret{$\round, \cdot, \Cert$},
+        \opreadallret{$\round, \cdot, \perfcert$},
         for some $\round \leq \round_2$, such that \POD contains an entry $(\round', \txset)$ with $\round' \leq \round$ and $\tx \in \txset$.
         % (\textit{i.e.} after \parwrite, \tx will appear in the POD and it will be visible to all.)
-        (2) The POD \POD and certificates \cert and \Cert identify a set of replicas $P'$ that have misbehaved.
+        (2) The POD \POD and certificates \txcert and \perfcert identify a set of replicas $P'$ that have misbehaved.
         \oa{I think we can get $\parwrite = 1$. The intuition is that, as long as the write operation returns, there will be at least $2f+1$ correct replicas that have \tx, and at least $f+1$ of them will return it to consequent reads.}
         % \item[Correctness]
-        % A call \opread{\cert}, where \cert is a valid certificate, returns the transaction \tx for which \cert was produced.
+        % A call \opread{\txcert}, where \txcert is a valid certificate, returns the transaction \tx for which \txcert was produced.
         
         % \item[Partial order] \oa{wip}
         % Assume an honest client calls $\opwrite{\tx, \deptx}$ and a response from $\opreadall{}$ contains $(\deptx, \round)$ and $(\tx, \round')$. Then $\round < \round'$.
         
         % \item[Identifiability 1] \oa{wip}
-        % The certificate \cert identifies the set of parties that guaranteed the \textcolor{red}{inclusion} of \tx.
+        % The certificate \txcert identifies the set of parties that guaranteed the \textcolor{red}{inclusion} of \tx.
         
     \end{description}
 
@@ -170,21 +203,21 @@ A POD satisfies the following properties.
         that all honest replicas will deliver a transaction within time $T$, but also the more we have to wait to make sure that $\round_1$ becomes past-perfect.
         }
         \item[Fair punishment]
-        No honest replica gets punished as a result of malicious operation. If $\opidentify{\cert, \Cert} \returns P'$, where \cert is a record certificate for transaction \tx
-        and $\Cert$ is a past-perfect certificate for a POD \POD,
+        No honest replica gets punished as a result of malicious operation. If $\opidentify{\txcert, \perfcert} \returns P'$, where \txcert is a record certificate for transaction \tx
+        and $\perfcert$ is a past-perfect certificate for a POD \POD,
         can only be created if all parties in $P'$ sign \tx and \POD.
     \end{description}
 \end{enumerate}
 
 
 % \subsection{broadcast-deliver}
-% The system exposes the method \opbcast{\tx}, which allows a user to input a transaction \tx to the system, and returns a certificate \cert.
+% The system exposes the method \opbcast{\tx}, which allows a user to input a transaction \tx to the system, and returns a certificate \txcert.
 % The method also allows the caller to specify a set of transactions that have already been delivered, by calling \opbcast{\tx, [$\deptxid_1, \ldots, \deptxid_\ell$]}.
 % The system also exposes an event \opdel{\tx}, which is observed by users who monitor the system.
 % It satisfies the following properties.
 % \begin{description}
 %     \item[Censorship-resistance]
-%     If a user calls \opbcast{\tx} then eventually (1) that user gets \cert as output and (2) all honest users output \opdel{\tx}.
+%     If a user calls \opbcast{\tx} then eventually (1) that user gets \txcert as output and (2) all honest users output \opdel{\tx}.
 % \end{description}
 
 
