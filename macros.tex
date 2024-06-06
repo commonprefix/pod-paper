@@ -67,7 +67,7 @@
 \newcommand{\opMinPossibleTs}[1]{\op{minPossibleTs(#1)}\xspace}
 \newcommand{\opMaxPossibleTs}[1]{\op{maxPossibleTs(#1)}\xspace}
 \newcommand{\opMinPossibleTsForNewTx}[1]{\op{minPossibleTsForNewTx(#1)}\xspace}
-
+\newcommand{\med}{\op{median}\xspace}
 
 \newcommand{\operand}[1]{\textsf{#1}}
 \newcommand{\tx}{\operand{tx}\xspace}
@@ -86,6 +86,19 @@
 \newcommand{\txmiss}{\ensuremath{\txset_\text{miss}}\xspace}
 \newcommand{\txfinal}{\ensuremath{\txset_\text{final}}\xspace}
 \newcommand{\inclist}{\ensuremath{L}\xspace}
+\newcommand{\rep}{\ensuremath{R}\xspace}
+\newcommand{\allreps}{\CR}
+\newcommand{\allLts}{\CL}
+\newcommand{\lts}{\operand{lts}\xspace}
+\newcommand{\repLog}{\operand{log}\xspace}
+\newcommand{\transactions}{\operand{localLog}\xspace}
+\newcommand{\votes}{\operand{votes}\xspace}
+\newcommand{\txVotes}{\operand{txVotes}\xspace}
+\newcommand{\certSize}{\ensuremath{c}\xspace}
+\newcommand{\tsp}{\operand{ts}\xspace}
+\newcommand{\votedReplicas}{\operand{votedReplicas}\xspace}
+\newcommand{\missingReplicas}{\operand{missingReplicas}\xspace}
+
 
 \newcommand{\user}{\operand{user}\xspace}
 \newcommand{\timestamp}{\operand{ts}\xspace}
@@ -113,20 +126,6 @@
 \newcommand{\msgwrite}{\text{WRITE}\xspace}
 \newcommand{\msgread}{\text{READ}\xspace}
 \newcommand{\msgprecommit}{\text{PRECOMMIT}\xspace}
-\newcommand{\rep}{\ensuremath{R}\xspace}
-\newcommand{\allreps}{\CR}
-\newcommand{\allLts}{\CL}
-\newcommand{\lts}{\text{lts}\xspace}
-\newcommand{\repLog}{\text{log}\xspace}
-\newcommand{\transactions}{\text{localLog}\xspace}
-\newcommand{\votes}{\text{votes}\xspace}
-\newcommand{\txVotes}{\text{txVotes}\xspace}
-\newcommand{\med}{\text{median}\xspace}
-\newcommand{\certSize}{\ensuremath{c}\xspace}
-
-\newcommand{\tsp}{\text{ts}\xspace}
-\newcommand{\votedReplicas}{\text{votedReplicas}\xspace}
-\newcommand{\missingReplicas}{\text{missingReplicas}\xspace}
 
 \let\oldalpha\alpha
 \renewcommand{\alpha}{\ensuremath{\oldalpha}\xspace}

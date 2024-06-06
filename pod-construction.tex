@@ -63,10 +63,21 @@ If the checks pass, the client records \tsp returned by $\rep_j$ in $\transactio
 and updates $\lts_j$ with \tsp.
 
 The client then updates the values \rmin (lines~\ref{line:upd-rmin-begin}--\ref{line:upd-rmin-end}) and
-\rmax (lines~\ref{line:upd-rmax-begin}--\ref{line:upd-rmax-end}),
-it checks whether \tx can be confirmed and updates $\rrec$ (lines~\ref{line:confirm-tx-begin}--\ref{line:confirm-tx-end}),
-and it checks whether \rperf can be updated (lines~\ref{line:upd-rperf-begin}--\ref{line:upd-rperf-end}).
-\oa{Continue here}
+\rmax (lines~\ref{line:upd-rmax-begin}--\ref{line:upd-rmax-end})
+using the \opMinPossibleTs{} and \opMaxPossibleTs{} functions,
+which return the minimum and maximum, respectively, possible timestamps that could ever be assigned to \tx by any client.
+It then checks whether \tx can be \recorded and updates $\rrec$ (lines~\ref{line:confirm-tx-begin}--\ref{line:confirm-tx-end}) with the median
+of all received votes.
+Finally, it checks whether \rperf can be updated (lines~\ref{line:upd-rperf-begin}--\ref{line:upd-rperf-end}) using \opMinPossibleTsForNewTx{}.
+
+As shown in \Cref{alg:client-statistics}, \opMinPossibleTs{} and \opMaxPossibleTs{}
+pessimistically fill missing votes and
+allowup to \beta parties to equivocate.
+The former fills a missing vote from replica $\rep_j$ with $\lts_j$ (\cref{line:fill-vote-lts}), the minimum timestamp that can ever be  accepted from $\rep_j$ (smaller values will not pass the check on \cref{line:check-old-ts} of \Cref{alg:client-2}),
+while the latter fills a missing vote with $\infty$ (\cref{line:fill-vote-inf}).
+Finally, \opMinPossibleTsForNewTx{} works similarly to \opMinPossibleTs{}, except
+considering timestamps \allLts as the minimum possible for any future transaction.
+
 
 \begin{algorithm}
     \caption{Code for a client, part 1.}
@@ -163,7 +174,7 @@ and it checks whether \rperf can be updated (lines~\ref{line:upd-rperf-begin}--\
     \Statex
     
     \Function{\opOnReceiveVote{$(\tx, \tsp),  \rep_j$}}{}
-        \If{$\tsp < \lts_j$}
+        \If{$\tsp < \lts_j$}\label{line:check-old-ts}
             \return \Comment{accountable fault, $\rep_j$ assigned old timestamp to \tx}\label{line:old-tsp}
         \EndIf
         \If{$\transactions[\tx] = \bot$}
@@ -229,7 +240,7 @@ and it checks whether \rperf can be updated (lines~\ref{line:upd-rperf-begin}--\
             \Let{\txVotes}{\text{all timestamps in } \transactions[\tx].\votes}
             % \Let{\missingReplicas}{ \{ \rep_j \in \allreps \mid \rep_j \not \in \transactions[\tx].\votes \} }
             \For{$\rep_j$ \st $\rep_j \not \in \transactions[\tx].\votes$}
-                \Let{\txVotes}{\txVotes \| \lts_j}
+                \Let{\txVotes}{\txVotes \| \lts_j}\label{line:fill-vote-lts}
             \EndFor
             \Let{\txVotes}{\text{sort \txVotes in increasing order}}
             \Let{\txVotes}{\{ 0, \stackrel{\beta \text{ times}}{\ldots}, 0 \} \| \txVotes}
@@ -241,7 +252,7 @@ and it checks whether \rperf can be updated (lines~\ref{line:upd-rperf-begin}--\
         \Function{\opMaxPossibleTs{\tx}}{}
             \Let{\txVotes}{\text{all timestamps in } \transactions[\tx].\votes}
             \For{$\rep_j$ \st $\rep_j \not \in \transactions[\tx].\votes$}
-                \Let{\txVotes}{\txVotes \| \infty}
+                \Let{\txVotes}{\txVotes \| \infty}\label{line:fill-vote-inf}
             \EndFor
             \Let{\txVotes}{\text{sort \txVotes in increasing order}}
             \Let{\txVotes}{\txVotes \| \{ \infty, \stackrel{\beta \text{ times}}{\ldots}, \infty \} }
@@ -253,7 +264,6 @@ and it checks whether \rperf can be updated (lines~\ref{line:upd-rperf-begin}--\
             \Let{\allLts}{\text{sort \allLts in increasing order}}
             \Let{\allLts}{\{ 0, \stackrel{\beta \text{ times}}{\ldots}, 0 \} \| \allLts}
             \return $\med(\allLts[0: \certSize])$
-        \oa{Account for equivocations}
         \EndFunction
        
     \end{algorithmic}
