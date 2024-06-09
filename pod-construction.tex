@@ -18,7 +18,7 @@ by $\alpha \in [0,1]$ the \emph{confirmation threshold}.
 \begin{definition}[Local transaction log]\label{def:local-log}
     Clients maintain a \emph{local log} for each transaction they are aware of,
     which contains the received votes and the current \rmin, \rmax, and \rrec.
-    The \recorded round \rrec is undefined (denoted as $\bot$) until the transaction becomes \recorded.
+    The \confirmed round \rrec is undefined (denoted as $\bot$) until the transaction becomes \confirmed.
 \end{definition}
 
 
@@ -35,7 +35,7 @@ Upon receiving a $(\msgwrite, \tx)$, a replica appends \tx to its log.
 For both messages, replicas return their whole log to the client (\cref{line:receive-log}).
 Clients process each transaction in the log by calling \opOnReceiveVote{}.
 % Upon receiving a write request, a replica assigns it its local round number \rloc and returns it to the client.
-% Upon receiving $n-f$ write responses, a client considers the request \emph{\recorded}.
+% Upon receiving $n-f$ write responses, a client considers the request \emph{\confirmed}.
 % It $R$ is the set with the $n-f$ local rounds received by the client,
 % then the \emph{recorded round} of the transaction is $\rrec = \opmed{R}$.
 
@@ -44,10 +44,10 @@ Clients process each transaction in the log by calling \opOnReceiveVote{}.
 % and \POD contains all the pairs $(\tx', \round')$ it possesses~(\cref{line:respond-read}).
 % The client waits for $n-f$ valid \wip{$\opvalid{} = \round' \leq  \round$, for all the $\round' \in \POD$}
 % read responses and does the following.
-% % in order to infer the current past-perfect round \rperf and the transactions with \recorded round $\rrec \leq \rperf$.
+% % in order to infer the current past-perfect round \rperf and the transactions with \confirmed round $\rrec \leq \rperf$.
 % First, it sets $\rperf$ to be the \emph{minimum} of the received \round values.
 % Seconds, it sets $\txfinal$ to be the union of all transactions in the responses.
-% Using the client-gossip technique, the client can make sure that \rperf is a past-perfect round and that \txfinal contains \emph{all} the transactions with \recorded round $\rrec \leq \rperf$.
+% Using the client-gossip technique, the client can make sure that \rperf is a past-perfect round and that \txfinal contains \emph{all} the transactions with \confirmed round $\rrec \leq \rperf$.
 % The client outputs $(\rperf, \txfinal, \Cert)$, where \Cert contains the responses it received from the replicas.
 % \oa{TODO. I believe the second read is not necessary. In GST, all \tx from the first read will be written after $\Delta$.}
 % \oa{See \Cref{lem:perfect-round-txs}.}
@@ -66,50 +66,47 @@ The client then updates the values \rmin (lines~\ref{line:upd-rmin-begin}--\ref{
 \rmax (lines~\ref{line:upd-rmax-begin}--\ref{line:upd-rmax-end})
 using the \opMinPossibleTs{} and \opMaxPossibleTs{} functions,
 which return the minimum and maximum, respectively, possible timestamps that could ever be assigned to \tx by any client.
-It then checks whether \tx can be \recorded and updates $\rrec$ (lines~\ref{line:confirm-tx-begin}--\ref{line:confirm-tx-end}) with the median
+It then checks whether \tx can be \confirmed and updates $\rrec$ (lines~\ref{line:confirm-tx-begin}--\ref{line:confirm-tx-end}) with the median
 of all received votes.
 Finally, it checks whether \rperf can be updated (lines~\ref{line:upd-rperf-begin}--\ref{line:upd-rperf-end}) using \opMinPossibleTsForNewTx{}.
 
 As shown in \Cref{alg:client-statistics}, \opMinPossibleTs{} and \opMaxPossibleTs{}
 pessimistically fill missing votes and
-allowup to \beta parties to equivocate.
+allow up to \beta parties to equivocate.
 The former fills a missing vote from replica $\rep_j$ with $\lts_j$ (\cref{line:fill-vote-lts}), the minimum timestamp that can ever be  accepted from $\rep_j$ (smaller values will not pass the check on \cref{line:check-old-ts} of \Cref{alg:client-2}),
 while the latter fills a missing vote with $\infty$ (\cref{line:fill-vote-inf}).
 Finally, \opMinPossibleTsForNewTx{} works similarly to \opMinPossibleTs{}, except
 considering timestamps \allLts as the minimum possible for any future transaction.
 
-
 \begin{algorithm}
-    \caption{Code for a client, part 1.}
-    \label{alg:client-1}
-    \begin{algorithmic}[1]
-        \On{event $\opwrite{\tx}$}
-            % \Let{\rexp}{(\text{\wip{now + client's expected network delay}})}
-            % \Let{\sigma}{\opsign{(\tx, \rexp)}}
-            % \State{Send $(\msgwrite, (\tx, \rexp, \sigma))$ to all replicas}
-            % \For{$\rep_j \in \allreps$}
-            \State{Send $(\msgwrite, \tx)$ to all replicas}
-            % \EndFor
-        \EndOn
-                
-        \Statex
+\caption{Code for a client, part 1.}
+\label{alg:client-1}
+\begin{algorithmic}[1]
+    \On{event $\opwrite{\tx}$}
+        % \Let{\rexp}{(\text{\wip{now + client's expected network delay}})}
+        % \Let{\sigma}{\opsign{(\tx, \rexp)}}
+        % \State{Send $(\msgwrite, (\tx, \rexp, \sigma))$ to all replicas}
+        % \For{$\rep_j \in \allreps$}
+        \State{Send $(\msgwrite, \tx)$ to all replicas}
+        % \EndFor
+    \EndOn
+            
+    \Statex
 
-        \Function{\opreadall{}}{}
-            % \Let{\rloc}{(\text{\wip{now}})}
-            % \For{$\rep_j \in \allreps$}
-            \State{Send \msgread to all replicas} 
-            % \EndFor
-        \EndFunction
+    \Function{\opreadall{}}{}
+        % \Let{\rloc}{(\text{\wip{now}})}
+        % \For{$\rep_j \in \allreps$}
+        \State{Send \msgread to all replicas} 
+        % \EndFor
+    \EndFunction
 
-        \Statex
+    \Statex
 
-        \On{receive $\repLog_j$ from $\rep_j$} \label{line:receive-log}         
-            \For{$(\tx, \tsp) \in \repLog_j$ in increasing timestamp order}
-                \State{\opOnReceiveVote{$(\tx, \tsp),  \rep_j$}}
-            \EndFor
-        \EndOn
-
-
+    \On{receive $\repLog_j$ from $\rep_j$} \label{line:receive-log}         
+        \For{$(\tx, \tsp) \in \repLog_j$ in increasing timestamp order}
+            \State{\opOnReceiveVote{$(\tx, \tsp),  \rep_j$}}
+        \EndFor
+    \EndOn
     %     \Statex
     %     \Function{\opwrite{\tx}}{}
     %         \Let{\rexp}{(\text{\wip{now + client's expected network delay}})}
@@ -158,10 +155,9 @@ considering timestamps \allLts as the minimum possible for any future transactio
     %         \Let{\rperf}{\opmin{$\{ \round_i \}_{i\in[2f+1]}$}}
     %         \return (\rperf,\txfinal, \oa{\Cert})
     %     \EndFunction
-    \end{algorithmic}
-    \end{algorithm}
+\end{algorithmic}
+\end{algorithm}
     
-
 \begin{algorithm}
 \caption{Code for a client, part 2. We denote by $\certSize = \lceil \alpha n \rceil$ the size of a certificate.}
 \label{alg:client-2}
@@ -230,76 +226,66 @@ considering timestamps \allLts as the minimum possible for any future transactio
 \end{algorithmic}
 \end{algorithm}
 
-
 \begin{algorithm}[t]
     \caption{Code for a client, part 3. Computing worst-case \rmin and \rmax for existing and new transactions, allowing \beta equivocations.}
     \label{alg:client-statistics}
     \begin{algorithmic}[1]
-        \Function{\opMinPossibleTs{\tx}}{}
-            % \Let{\votedReplicas}{\{\rep_j \in \allreps \mid \rep_j \in \transactions[\tx].\votes \}}
-            \Let{\txVotes}{\text{all timestamps in } \transactions[\tx].\votes}
-            % \Let{\missingReplicas}{ \{ \rep_j \in \allreps \mid \rep_j \not \in \transactions[\tx].\votes \} }
-            \For{$\rep_j$ \st $\rep_j \not \in \transactions[\tx].\votes$}
-                \Let{\txVotes}{\txVotes \| \lts_j}\label{line:fill-vote-lts}
-            \EndFor
-            \Let{\txVotes}{\text{sort \txVotes in increasing order}}
-            \Let{\txVotes}{\{ 0, \stackrel{\beta \text{ times}}{\ldots}, 0 \} \| \txVotes}
-            \return $\med(\txVotes[0: \certSize])$
-        \EndFunction
-        
-        \Statex
+    \Function{\opMinPossibleTs{\tx}}{}
+        % \Let{\votedReplicas}{\{\rep_j \in \allreps \mid \rep_j \in \transactions[\tx].\votes \}}
+        \Let{\txVotes}{\text{all timestamps in } \transactions[\tx].\votes}
+        % \Let{\missingReplicas}{ \{ \rep_j \in \allreps \mid \rep_j \not \in \transactions[\tx].\votes \} }
+        \For{$\rep_j$ \st $\rep_j \not \in \transactions[\tx].\votes$}
+            \Let{\txVotes}{\txVotes \| \lts_j}\label{line:fill-vote-lts}
+        \EndFor
+        \Let{\txVotes}{\text{sort \txVotes in increasing order}}
+        \Let{\txVotes}{\{ 0, \stackrel{\beta \text{ times}}{\ldots}, 0 \} \| \txVotes}
+        \return $\med(\txVotes[0: \certSize])$
+    \EndFunction
     
-        \Function{\opMaxPossibleTs{\tx}}{}
-            \Let{\txVotes}{\text{all timestamps in } \transactions[\tx].\votes}
-            \For{$\rep_j$ \st $\rep_j \not \in \transactions[\tx].\votes$}
-                \Let{\txVotes}{\txVotes \| \infty}\label{line:fill-vote-inf}
-            \EndFor
-            \Let{\txVotes}{\text{sort \txVotes in increasing order}}
-            \Let{\txVotes}{\txVotes \| \{ \infty, \stackrel{\beta \text{ times}}{\ldots}, \infty \} }
-            \return $\med(\txVotes[(n - \certSize) : n])$
-        \EndFunction
-    
-        \Statex
-        \Function{\opMinPossibleTsForNewTx{}}{}
-            \Let{\allLts}{\text{sort \allLts in increasing order}}
-            \Let{\allLts}{\{ 0, \stackrel{\beta \text{ times}}{\ldots}, 0 \} \| \allLts}
-            \return $\med(\allLts[0: \certSize])$
-        \EndFunction
-       
-    \end{algorithmic}
-    \end{algorithm}
+    \Statex
 
-% \begin{algorithm}
-%     \caption{Code for a replica}
-%     \label{alg:constr1-replica}
-%     \begin{algorithmic}[1]
-%         \Let{\POD}{\oa{todo}}
-%         \Function{Upon receiving}{ $\msgwrite, (\tx, \rexp, \sigma)$}
-%             \Let{\round}{\text{\wip{local round}}}
-%             \If{$\rexp < \round$}
-%                 \return
-%             \EndIf
-%             \Let{\POD}{\text{append (\tx, \round)}}
-%             \Let{\sigma'}{\opsign{$(\tx, \rexp, \sigma)$}}
-%             \Statex\oa{I think we don't need $\sigma$ in the signed message, neither to return it}
-%             \State{Send $(\sigma', \round, (\tx, \sigma))$ to client}
-%         \EndFunction
-%         \Statex
-%         \Function{Upon receiving}{ \msgread}
-%             \Let{\round}{\text{local round}}
-%             \Let{\sigma}{\opsign{$(\round, \POD)$}} 
-%             \return $(\sigma, \round, \POD)$~\label{line:respond-read}
-%         \EndFunction
-%     \end{algorithmic}
-%     \end{algorithm}
+    \Function{\opMaxPossibleTs{\tx}}{}
+        \Let{\txVotes}{\text{all timestamps in } \transactions[\tx].\votes}
+        \For{$\rep_j$ \st $\rep_j \not \in \transactions[\tx].\votes$}
+            \Let{\txVotes}{\txVotes \| \infty}\label{line:fill-vote-inf}
+        \EndFor
+        \Let{\txVotes}{\text{sort \txVotes in increasing order}}
+        \Let{\txVotes}{\txVotes \| \{ \infty, \stackrel{\beta \text{ times}}{\ldots}, \infty \} }
+        \return $\med(\txVotes[(n - \certSize) : n])$
+    \EndFunction
 
-
+    \Statex
+    \Function{\opMinPossibleTsForNewTx{}}{}
+        \Let{\allLts}{\text{sort \allLts in increasing order}}
+        \Let{\allLts}{\{ 0, \stackrel{\beta \text{ times}}{\ldots}, 0 \} \| \allLts}
+        \return $\med(\allLts[0: \certSize])$
+    \EndFunction
+\end{algorithmic}
+\end{algorithm}
 
 \begin{lemma}
-    $\rrec \in \rinterval$
+    Assuming the adversary controls up to \beta replicas,
+    the rounds \rmin, \rmax, and \rrec computed by \Cref{alg:client-2}
+    satisfy the bounds of \Cref{def:min-max-bounds},
 \end{lemma}
 \begin{proof}
-    By construction.
+    To prove (1), assume client $c_1$ computes \rmin and \rmax for some transaction \tx, and client $c_2$ observes \tx as \confirmed with round \rrec.
+    Let \txcert be the certificate used by $c_2$ to confirm \tx.
+    \oa{TODO}
+\end{proof}
+
+\begin{lemma}
+    If the rounds \rmin, \rmax, and \rrec computed by \Cref{alg:client-2}
+    do not satisfy the bounds of \Cref{def:min-max-bounds},
+    then more than \beta replicas have identifiably misbehaved.
+\end{lemma}
+\begin{proof}
+\end{proof}
+
+\begin{lemma}
+    If an honest client writes a transaction then it
+\end{lemma}
+\begin{proof}
 \end{proof}
 
 \begin{lemma}
