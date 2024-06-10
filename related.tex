@@ -1,0 +1,21 @@
+\section{Related work}
+
+Recent literature has recognized the redundancy of consensus for implementing asset-transfer systems~\cite{DBLP:journals/dc/GuerraouiKMPS22}.
+Such schemes have been described in theory~\cite{DBLP:journals/corr/abs-1909-10926, DBLP:conf/dsn/CollinsGKKMPPST20} and deployed in the real world~\cite{DBLP:conf/aft/BaudetDS20}.
+
+The insight that is total order is not required in the case that each account is controlled by one client.
+Instead, it is sufficient to guarantee that a cheating clients cannot equivocate, that is, send different transactions to different replicas.
+This property is guaranteed by broadcast protocols.
+These protocols have a similar architecture: the broadcast of transactions is initiated by clients, who either drive the whole broadcast instance~\cite{DBLP:conf/aft/BaudetDS20} or outsource it to trusted replicas~\cite{DBLP:conf/dsn/CollinsGKKMPPST20}.
+Therefore, a cheating client might lose liveness~\cite{DBLP:conf/aft/BaudetDS20,DBLP:journals/corr/abs-1909-10926}, but equivocating is not possible.
+
+FastPay~\cite{DBLP:conf/aft/BaudetDS20} reaches throughput of $140K$ tps with a latency of approx. 200 ms in a WAN deployment with four replicas.
+ABC~\cite{DBLP:journals/corr/abs-1909-10926} supports proof-of-stake, but provides no implementation or benchmarks.
+Astro~\cite{DBLP:conf/dsn/CollinsGKKMPPST20}, similarly, is based on reliable broadcast~\cite{DBLP:journals/iandc/Bracha87}.
+All these protocols are tailor-made for payment systems or for specific blockchains and cannot be used for general distributed applications.
+
+
+\oa{It's quite well-known that we do not need consensus for payments (for some types of payments, where accounts have unique owners). But what we need is "same-sender total order", which means "if tx1, tx2 are sent by the same process then everyone delivers them in the same order". This was formalized in the Consensus number paper. (It is almost as "FIFO broadcast",  but FIFO additionally requires that the order they are delivered in is the same as the order in which the sender sent them. This is not required for payment safety.)
+In order to achieve this  "same-sender total order", the Cons. Number, FastPay, ABC rely on broadcast (either consistent or reliable, small difference) and either sequence numbers (Cons. Number, FastPay) or having each transaction spend a unique transaction output (ABC). The benefit of this: "same-sender total order", so they can do payments. The drawback: there is no notion of time, neither actual not logical (like block height), we cannot know when a transaction was submitted, so we cannot directly do auctions. Plus, each account can broadcast only one transaction at a time, they proceed sequentially with the sequence numbers (in theory they could broadcast multiple sequence numbers in parallel, but none of the existing works allows this).
+In POD we do not achieve the "same-sender total order" property, hence it's a very different primitive. But we couple transactions with timestamps.
+So is what we do: FastPay - sequence numbers + timestamps? I think so, at least on a high level. }
