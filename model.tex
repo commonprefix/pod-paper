@@ -26,11 +26,11 @@ In the synchronous model, we assume that every message is delivered within a \em
 
 % We first define the notions of a \emph{Partially Ordered Dataset} and a \emph{past-perfect round}.
 
-% \begin{definition}[Partially Ordered Dataset (POD)]
-% A \emph{Partially Ordered Dataset (POD)} is a finite sequence of pairs, $\POD =\{(\round, \txset),\ldots,(\round', \txset')\}$,
-% where \round is a round and \txset is a set of transactions.
-% For an entry $ (\round, \txset)$, notation $\POD[\round]$ returns \txset.
-% \end{definition}
+\begin{definition}[Partially Ordered Dataset (POD) \oa{OLD}]
+A \emph{Partially Ordered Dataset (POD)} is a finite sequence of pairs, $\POD =\{(\round, \txset),\ldots,(\round', \txset')\}$,
+where \round is a round and \txset is a set of transactions.
+For an entry $ (\round, \txset)$, notation $\POD[\round]$ returns \txset.
+\end{definition}
 
 \begin{definition}[Vote]
     We call a \emph{vote} a transaction-timestamp pair $(\tx, \round)$ signed by a replica.
@@ -55,26 +55,37 @@ In the synchronous model, we assume that every message is delivered within a \em
     and that transaction becomes \confirmed for some (possibly different) client with recorded round $\rrec$, then
     $\rmin \leq \rrec \leq \rmax$,
     and (2) if an honest client computes $\rmin$ and $\rmax$, and later updates these values to $\rmin'$ and $\rmax'$,
-    then $\rmin' geq \rmin$ and $\rmax' \leq \rmax$. \oa{Check: this should also hold for different clients.}
+    then $\rmin' \geq \rmin$ and $\rmax' \leq \rmax$.
 \end{definition}
 The \rmin, \rmax, \rrec are computed from the votes received for that transaction and they are updated when new votes are received.
 % Initially, $\rmin=0$ and $\rmax=\infty$.
 
 \begin{definition}[Transaction certificate]
     A \emph{transaction certificate} \txcert is a collection of votes $(\tx, \round_j)$, for $j \in |\txcert|$,
-    from which the values $\rmin, \rmax, \rrec$ can be computed for \tx.
+    from which the values $\rmin, \rmax, \rrec$ associated with \tx can be verified.
+    Given a certificate \txcert for \tx, we use $\txcert.\tx$, $\txcert.\rmin$, $\txcert.\rmax$, and $\txcert.\rrec$ to refer to \tx and the rounds associated with it.
     According to \Cref{def:rec-tx}, \tx is \confirmed if and only if $|\txcert| \geq  \lceil \alpha n \rceil$.
-    We may explicitly denote the size of the certificate, writing
-    \emph{$x$-certificate}, for any $x \geq \alpha$.
-    When the size is omitted, we imply an \alpha-certificate.
+    We may also denote the size of the certificate as
+    \emph{$x$-certificate}, for any $x \in (0,n]$.
+    For example, an $\alpha$-certificate corresponds to a confirmed transaction.
 \end{definition}
 
-
-\begin{definition}[Past-perfect round and past-perfection certificate]\label{def:past-perfect}
+\begin{definition}[Partially Ordered Dataset (POD) \oa{NEW}]
+\begin{sloppy}
+    A \emph{Partially Ordered Dataset (POD)} $\POD$ is a finite set of entries $(\tx, \rmin, \rmax, \rrec, \txcert )$,
+    where $\rmin, \rmax, \rrec$ are the minimum, maximum, and \confirmed rounds and $\txcert$ is the transaction certificate associated with transaction $\tx$.
+\end{sloppy}
+\end{definition}
+    
+\begin{definition}[Past-perfect round and past-perfection certificate]
+\label{def:past-perfect}
 We say that a round $\rperf$ becomes \emph{past perfect} in the view of a client
 when the client obtains a past-perfection certificate for \rperf.
-A \emph{past-perfection certificate} \perfcert is a collection of votes from replicas
+A \emph{past-perfection certificate} \ppcert is a collection of votes from replicas
 that prove that any new transaction that enters the system will be assigned a \confirmed round larger than \rperf.
+Given a past-perfection certificate \ppcert, we refer to the past-perfect round it implies by $\ppcert.\rperf$.
+In the construction, we will have clients also output a POD \POD, containing all transactions they have seen by that point, together with \rperf.
+We refer to that by $\ppcert.\POD$.
 \end{definition}
 
 \begin{definition}[POD protocol]
@@ -86,19 +97,19 @@ A POD protocol exposes the following methods.
     % \item output event \opwriteret{\tx, \txcert}
     % \item \opwritedeps{\tx, [$\deptx_1, \ldots$]} \returns \txcert
     % \item \opread{\txcert} \returns (\tx, [$\deptxid_1, \ldots$]) or 
-    \item $\opreadall{} \returns \left( \{(\tx, \rmin, \rmax, \rrec, \txcert)\}, (\rperf, \perfcert ) \right)$
-    % \item output event \opreadallret{\round, \limbo, \POD, \perfcert}
-    % \item output event \opreadallret{\round, \POD, \perfcert}
-    \item \opidentify{\txcert, \perfcert} \returns $P' \subset P$ 
+    \item $\opreadall{} \returns \left( \POD, \rperf, \ppcert \right)$
+    % \item output event \opreadallret{\round, \limbo, \POD, \ppcert}
+    % \item output event \opreadallret{\round, \POD, \ppcert}
+    \item \opidentify{\txcert, \ppcert} \returns $P' \subset P$ 
 \end{itemize}
 
 Clients call~\opwrite{\tx} to write a transaction \tx.
 When enough replicas respond, the client computes and outputs the values $\rmin, \rmax$ and $\rrec$ for \tx, as well as a certificate \txcert that proves correctness of these values.
 Users call~\opreadall{} to read all transactions that have been written to the replicas.
-The output contains two components. First, the set of all transactions and corresponding values, $(\tx, \rmin, \rmax, \rrec, \txcert)$.
-% and the second is a set of transactions $\{(\tx, \rmin, \rmax, \bot, \bot)\}$, that have not yet been confirmed, i.e., $\rrec = \bot$ and $\txcert = \bot$.
-We remark that some of these transactions may have not been \confirmed yet, hence it can be $\txcert = \bot$.
-Second, the current past-perfect round \rperf and a certificate \perfcert that proves correctness of \rperf from the responses returned by the replicas.
+This outputs a POD \POD with entries $(\tx, \rmin, \rmax, \rrec, \txcert)$,
+the current past-perfect round \rperf, and a past-perfection certificate \ppcert.
+We remark that some transactions in the POD may have not been \confirmed yet, hence it can be $\rrec = \bot$ and $\txcert = \bot$.
+
 \end{definition}
 
 
@@ -136,25 +147,23 @@ A POD satisfies the following properties.
         between being confirmed and not. Using gossip/relaying, after $u$ all honest will have seen \tx, hence the second client also sees it as confirmed. }
         
         \item[Bound safety:]
-        Assume a call to \opread{} by an honest client (or the call to \opwrite{} that initially wrote \tx) at round \round outputs \tx with some \rmin and \rmax,
-        and a \opread{} by an honest client (or the call to \opwrite{} that initially wrote \tx) at round $\round'$ outputs \tx with some $\rrec \neq \bot$.
-        Then, the transaction bounds definition (\Cref{def:min-max-bounds}) is satisfied, that is:
-        (1) $\rrec \in [\rmin, \rmax]$, and
-        (2) if some other \opread{} by an honest client outputs \tx with $\rmin'$ and $\rmax'$ and $\rmin' \geq \rmin$, then $\rmax' \leq \rmax$
-        \oa{I want to check if this holds for any two \opread{}, or only if it holds that $\votes(C_1) \subseteq `'\votes(C_2)$.}
+        % Assume a call to \opread{} by an honest client (or the call to \opwrite{} that initially wrote \tx) outputs \tx with some \rmin and \rmax,
+        % and a \opread{} by an honest client (or the call to \opwrite{} that initially wrote \tx) outputs \tx with some $\rrec \neq \bot$.
+        % Then, the transaction bounds definition (\Cref{def:min-max-bounds}) is satisfied, that is:
+        % (1) $\rrec \in [\rmin, \rmax]$, and
+        % (2) if the first client updates the bounds to $\rmin'$ and $\rmax'$,then $\rmin' \geq \rmin$ and $\rmax' \leq \rmax$.
+        The transaction bounds \rmin, \rmax satisfy \Cref{def:min-max-bounds}.
 
         \item[Past-perfection safety:]
-        Assume a \opreadall{} returns a set of transactions \txset and a past-perfect round \rperf.
-        For any transaction $\tx \not \in \txset$, no honest client will ever call \opreadall{} and obtain \tx with \confirmed round $\rrec < \rperf$.
+        Assume a \opreadall{} returns a POD \POD and a past-perfect round \rperf.
+        For any transaction $\tx \not \in \POD$, no certificate \txcert for \tx, such that $\txcert.\rrec < \rperf$, can ever be created.
 
         \item[Fair punishment]
-        No honest replica gets punished as a result of malicious operation. If $\opidentify{\txcert, \perfcert} \returns P'$, where \txcert is a record certificate for transaction \tx
-        and $\perfcert$ is a past-perfect certificate for a POD \POD,
+        No honest replica gets punished as a result of malicious operation. If $\opidentify{\txcert, \ppcert} \returns P'$, where \txcert is a record certificate for transaction \tx
+        and $\ppcert$ is a past-perfect certificate for a POD \POD,
         can only be created if all parties in $P'$ sign \tx and \POD. \oa{TODO: Update}
     \end{description}
 \end{enumerate}
-
-\oa{TODO: Define set $T$ above, change interface. Maybe replace all `An honest client calls \opreadall{} and the response contains \tx' with `a valid certificate for \tx'.}
 
 \begin{lemma}
     If an honest client writes \tx in a synchronous period and two honest clients compute \confirmed rounds $\rrec$ and $\rrec'$, respectively,

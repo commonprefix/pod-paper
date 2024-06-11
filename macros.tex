@@ -103,7 +103,7 @@
 \newcommand{\user}{\operand{user}\xspace}
 \newcommand{\timestamp}{\operand{ts}\xspace}
 \newcommand{\txcert}{\ensuremath{C}\xspace}
-\newcommand{\perfcert}{\ensuremath{\Pi}\xspace}
+\newcommand{\ppcert}{\ensuremath{\Pi}\xspace}
 \newcommand{\txset}{\operand{T}\xspace}
 \newcommand{\final}{\operand{f}\xspace}
 \newcommand{\parack}{\ensuremath{u}\xspace}
@@ -123,9 +123,11 @@
 \newcommand{\return}{\State{\textbf{return}}\xspace}
 \newcommand{\st}{\textbf{such that}\xspace}
 \newcommand{\andl}{\textbf{and}\xspace}
-\newcommand{\msgwrite}{\text{WRITE}\xspace}
-\newcommand{\msgread}{\text{READ}\xspace}
-\newcommand{\msgprecommit}{\text{PRECOMMIT}\xspace}
+\newcommand{\msg}[2]{(\textit{\uppercase{#1}}#2)\xspace}
+\newcommand{\msgwrite}[1]{\msg{write}{ #1}}
+\newcommand{\msgwriteresp}[1]{\msg{write-resp}{ (#1)}}
+\newcommand{\msgread}[1]{\msg{read}{#1}}
+\newcommand{\msgreadresp}[1]{\msg{read-resp}{ #1}}
 
 \let\oldalpha\alpha
 \renewcommand{\alpha}{\ensuremath{\oldalpha}\xspace}
