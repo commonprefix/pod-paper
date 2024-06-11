@@ -213,11 +213,11 @@ by $\alpha \in [0,1]$ the \emph{confirmation threshold}.
     \EndFunction
 
     \Statex
-    \Function{\opMinPossibleTsForNewTx{}}{}
+    \Function{\opMinPossibleTsForNewTx{}}{}\label{line:fn-compute-pp-begin}
         \Let{\allLts}{\text{sort \allLts in increasing order}}
         \Let{\allLts}{\{ 0, \stackrel{\beta \text{ times}}{\ldots}, 0 \} \| \allLts}
         \return $\med(\allLts[0: \certSize])$
-    \EndFunction
+    \EndFunction\label{line:fn-compute-pp-end}
 \end{algorithmic}
 \end{algorithm}
 
@@ -278,11 +278,21 @@ considering timestamps \allLts as the minimum possible for any future transactio
 \begin{proof}[Past-perfection safety]
     Assume there exists a past-perfection certificate \ppcert for some
     past-perfect round $\ppcert.\rperf$.
-    The past-perfect round is computed using the most-recent timestamp of each party in $\ppcert.\votes$, or $0$ is there is no vote for a party in $\ppcert.\votes$, by keeping the $\alpha n$ smallest values and taking their median.
+    The past-perfect round is computed (lines~\ref{line:fn-compute-pp-begin}--\ref{line:fn-compute-pp-end}) as the median of
+    \beta times the $0$ value and the $\lceil \alpha n \rceil - \beta$ smallest most-recent timestamps of the replicas in $\ppcert.\votes$,
+    i.e., $\ppcert.\rperf$ is the value of the $\left( \lceil \frac{\alpha n}{2} \rceil - \beta \right)$-th smallest most-recent timestamp.
+    This implies that there are $\lceil \frac{\alpha n}{2} \rceil - \beta - 1$ replicas $\rep_j$ whose most-recent timestamp $\lts_j$ satisfies $\lts_j \leq \ppcert.\rperf$.
     Assume now there exists a transaction \tx, such that $\tx \not \in \ppcert.\POD$ and a transaction certificate \txcert for \tx, such that
     $\txcert.\rrec \neq \bot$ and $\txcert.\rrec < \ppcert.\rperf$.
-    This implies that \txcert contains at least $\lceil \frac{\alpha n}{2} \rceil$ votes with a timestamp smaller than $\ppcert.\rperf$.
-    Let's go back to $\ppcert$. Since $\tx \not \in \ppcert.\POD$ and $\rrec < \ppcert.\rperf$, there can be at most $\lceil \frac{\alpha n}{2} \rceil -  1$ correct replicas that assigned \tx a timestamp smaller than $\ppcert.\rperf$.
+    This implies that \txcert contains at least $\lceil \frac{\alpha n}{2} \rceil$ votes with a timestamp $\tsp_j$ such that $\tsp_j < \ppcert.\rperf$,
+    because the timestamp has been computed as the median of at least $\lceil \alpha n \rceil$ votes.
+    Out of those votes, at least $\lceil \frac{\alpha n}{2} \rceil - \beta$ must be from honest replicas.
+    A vote from them is not in $\ppcert.\votes$ (since $\tx \not \in \ppcert.\POD$),
+    hence they can only assign it a timestamp $\tsp_j$ equal to or larger than their most-recent timestamp
+    in $\ppcert$, i.e., $\tsp_j \geq \lts_j$.
+    All together, for these $\lceil \frac{\alpha n}{2} \rceil - \beta$ honest replicas it must hold that $\lts_j < \ppcert.\rperf$.
+    But we have shown that there are only $\lceil \frac{\alpha n}{2} \rceil - \beta - 1$ replicas with $\lts_j \leq \ppcert.\rperf$,
+    hence such a \tx cannot exist.
 \end{proof}
 
 \begin{lemma}
