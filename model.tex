@@ -60,6 +60,8 @@ For an entry $ (\round, \txset)$, notation $\POD[\round]$ returns \txset.
 The \rmin, \rmax, \rrec are computed from the votes received for that transaction and they are updated when new votes are received.
 % Initially, $\rmin=0$ and $\rmax=\infty$.
 
+\bd{The definition of the behavior of $\rmin,\rmax$ is rather a security definition than the definition of the meaning of those values. I think it would be clearer to present first a definition of $\rmin,\rmax$ and then define how those values behave as part of the POD security properties.}
+
 \begin{definition}[Transaction certificate]
     A \emph{transaction certificate} \txcert is a collection of votes $(\tx, \round_j)$, for $j \in |\txcert|$,
     from which the values $\rmin, \rmax, \rrec$ associated with \tx can be verified.
@@ -69,6 +71,8 @@ The \rmin, \rmax, \rrec are computed from the votes received for that transactio
     \emph{$x$-certificate}, for any $x \in (0,n]$.
     For example, an $\alpha$-certificate corresponds to a confirmed transaction.
 \end{definition}
+
+\bd{The value $\alpha$ and in the definition of confirmed transaction it seems that $\alpha \in [0,1]$, since it is multiplied by the number of replicas $n$. The notion of  "size of the certificate here" is confusing. Does it refer to the absolute number of votes in a certificate or to the fraction of replicas that have provided votes for a certificate?}
 
 \begin{definition}[Partially Ordered Dataset (POD) \oa{NEW}]
 \begin{sloppy}
@@ -127,15 +131,22 @@ A POD satisfies the following properties.
         (3) the maximum round of \tx will be $\rmax \in [\round, \round + \delta]$,
         (4) it holds that $\rmax - \rmin \leq \delta$.
 
+\bd{Is $\delta$ really the drift between honest party clocks? Then these guarantees for the synchronous are specific to the concrete construction we show, no? It would be better to define this write confirmation property generically and then set these concrete values later when proving the property for the concrete protocol.}
+
         \item[Transaction liveness:]
         Assume an honest client calls \opwrite{\tx} at round \round.
         If an honest client calls \opreadall{} at round $\round'$, then 
         the response will contain \tx as \confirmed, for some $\round' > \round$.
         Particularly in synchrony this holds for any $\round' \geq \round + \delta$,
         
+        \bd{Same comment about the generic property vs. the concrete parameter in synchrony.}
+        
         \item[Past-perfection liveness:]
         In synchrony, rounds become past-perfect after $\delta$ time. That is, if an honest client calls \opreadall{} at round $\round$, then the returned \rperf will satisfy $\rperf \geq \round - \delta$.
     \end{description}
+
+  \bd{Same comment about the generic property vs. the concrete parameter in synchrony.}
+
 
     \item{Safety}
     \begin{description}
@@ -145,6 +156,9 @@ A POD satisfies the following properties.
         Particularly in synchrony, this holds for any $\round' \geq \round + u$.
         \oa{Proof sketch: a malicious replica returns \tx only to the first client, making the difference
         between being confirmed and not. Using gossip/relaying, after $u$ all honest will have seen \tx, hence the second client also sees it as confirmed. }
+        
+          \bd{Same comment about the generic property vs. the concrete parameter in synchrony.}
+        
         
         \item[Bound safety:]
         % Assume a call to \opread{} by an honest client (or the call to \opwrite{} that initially wrote \tx) outputs \tx with some \rmin and \rmax,
@@ -172,6 +186,10 @@ A POD satisfies the following properties.
 \begin{proof}
     It follows from the \emph{transaction liveness} property.
 \end{proof}
+
+  \bd{Same comment about the generic property vs. the concrete parameter in synchrony.}
+
+\bd{We can probably show that these are upper bounds in the synchronous case, but again I think it's better to define all properties generically and then consider the concrete parameters for our construction and work out the bounds for different synchrony regimes separately.}
 
 % \subsection{broadcast-deliver}
 % The system exposes the method \opbcast{\tx}, which allows a user to input a transaction \tx to the system, and returns a certificate \txcert.
