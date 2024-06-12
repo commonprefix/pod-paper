@@ -1,0 +1,46 @@
+\section{Applications built on POD}
+
+\subsection{Auctions}
+
+\dotparagraph{The protocol}
+\oa{As described on the blurd, to be copied here.}
+
+\dotparagraph{Security}
+The following lemmas capture the security of the auction construction.
+
+\begin{lemma}[Liveness for the bidder]
+    In a synchronous period, if an honest bidder submits a transaction \tx with its bid at the starting time of the auction,
+    then \tx will be \confirmed with $\rrec \in [\round, \round + \delta]$.
+\end{lemma}
+\begin{proof}
+    It follows form the \emph{transaction liveness} property.
+    From the \emph{transaction liveness} property
+    We know that \tx will be read by an honest client at any round $\round' \geq \round + \delta$, and it will have $\rrec \in [\round, \round + \delta]$.
+\end{proof}
+
+\begin{lemma}[Liveness for auctioneer]
+    The round \round that corresponds to the auction deadline will eventually become past perfect.
+    In synchrony this will become at round $\round + \delta$.
+\end{lemma}
+\begin{proof}
+    It follows from the \emph{past-perfection liveness} property.
+\end{proof}
+
+\begin{lemma}[Safety for bidder]
+    If an honest bidder submits a bid at the starting time \round, then the bid cannot be censored by an honest auctioneer.
+    If it gets censored, then the auctioneer is accountable.
+\end{lemma}
+\begin{proof}
+    From the \emph{transaction liveness} property we have that the client who submitted \tx will
+    obtain a certificate \txcert for it, such that $\txcert.\rmax \in [\round, \round + \delta]$.
+    Using \txcert, the client can blame the auctioneer for ignoring \tx. \oa{TODO: describe in detail how this works.}
+\end{proof}
+
+\begin{lemma}{Safety for the auctioneer}
+    An honest auctioneer cannot be blamed for ignoring bids. \oa{TODO: check again. Need any timing assumptions?}
+\end{lemma}
+\begin{proof}
+    From the \emph{past-perfection} safety property, it follows that, after the auctioneer creates a past-perfection certificate \ppcert for a round \rperf,
+    no new transaction can be \confirmed with $\rrec < \rperf$.
+\end{proof}
+

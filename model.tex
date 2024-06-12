@@ -119,19 +119,21 @@ A POD satisfies the following properties.
 \begin{enumerate}
     \item{Liveness}
     \begin{description}
-        \item[Write confirmation:]
-        Assume an honest client calls \opwrite{\tx} at round \round.
-        Then, the call will return $(\tx, \rmin, \rmax, \rrec, \txcert)$, where $\rrec \neq \bot$.
-        Particularly in synchrony, (1) it will return by round $\round + 2\delta$,
-        (2) the \confirmed round of \tx will be $\rrec \in [\round, \round + \delta]$,
-        (3) the maximum round of \tx will be $\rmax \in [\round, \round + \delta]$,
-        (4) it holds that $\rmax - \rmin \leq \delta$.
-
         \item[Transaction liveness:]
-        Assume an honest client calls \opwrite{\tx} at round \round.
-        If an honest client calls \opreadall{} at round $\round'$, then 
-        the response will contain \tx as \confirmed, for some $\round' > \round$.
-        Particularly in synchrony this holds for any $\round' \geq \round + \delta$,
+        Any transaction written by an honest client eventually becomes \confirmed.
+        Particularly in synchrony:
+        \begin{enumerate}
+            \item The client that writes \tx by calling \opwrite{\tx} at round \round will obtain a certificate \txcert by round $\round + 2\delta$.
+            \item Any other client that calls \opread{} at round $\round'$ will obtain \txcert, for any $\round' \geq \round + \delta$.
+            \item The certificate \txcert will satisfy $\txcert.\rrec \in [\round, \round + \delta]$
+            and $\txcert.\rmax \in [\round, \round + \delta]$ and
+            $\rmax - \rmin \leq \delta$.
+        \end{enumerate}
+        % \item[Transaction liveness:]
+        % Assume an honest client calls \opwrite{\tx} at round \round.
+        % If an honest client calls \opreadall{} at round $\round'$, then 
+        % the response will contain \tx as \confirmed, for some $\round' > \round$.
+        % Particularly in synchrony this holds for any $\round' \geq \round + \delta$,
         
         \item[Past-perfection liveness:]
         In synchrony, rounds become past-perfect after $\delta$ time. That is, if an honest client calls \opreadall{} at round $\round$, then the returned \rperf will satisfy $\rperf \geq \round - \delta$.
