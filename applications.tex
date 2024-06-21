@@ -3,19 +3,37 @@
 \subsection{Auctions}
 
 \dotparagraph{The protocol}
-\oa{As described on the blurd, to be copied here.}
+In this section we call the output of
+
+The protocol uses the following predefined parameters: a \emph{starting time} \tone and a \emph{deadline} \ttwo, such that $\ttwo \geq \tone + \Delta$.
+At \tone \oa{It should be possible to do this earlier than \tone} clients submit their bids to pod using \opwrite{}.
+Any client can run the auction by reading the pod, but we assume w.l.o.g. that a client \auc is pre-appointed to be the auctioneer.
+
+At time \ttwo, \auc starts reading the pod, until it obtains $(\POD, \rperf, \ppcert)$,
+such that the following conditions hold:
+\begin{enumerate}
+    \item $\rperf \geq \ttwo$,
+    \item \POD contains no \pend transactions with $\rmin \leq \ttwo$
+\end{enumerate}
+When this happens, \auc produces a signature on $(\POD, \rperf, \ppcert)$ and runs the auction using all transactions in \POD.
+
+If any party can present a certificate certifying the *maximum* timestamp to be before the deadline, but the auctioneer has not included the bid in question, the auctioneer is slashed by resorting to the parent chain. An equivocating auctioneer is similarly slashed. Honest party bids are guaranteed to have both a confirmation timestamp and a maximum timestamp before the deadline, as long as the bids are submitted at the auction starting time and the network is synchronous. Lastly, the honest bidder has no fear of being censored when following the honest strategy because any transaction that could appear with a certificate of maximality prior to the deadline will necessarily appear with a confirmed timestamp prior to the deadline in any other certificate.
+
+If the protocol designer wants to also protect against a stalling auctioneer, the contract can choose to slash an auctioneer who delays the choice of bids beyond the expected network latency. Such a system has economic liveness guarantees, but risks slashing honest auctioneers in case of network asynchrony, so the choice remains with the protocol designers.
+
+The reason why pod can be used to run auctions is that bid order is not important for auctions: As long as we can agree on the bids we are considering, we are good to go.
 
 \dotparagraph{Security}
 The following lemmas capture the security of the auction construction.
 
 \begin{lemma}[Liveness for the bidder]
     In a synchronous period, if an honest bidder submits a transaction \tx with its bid at the starting time of the auction,
-    then \tx will be \confirmed with $\rrec \in [\round, \round + \delta]$.
-\end{lemma}
+    then \tx will be \confirmed with $\rconf \in [\round, \round + \delta]$.
+\end{lemma}?
 \begin{proof}
-    It follows form the \emph{transaction liveness} property.
+    It follows from the \emph{transaction liveness} property.
     From the \emph{transaction liveness} property
-    We know that \tx will be read by an honest client at any round $\round' \geq \round + \delta$, and it will have $\rrec \in [\round, \round + \delta]$.
+    We know that \tx will be read by an honest client at any round $\round' \geq \round + \delta$, and it will have $\rconf \in [\round, \round + \delta]$.
 \end{proof}
 
 \begin{lemma}[Liveness for auctioneer]
@@ -41,6 +59,6 @@ The following lemmas capture the security of the auction construction.
 \end{lemma}
 \begin{proof}
     From the \emph{past-perfection} safety property, it follows that, after the auctioneer creates a past-perfection certificate \ppcert for a round \rperf,
-    no new transaction can be \confirmed with $\rrec < \rperf$.
+    no new transaction can be \confirmed with $\rconf < \rperf$.
 \end{proof}
 
