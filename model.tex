@@ -7,6 +7,7 @@ We define the notion of Partially Ordered Datasets (POD), which allow a set of \
 We distinguish two types of parties, $n$ \emph{replicas} and an unlimited number of \emph{clients}.
 Replicas run the protocol and clients interact with it using its interface.
 We call a party -- replica or client -- \emph{correct}, if it follows the protocol, and \emph{malicious} otherwise.
+We denote \CN the set of natural numbers including $0$.
 
 % \begin{remark}[Clients]
 % Certain operations are driven by the client.
@@ -67,7 +68,7 @@ In the synchronous model, we assume that every message is delivered within a \em
 A POD protocol has the following interface.
 \begin{itemize}
     \item $\opwrite{\tx} \returns (\tx, \rmin, \rmax, \rconf, \txcert)$:
-    It gets a transaction \tx and outputs values its associated values $\rmin, \rmax$, $\rconf$, and \txcert.
+    It gets a transaction \tx and outputs its associated values $\rmin, \rmax$, $\rconf$, and \txcert.
 
     \item $\opreadall{} \returns \left( \POD, \rperf, \ppcert \right)$:
     It returns a POD \POD, a round number \rperf, called the \emph{past perfect round}, and a \emph{past-perfection certificate} \ppcert that proves the correctness of the \POD and \rperf.
@@ -77,7 +78,8 @@ A POD protocol has the following interface.
 \end{itemize}
 \end{definition}
 
-When a client calls $\opreadall{}$ and obtains some \POD and some $(\tx, \rmin, \rmax, \rconf, \txcert) \in \POD$, for which $\rconf \neq \bot$, we say that the client \emph{observes} transaction \tx as \confirmed.
+We say that a client \emph{writes a transaction} \tx when it calls \opwrite{\tx}, and \emph{reads the pod} when it calls \opreadall{} to obtain some \POD.
+For a \tx, such that $(\tx, \cdot, \cdot, \rconf, \cdot) \in \POD$, we say that the client \emph{observes} \tx, and if $\rconf \neq \bot$, we say that the client \emph{observes \tx as \confirmed}.
 \oa{Same for \pend. }
 
 \subsection{POD Security Guarantees}
@@ -87,101 +89,47 @@ A POD satisfies the following properties.
     \item{Liveness}
     \begin{description}
 
-        \item[Write confirmation:]
-        Assume an honest client calls \opwrite{\tx} at round \round.
-        Then, the call will return $(\tx, \rmin, \rmax, \rconf, \txcert)$, where $\rconf \neq \bot$.
-        Particularly in synchrony, (1) it will return by round $\round + 2\delta$,
-        (2) the \confirmed round of \tx will be $\rconf \in [\round, \round + \delta]$,
-        (3) the maximum round of \tx will be $\rmax \in [\round, \round + \delta]$,
-        (4) it holds that $\rmax - \rmin \leq \delta$.
-
-\bd{Is $\delta$ really the drift between honest party clocks? Then these guarantees for the synchronous are specific to the concrete construction we show, no? It would be better to define this write confirmation property generically and then set these concrete values later when proving the property for the concrete protocol.}
-
-
-        \item[Transaction liveness:]
-        Any transaction written by an honest client eventually becomes \confirmed.
-        Particularly in synchrony:
-        \begin{enumerate}
-            \item The client that writes \tx by calling \opwrite{\tx} at round \round will obtain a certificate \txcert by round $\round + 2\delta$.
-            \item Any other client that calls \opread{} at round $\round'$ will obtain \txcert, for any $\round' \geq \round + \delta$.
-            \item The certificate \txcert will satisfy $\txcert.\rconf \in [\round, \round + \delta]$
-            and $\txcert.\rmax \in [\round, \round + \delta]$ and
-            $\rmax - \rmin \leq \delta$.
-        \end{enumerate}
-        % \item[Transaction liveness:]
-        % Assume an honest client calls \opwrite{\tx} at round \round.
-        % If an honest client calls \opreadall{} at round $\round'$, then 
-        % the response will contain \tx as \confirmed, for some $\round' > \round$.
-        % Particularly in synchrony this holds for any $\round' \geq \round + \delta$,
+        \item[Confirmation within \parack:]
+        If an honest client writes a transaction \tx, then it will obtain output $(\tx, \rmin, \rmax, \rconf, \txcert)$, such that $\rconf \neq \bot$, within \parack time. \oa{define time}
         
-        \bd{Same comment about the generic property vs. the concrete parameter in synchrony.}
-        
-        \item[Past-perfection liveness:]
-        In synchrony, rounds become past-perfect after $\delta$ time. That is, if an honest client calls \opreadall{} at round $\round$, then the returned \rperf will satisfy $\rperf \geq \round - \delta$.
+        \item[Availability after \parlive:]
+        If an honest client writes a transaction \tx, then any other honest client that reads the pod after \parlive time will observe \tx as \confirmed.
+
+        \item[Past-perfection within \parpp:]
+        Rounds become past-perfect within $\parpp$ time. 
+        That is, if an honest client calls \opreadall{} at round $\round +\parpp$, then the returned \rperf will satisfy $\rperf \geq \round$.
     \end{description}
-
-  \bd{Same comment about the generic property vs. the concrete parameter in synchrony.}
-
 
     \item{Safety}
     \begin{description}
-        \item[Confirmation totality:]
-        If an honest client calls \opread{} at round \round and outputs \tx as \confirmed,
-        then eventually any other honest client that calls \opread{} at round $\round'$ will output \tx as \confirmed.
-        Particularly in synchrony, this holds for any $\round' \geq \round + u$.
-        \oa{Proof sketch: a malicious replica returns \tx only to the first client, making the difference
-        between being confirmed and not. Using gossip/relaying, after $u$ all honest will have seen \tx, hence the second client also sees it as confirmed. }
-        
-        \bd{Same comment about the generic property vs. the concrete parameter in synchrony.}
-        \oa{If an honest client observes transaction \tx as \confirmed, then eventually any other honest client will.}
+        \item[Totality:]
+        If an honest client observes transaction \tx as \confirmed,
+        then eventually any other honest client will observe \tx as \confirmed.
+        \oa{See if we need a parameter for this,}
         
         \item[Pending-confirmation soundness:]
-        \oa{If an honest client observes transaction \tx as \pend, then eventually it will observe it as \confirmed.}
+        If an honest client observes transaction \tx as \pend, then eventually it will observe it as \confirmed.
+        \oa{Define \pend. We need this property for the auction protocol.}
 
-        \item[Bound safety:]
-        % Assume a call to \opread{} by an honest client (or the call to \opwrite{} that initially wrote \tx) outputs \tx with some \rmin and \rmax,
-        % and a \opread{} by an honest client (or the call to \opwrite{} that initially wrote \tx) outputs \tx with some $\rconf \neq \bot$.
-        % Then, the transaction bounds definition (\Cref{def:min-max-bounds}) is satisfied, that is:
-        % (1) $\rconf \in [\rmin, \rmax]$, and
-        % (2) if the first client updates the bounds to $\rmin'$ and $\rmax'$,then $\rmin' \geq \rmin$ and $\rmax' \leq \rmax$.
-        % The transaction bounds \rmin, \rmax satisfy \Cref{def:min-max-bounds}.
-        (1) if an honest client computes some $\rmin$ and $\rmax$ for a transaction
-        and that transaction becomes \confirmed for some (possibly different) client with recorded round $\rconf$, then
-        $\rmin \leq \rconf \leq \rmax$,
-        and (2) if an honest client computes $\rmin$ and $\rmax$, and later updates these values to $\rmin'$ and $\rmax'$,
-        then $\rmin' \geq \rmin$ and $\rmax' \leq \rmax$.
-
+        \item[Bounds:]
+        The numbers $\rmin, \rmax$, and $\rconf$ for a transaction \tx satisfy the following:
+        \begin{enumerate}[(1)]
+            \item If an honest client obtains $\rmin$ and $\rmax$ for \tx,
+            and an honest (possibly different) client observes \tx as \confirmed with round $\rconf$, then
+            $\rmin \leq \rconf \leq \rmax$.
+            \item If an honest client obtains $\rmin$ and $\rmax$ for \tx, and later obtains $\rmin'$ and $\rmax'$ for \tx, then $\rmin' \geq \rmin$ and $\rmax' \leq \rmax$.
+            \oa{Check if we need the following in the property level}
+            \item if \tx is confirmed, then $\rconf \in [\round, \round + \delta]$,
+            \item $\rmax \in [\round, \round + \delta]$,
+            \item $\rmax - \rmin \leq \delta$.
+        \end{enumerate}
         \item[Past-perfection safety:]
         Assume a \opreadall{} returns a POD \POD and a past-perfect round \rperf.
-        For any transaction $\tx \not \in \POD$, no certificate \txcert for \tx, such that $\txcert.\rconf < \rperf$, can ever be created.
+        For any transaction $\tx \not \in \POD$, no honest client will ever observe \tx as confirmed with $\rconf < \rperf$.
 
-        \item[Fair punishment]
+        \item[Fair punishment]\oa{TODO: Update}
         No honest replica gets punished as a result of malicious operation. If $\opidentify{\txcert, \ppcert} \returns P'$, where \txcert is a record certificate for transaction \tx
         and $\ppcert$ is a past-perfect certificate for a POD \POD,
-        can only be created if all parties in $P'$ sign \tx and \POD. \oa{TODO: Update}
+        can only be created if all parties in $P'$ sign \tx and \POD. 
     \end{description}
 \end{enumerate}
-
-\begin{lemma}
-    If an honest client writes \tx in a synchronous period and two honest clients compute \confirmed rounds $\rconf$ and $\rconf'$, respectively,
-    then $|\rconf - \rconf'| \leq \delta$.
-\end{lemma}
-\begin{proof}
-    It follows from the \emph{transaction liveness} property.
-\end{proof}
-
-  \bd{Same comment about the generic property vs. the concrete parameter in synchrony.}
-
-\bd{We can probably show that these are upper bounds in the synchronous case, but again I think it's better to define all properties generically and then consider the concrete parameters for our construction and work out the bounds for different synchrony regimes separately.}
-
-% \subsection{broadcast-deliver}
-% The system exposes the method \opbcast{\tx}, which allows a user to input a transaction \tx to the system, and returns a certificate \txcert.
-% The method also allows the caller to specify a set of transactions that have already been delivered, by calling \opbcast{\tx, [$\deptxid_1, \ldots, \deptxid_\ell$]}.
-% The system also exposes an event \opdel{\tx}, which is observed by users who monitor the system.
-% It satisfies the following properties.
-% \begin{description}
-%     \item[Censorship-resistance]
-%     If a user calls \opbcast{\tx} then eventually (1) that user gets \txcert as output and (2) all honest users output \opdel{\tx}.
-% \end{description}
-
-

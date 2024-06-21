@@ -1,14 +1,45 @@
-\section{Applications built on POD}
+\section{Auctions on pod}
 
-\subsection{Auctions}
+The protocol uses the following predefined parameters: a \emph{starting time} \tone and a \emph{deadline} \ttwo.
+% such that $\ttwo \geq \tone + \Delta$.
 
-\dotparagraph{The protocol}
-In this section we call the output of
-
-The protocol uses the following predefined parameters: a \emph{starting time} \tone and a \emph{deadline} \ttwo, such that $\ttwo \geq \tone + \Delta$.
-At \tone \oa{It should be possible to do this earlier than \tone} clients submit their bids to pod using \opwrite{}.
+The auction is run on bids that appear as \confirmed on the pod with a confirmation time at most \ttwo.
 Any client can run the auction by reading the pod, but we assume w.l.o.g. that a client \auc is pre-appointed to be the auctioneer.
 
+The auctioneer does \emph{not} have to be trusted. Its output will consist of the winning bid, as well as a signed message on the
+collection of bids that were considered for the auction.
+
+\begin{definition}[Auction protocol]
+    An \emph{auction protocol} exposes the following interface.
+    \begin{enumerate}
+        \item function $bid():$ It is called by bidders and outputs a bid.
+        \item event $result():$ The auctioneer runs the auction on a set of bids and outputs this event.
+    \end{enumerate}
+\end{definition}
+
+\begin{definition}[Auction framework over POD]
+    \begin{itemize}
+        \item function submit\_bid(b):
+        It is called by bidders at time at most \tone to submit their bids to pod.
+        \item function run\_auction():
+        It is called by the auctioneer at time \ttwo. It outputs the event $result()$ of the underlying auction protocol,
+        as well as a \emph{bag} $B$ with the bids considered for the auction.
+    \end{itemize}
+\end{definition}
+
+\dotparagraph{Properties}
+We desire the following properties from an auction framework.
+\begin{description}
+    \item[Termination within \parAuctionTerm:]
+    An honest auctioneer completes the auction by time $\ttwo + \parAuctionTerm$.
+    \item [Accountable censorship resistance:]
+    If an honest bidder submits calls submit\_bid(b) at time at most \tone, then $b \in B$.
+    Otherwise \oa{todo}
+    \item[Fair punishment:]
+    An honest auctioneer cannot be blamed for ignoring bids.
+\end{description}
+
+\dotparagraph{Construction}
 At time \ttwo, \auc starts reading the pod, until it obtains $(\POD, \rperf, \ppcert)$,
 such that the following conditions hold:
 \begin{enumerate}
@@ -17,47 +48,38 @@ such that the following conditions hold:
 \end{enumerate}
 When this happens, \auc produces a signature on $(\POD, \rperf, \ppcert)$ and runs the auction using all transactions in \POD.
 
-If any party can present a certificate certifying the *maximum* timestamp to be before the deadline, but the auctioneer has not included the bid in question, the auctioneer is slashed by resorting to the parent chain. An equivocating auctioneer is similarly slashed. Honest party bids are guaranteed to have both a confirmation timestamp and a maximum timestamp before the deadline, as long as the bids are submitted at the auction starting time and the network is synchronous. Lastly, the honest bidder has no fear of being censored when following the honest strategy because any transaction that could appear with a certificate of maximality prior to the deadline will necessarily appear with a confirmed timestamp prior to the deadline in any other certificate.
+% If any party can present a certificate certifying the *maximum* timestamp to be before the deadline, but the auctioneer has not included the bid in question, the auctioneer is slashed by resorting to the parent chain. An equivocating auctioneer is similarly slashed. Honest party bids are guaranteed to have both a confirmation timestamp and a maximum timestamp before the deadline, as long as the bids are submitted at the auction starting time and the network is synchronous. Lastly, the honest bidder has no fear of being censored when following the honest strategy because any transaction that could appear with a certificate of maximality prior to the deadline will necessarily appear with a confirmed timestamp prior to the deadline in any other certificate.
 
-If the protocol designer wants to also protect against a stalling auctioneer, the contract can choose to slash an auctioneer who delays the choice of bids beyond the expected network latency. Such a system has economic liveness guarantees, but risks slashing honest auctioneers in case of network asynchrony, so the choice remains with the protocol designers.
+% If the protocol designer wants to also protect against a stalling auctioneer, the contract can choose to slash an auctioneer who delays the choice of bids beyond the expected network latency. Such a system has economic liveness guarantees, but risks slashing honest auctioneers in case of network asynchrony, so the choice remains with the protocol designers.
 
-The reason why pod can be used to run auctions is that bid order is not important for auctions: As long as we can agree on the bids we are considering, we are good to go.
+% The reason why pod can be used to run auctions is that bid order is not important for auctions: As long as we can agree on the bids we are considering, we are good to go.
 
 \dotparagraph{Security}
 The following lemmas capture the security of the auction construction.
 
-\begin{lemma}[Liveness for the bidder]
-    In a synchronous period, if an honest bidder submits a transaction \tx with its bid at the starting time of the auction,
-    then \tx will be \confirmed with $\rconf \in [\round, \round + \delta]$.
-\end{lemma}?
+\begin{theorem}[Censorship resistance]
+    In a synchronous period, the construction satisfies the \emph{censorship resistance} property.
+\end{theorem}
 \begin{proof}
     It follows from the \emph{transaction liveness} property.
     From the \emph{transaction liveness} property
     We know that \tx will be read by an honest client at any round $\round' \geq \round + \delta$, and it will have $\rconf \in [\round, \round + \delta]$.
 \end{proof}
 
-\begin{lemma}[Liveness for auctioneer]
-    The round \round that corresponds to the auction deadline will eventually become past perfect.
+\begin{theorem}[Termination within $\parAuctionTerm = \delta$]
+    In a synchronous period, the construction satisfies the \emph{termination} property for $\parAuctionTerm = \delta$. \oa{Is it $\delta$?}
+\end{theorem}
+\begin{proof}
+    It follows from the \emph{past-perfection liveness} property that
+    the round \round that corresponds to the auction deadline will eventually become past perfect.
     In synchrony this will become at round $\round + \delta$.
-\end{lemma}
-\begin{proof}
-    It follows from the \emph{past-perfection liveness} property.
 \end{proof}
 
-\begin{lemma}[Safety for bidder]
-    If an honest bidder submits a bid at the starting time \round, then the bid cannot be censored by an honest auctioneer.
-    If it gets censored, then the auctioneer is accountable.
-\end{lemma}
+\begin{theorem}[Fair punishment]
+    The construction satisfies the \emph{fair punishment} property.
+\end{theorem}
 \begin{proof}
-    From the \emph{transaction liveness} property we have that the client who submitted \tx will
-    obtain a certificate \txcert for it, such that $\txcert.\rmax \in [\round, \round + \delta]$.
-    Using \txcert, the client can blame the auctioneer for ignoring \tx. \oa{TODO: describe in detail how this works.}
-\end{proof}
-
-\begin{lemma}{Safety for the auctioneer}
-    An honest auctioneer cannot be blamed for ignoring bids. \oa{TODO: check again. Need any timing assumptions?}
-\end{lemma}
-\begin{proof}
+    \oa{I think this does not require synchrony, but check again.}
     From the \emph{past-perfection} safety property, it follows that, after the auctioneer creates a past-perfection certificate \ppcert for a round \rperf,
     no new transaction can be \confirmed with $\rconf < \rperf$.
 \end{proof}

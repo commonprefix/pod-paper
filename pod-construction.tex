@@ -1,5 +1,4 @@
-
-\section{Partially-Ordered Dataset construction}
+\section{Construction}
 
 \dotparagraph{Notation}
 The system consists of $n$ replicas and an unknown number of clients.
@@ -295,6 +294,37 @@ Finally, \opMinPossibleTsForNewTx{} works similarly to \opMinPossibleTs{}, excep
 considering timestamps \allLts as the minimum possible for any future transaction.
 
 
+
+\begin{theorem}[Confirmation within $\parack = 2 \delta$]
+    If the network is synchronous, the construction satisfies the \emph{confirmation} liveness property with $\parack = 2 \delta$.
+\end{theorem}
+\begin{proof}
+\end{proof}
+
+\begin{theorem}[Availability after $\parlive = \delta$]
+    If the network is synchronous, the construction satisfies the \emph{availability} liveness property with $\parack = \delta$.
+\end{theorem}
+\begin{proof}
+\end{proof}
+
+\begin{theorem}[Past-perfection within $\parpp = \delta$]
+    If the network is synchronous, the construction satisfies the \emph{past-perfection} liveness property with $\parpp = \delta$.
+\end{theorem}
+\begin{proof}
+\end{proof}
+
+\begin{theorem}[Totality]
+    The construction satisfies the \emph{totality} safety property.
+\end{theorem}
+\begin{proof}
+    Particularly in synchrony, this holds for any $\round' \geq \round + u$.
+        \oa{Proof sketch: a malicious replica returns \tx only to the first client, making the difference
+        between being confirmed and not. Using gossip/relaying, after $u$ all honest will have seen \tx, hence the second client also sees it as confirmed. }
+\end{proof}
+
+\begin{theorem}[Past-perfection safety]
+    The construction satisfies the \emph{past-perfection safety} property.
+\end{theorem}
 \begin{proof}[Past-perfection safety]
     Assume there exists a past-perfection certificate \ppcert for some
     past-perfect round $\ppcert.\rperf$.
@@ -314,26 +344,6 @@ considering timestamps \allLts as the minimum possible for any future transactio
     But we have shown that there are only $\lceil \frac{\alpha n}{2} \rceil - \beta - 1$ replicas with $\lts_j \leq \ppcert.\rperf$,
     hence such a \tx cannot exist.
 \end{proof}
-
-\begin{lemma}
-    Assuming the adversary controls up to \beta replicas,
-    the rounds \rmin, \rmax, and \rconf computed by \Cref{alg:client-2}
-    satisfy the bounds of \Cref{def:min-max-bounds},
-\end{lemma}
-\begin{proof}
-    To prove (1), assume client $c_1$ computes \rmin and \rmax for some transaction \tx, and client $c_2$ observes \tx as \confirmed with round \rconf.
-    Let \txcert be the certificate used by $c_2$ to confirm \tx.
-    \oa{TODO}
-\end{proof}
-
-\begin{lemma}
-    If the rounds \rmin, \rmax, and \rconf computed by \Cref{alg:client-2}
-    do not satisfy the bounds of \Cref{def:min-max-bounds},
-    then more than \beta replicas have identifiably misbehaved.
-\end{lemma}
-\begin{proof}
-\end{proof}
-
 
 \subsection{Optimizations}
 \begin{enumerate}
