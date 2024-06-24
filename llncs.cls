@@ -84,6 +84,7 @@
 \def\appendixname{Appendix}
 \def\chaptername{Chapter}
 \def\claimname{Claim}
+\def\constructionname{Construction}
 \def\conjecturename{Conjecture}
 \def\contentsname{Table of Contents}
 \def\corollaryname{Corollary}
@@ -1115,6 +1116,7 @@ to0pt{\kern0.55\wd0\vrule height0.45\ht0\hss}\box0}}}}
 
 %definition of divers theorem environments
 \spnewtheorem*{claim}{Claim}{\itshape}{\rmfamily}
+\spnewtheorem*{construction}{Construction}{\itshape}{\rmfamily}
 \spnewtheorem*{proof}{Proof}{\itshape}{\rmfamily}
 \if@envcntsame % alle Umgebungen wie Theorem.
    \def\spn@wtheorem#1#2#3#4{\@spothm{#1}[theorem]{#2}{#3}{#4}}

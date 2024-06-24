@@ -182,7 +182,7 @@ in synchrony for a transaction to reach all replicas. For example, $u = 2 \delta
 
         \If{$| \transactions[\tx].votes | \geq \certSize$}\label{line:confirm-tx-begin}
             \Let{prev}{\transactions[\tx].\rconf}
-            \Let{\transactions[\tx].\rconf}{\med(\transactions[\tx])}
+            \Let{\transactions[\tx].\rconf}{\opMed{\transactions[\tx]}}
             \If{$prev = \bot$}
                 \State{\textbf{output event} TX-CONFIRMED \tx}
             \EndIf
@@ -216,27 +216,33 @@ in synchrony for a transaction to reach all replicas. For example, $u = 2 \delta
         \EndFor
         \Let{\txVotes}{\text{sort \txVotes in increasing order}}
         \Let{\txVotes}{\{ 0, \stackrel{\beta \text{ times}}{\ldots}, 0 \} \| \txVotes}
-        \return $\med(\txVotes[0: \certSize])$
+        \return $\opMed{\txVotes[1: \certSize]}$
     \EndFunction
     
     \Statex
 
-    \Function{\opMaxPossibleTs{\tx}}{}
+    \Function{\opMaxPossibleTs{\tx}}{}\label{line:fn-compute-max-begin}
         \Let{\txVotes}{\text{all timestamps in } \transactions[\tx].\votes}
         \For{$\rep_j$ \st $\rep_j \not \in \transactions[\tx].\votes$}
             \Let{\txVotes}{\txVotes \| \infty}\label{line:fill-vote-inf}
         \EndFor
         \Let{\txVotes}{\text{sort \txVotes in increasing order}}
         \Let{\txVotes}{\txVotes \| \{ \infty, \stackrel{\beta \text{ times}}{\ldots}, \infty \} }
-        \return $\med(\txVotes[(n - \certSize) : n])$
-    \EndFunction
+        \return $\opMed{\txVotes[(n - \certSize) : n]}$
+    \EndFunction\label{line:fn-compute-max-end}
 
     \Statex
     \Function{\opMinPossibleTsForNewTx{}}{}\label{line:fn-compute-pp-begin}
         \Let{\allLts}{\text{sort \allLts in increasing order}}
         \Let{\allLts}{\{ 0, \stackrel{\beta \text{ times}}{\ldots}, 0 \} \| \allLts}
-        \return $\med(\allLts[0: \certSize])$
+        \return $\opMed{\allLts[1: \certSize]}$
     \EndFunction\label{line:fn-compute-pp-end}
+
+    \Statex
+    \Function{\opMed{L}}{}\label{}
+        \Let{\ell}{\text{len}(L)}
+        \return $L[\lceil \ell/2   \rceil]$
+    \EndFunction
 \end{algorithmic}
 \end{algorithm}
 
@@ -293,7 +299,13 @@ while the latter fills a missing vote with $\infty$ (\cref{line:fill-vote-inf}).
 Finally, \opMinPossibleTsForNewTx{} works similarly to \opMinPossibleTs{}, except
 considering timestamps \allLts as the minimum possible for any future transaction.
 
+\begin{remark}
+    We will require that $n - \lfloor \alpha n / 2 \rfloor - 1 - \beta n \geq \beta n + 1$,
+    or $2\beta n \leq n - \lfloor \alpha n / 2 \rfloor - 2$, or $\beta \leq \alpha / 4 - 1$.
+    \oa{Not ideal.}
+\end{remark}
 
+\oa{Better change \alpha to denote number, not fraction.}
 
 \begin{theorem}[Confirmation within $\parack = 2 \delta$]
     If the network is synchronous, the construction satisfies the \emph{confirmation} liveness property with $\parack = 2 \delta$.
@@ -345,9 +357,55 @@ considering timestamps \allLts as the minimum possible for any future transactio
     hence such a \tx cannot exist.
 \end{proof}
 
-\subsection{Optimizations}
-\begin{enumerate}
-    \item Replicas with secondaries to handle read operations.
-    \item Use committees. We can support a weighted model by having replicas lock some stake in a slow-moving chain (such as Ethereum) and rotate the committee every, say, 24 hours.
-    \item We can use `helper' nodes, that know the adresses of all replicas, so that clients can use them, instead of having to contact all replicas.
-\end{enumerate}    
+\begin{lemma}\label{lem:assign-min-max}
+    The construction above returns, assuming we have sorted all received timestamps for \tx in increasing order,
+    \begin{itemize}
+        \item as \oa{\opMinPossibleTs{} ...},
+        \item as \opMaxPossibleTs{} the element at index $(1 - \alpha) n  + \beta + \lceil \alpha n / 2 \rceil$.
+    \end{itemize}
+\end{lemma}
+\begin{proof}
+    \begin{itemize}
+        \item \oa{todo}
+        \item Function \opMaxPossibleTs{} (lines~\ref{line:fn-compute-max-begin}--\ref{line:fn-compute-max-end}) appends \beta times the $\infty$ value at the end of the list with all received timestamps, and looks at the last $c = \alpha n$ elements of that list, hence ignores the first $(1 - \alpha) n  + \beta$ elements.
+        It returns the median of the last $c$ elements, so all together the element at position
+        $(1 - \alpha) n  + \beta + \lceil \alpha n / 2 \rceil$.
+    \end{itemize}
+\end{proof}
+
+\begin{lemma}
+    If transaction \tx is assigned $\rmax \neq \infty$ as the maximum round, then at least  $n - \lfloor \alpha n / 2 \rfloor - 1$ honest replicas have logged \tx with a timestamp at most \rmax.
+\end{lemma}
+\begin{proof}
+    From \Cref{lem:assign-min-max}, the list with all returned timestamps contains $(1 - \alpha) n  + \beta + \lceil \alpha n / 2 \rceil - 1$ elements smaller or equal to \rmax,
+    and, since $\rmax \neq \infty$, at least $(1 - \alpha) n  + \lceil \alpha n / 2 \rceil - 1 = n - \lfloor \alpha n / 2 \rfloor - 1$
+    of them are timestamps returned by honest parties.
+    \oa{The equivalent of this is $2f$. We would ideally like it to be $2f+1$. Check again.}
+\end{proof}
+
+\begin{claim}
+    Assume some client obtains certificate \txcert for a \confirmed transaction \tx,
+    and another (possibly malicious) client
+    reads the pod and outputs $(\POD, \rperf, \ppcert)$, such that $\rperf \geq \txcert.\rconf$.
+    Then, \tx will be contained in \POD as \pend of \confirmed.
+    Otherwise, either $(\POD, \rperf)$ are invalid (they cannot be verified from \ppcert), in which case the reading client is malicious,
+    or the certificates (\txcert, \ppcert) together identify a set of parties that have misbehaved.
+\end{claim}
+\begin{proof}
+    \oa{Not true. Maybe if $\rperf \geq \txcert.\rmax$?}
+\end{proof}
+% \begin{proof}
+%     Since $\rperf \geq \txcert.\rconf$, pod \POD must contain votes with timestamp greater than or equal to \txcert.\rconf from at least \alpha replicas (otherwise \rperf is invalid), hence from at least $\alpha - \beta$ honest replicas.
+%     Given that $\ttwo \geq \tone + \delta$, these honest replicas will have received $b$ by time \ttwo, and, since honest replicas do not omit transactions, the auctioneer will receive votes on $b$ from them.
+%     Hence, \POD will contain at least $\alpha - \beta$ votes on $b$ (otherwise, see bad case 2 below).
+%     However, a bid in pod that contains $\alpha - \beta$ votes is \pend, and an auctioneer will not output such a pod (otherwise, see bad case 1 below).
+%     Hence, \auc will wait until $b$ becomes \confirmed and will include in \POD all the corresponding votes,
+%     which means $b$ will not be censored.
+% \end{proof}
+
+% \subsection{Optimizations}
+% \begin{enumerate}
+%     \item Replicas with secondaries to handle read operations.
+%     \item Use committees. We can support a weighted model by having replicas lock some stake in a slow-moving chain (such as Ethereum) and rotate the committee every, say, 24 hours.
+%     \item We can use `helper' nodes, that know the addresses of all replicas, so that clients can use them, instead of having to contact all replicas.
+% \end{enumerate}    

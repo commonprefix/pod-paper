@@ -17,13 +17,13 @@ collection of bids that were considered for the auction.
     \end{enumerate}
 \end{definition}
 
-\begin{definition}[Auction framework over POD]
+\begin{definition}[Auction framework]
     \begin{itemize}
         \item function submit\_bid(b):
         It is called by bidders at time at most \tone to submit their bids to pod.
         \item function run\_auction():
-        It is called by the auctioneer at time \ttwo. It outputs the event $result()$ of the underlying auction protocol,
-        as well as a \emph{bag} $B$ with the bids considered for the auction.
+        It is called by the auctioneer at time \ttwo. It creates a \emph{bag} $B$, which is a collection of bids, and runs the auction on input $B$.
+        It outputs $B$ and the event $result()$ of the underlying auction protocol.
     \end{itemize}
 \end{definition}
 
@@ -33,20 +33,22 @@ We desire the following properties from an auction framework.
     \item[Termination within \parAuctionTerm:]
     An honest auctioneer completes the auction by time $\ttwo + \parAuctionTerm$.
     \item [Accountable censorship resistance:]
-    If an honest bidder submits calls submit\_bid(b) at time at most \tone, then $b \in B$.
-    Otherwise \oa{todo}
+    If an honest bidder calls submit\_bid(b) at time at most \tone, then $b \in B$.
+    Otherwise, either the auctioneer or at least \oa{how many?} replicas are accountable.
     \item[Fair punishment:]
     An honest auctioneer cannot be blamed for ignoring bids.
 \end{description}
 
-\dotparagraph{Construction}
+\begin{construction}[Auction framework over pod]\label{const:auction}
 At time \ttwo, \auc starts reading the pod, until it obtains $(\POD, \rperf, \ppcert)$,
-such that the following conditions hold:
+such that the following requirements hold:
 \begin{enumerate}
     \item $\rperf \geq \ttwo$,
     \item \POD contains no \pend transactions with $\rmin \leq \ttwo$
 \end{enumerate}
-When this happens, \auc produces a signature on $(\POD, \rperf, \ppcert)$ and runs the auction using all transactions in \POD.
+When this happens, \auc creates a bag $\bag = \{ \tx \mid (\tx, \cdot, \cdot, \rconf, \cdot) \in \POD \land \rconf \leq \ttwo \}$ and runs the auction on input \bag.
+When the auction is completed with a \opresult{} event, \auc produces a signature \sig on message $\mes = (\bag, \POD, \rperf, \ppcert)$, and outputs $(\opresult{}, \mes, \sig)$.
+\end{construction}
 
 % If any party can present a certificate certifying the *maximum* timestamp to be before the deadline, but the auctioneer has not included the bid in question, the auctioneer is slashed by resorting to the parent chain. An equivocating auctioneer is similarly slashed. Honest party bids are guaranteed to have both a confirmation timestamp and a maximum timestamp before the deadline, as long as the bids are submitted at the auction starting time and the network is synchronous. Lastly, the honest bidder has no fear of being censored when following the honest strategy because any transaction that could appear with a certificate of maximality prior to the deadline will necessarily appear with a confirmed timestamp prior to the deadline in any other certificate.
 
@@ -57,13 +59,29 @@ When this happens, \auc produces a signature on $(\POD, \rperf, \ppcert)$ and ru
 \dotparagraph{Security}
 The following lemmas capture the security of the auction construction.
 
-\begin{theorem}[Censorship resistance]
-    In a synchronous period, the construction satisfies the \emph{censorship resistance} property.
+\begin{theorem}[Accountable censorship resistance]
+    In a synchronous period, and if $\ttwo \geq \tone + \Delta$, the construction satisfies the \emph{censorship resistance} property.
 \end{theorem}
 \begin{proof}
-    It follows from the \emph{transaction liveness} property.
-    From the \emph{transaction liveness} property
-    We know that \tx will be read by an honest client at any round $\round' \geq \round + \delta$, and it will have $\rconf \in [\round, \round + \delta]$.
+    % From the \emph{confirmation with \parack} property, we know that the honest client who writes bid $b$ at time \tone will obtain a certificate \txcert by time $\tone + 2 \delta$ time.
+    Assume the bidder writes $b$ at time \tone, and that we are in synchrony.
+    Observe, first, that every honest replica will receive $b$ by time $\tone + \delta$ and assign it a timestamp at most $\tone + \delta$.
+
+    % If the auctioneer is honest and reads the pod at time after $\tone + \delta$, from the \emph{availability after \parlive} property we have that it will observe $b$ as confirmed.
+    % , and, from the \emph{transaction bounds} property, the maximum round number of $b$ will satisfy $\rmax \in [\tone, \tone+\delta]$.
+    % Assume now the auctioneer is malicious and tries to censor $b$.
+    The auctioneer must output a certificate \ppcert, such that $\ppcert.\rperf \geq \ttwo$ (if this not the case, see accountability case 1 below).
+    For this to be the case, the pod \POD that is output by the auctioneer must contain votes with timestamp greater than or equal to \ttwo from at least \alpha replicas (otherwise, bad case 1 below), hence from at least $\alpha - \beta$ honest replicas.
+    Given that $\ttwo \geq \tone + \delta$, these honest replicas will have received $b$ by time \ttwo, and, since honest replicas do not omit transactions, the auctioneer will receive votes on $b$ from them.
+    Hence, \POD will contain at least $\alpha - \beta$ votes on $b$ (otherwise, see bad case 2 below).
+    However, a bid in pod that contains $\alpha - \beta$ votes is \pend, and an auctioneer will not output such a pod (otherwise, see bad case 1 below).
+    Hence, \auc will wait until $b$ becomes \confirmed and will include in \POD all the corresponding votes,
+    which means $b$ will not be censored.
+    
+    Bad case 1: if this event happens, then \auc has output a \POD that does not satisfy the requirements of the construction and \auc is accountable.
+    Bad case 2: if this event happens, then \auc has output a pod \POD that contains less that $\alpha - \beta$ votes on $b$, i.e., at least $\beta + 1$ signed replica logs, such that each of them contains a vote with timestamp greater or equal than \ttwo, but no vote on $b$. \oa{This cannot happen because there are not that many malicious, but how do we make it accountable?}
+    At least one of those replicas is accountable,
+    because the client that submitted $b$ possesses a certificate \txcert for $b$ with at least $\alpha - \beta$ votes with timestamp less that $\ttwo$. \oa{and so?}
 \end{proof}
 
 \begin{theorem}[Termination within $\parAuctionTerm = \delta$]
@@ -73,13 +91,13 @@ The following lemmas capture the security of the auction construction.
     It follows from the \emph{past-perfection liveness} property that
     the round \round that corresponds to the auction deadline will eventually become past perfect.
     In synchrony this will become at round $\round + \delta$.
+    Moreover, from the \emph{totality} property of pod, every \pend transaction will eventually become \confirmed.
 \end{proof}
 
 \begin{theorem}[Fair punishment]
     The construction satisfies the \emph{fair punishment} property.
 \end{theorem}
 \begin{proof}
-    \oa{I think this does not require synchrony, but check again.}
     From the \emph{past-perfection} safety property, it follows that, after the auctioneer creates a past-perfection certificate \ppcert for a round \rperf,
     no new transaction can be \confirmed with $\rconf < \rperf$.
 \end{proof}
