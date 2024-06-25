@@ -332,10 +332,7 @@ considering timestamps \allLts as the minimum possible for any future transactio
 \begin{proof}[Past-perfection safety]
     Assume there exists a past-perfection certificate \ppcert for some
     past-perfect round $\ppcert.\rperf$.
-    The past-perfect round is computed (lines~\ref{line:fn-compute-pp-begin}--\ref{line:fn-compute-pp-end}) as the median of
-    \beta times the $0$ value and the $\lceil \alpha \rceil - \beta$ smallest most-recent timestamps of the validators in $\ppcert.\votes$,
-    i.e., $\ppcert.\rperf$ is the value of the $\left( \lceil \frac{\alpha}{2} \rceil - \beta \right)$-th smallest most-recent timestamp.
-    This implies that there are $\lceil \frac{\alpha}{2} \rceil - \beta - 1$ validators $\rep_j$ whose most-recent timestamp $\lts_j$ satisfies $\lts_j \leq \ppcert.\rperf$.
+    From \Cref{lemma:number-votes-in-cert}, there are at least $\lceil \frac{\alpha}{2} \rceil - \beta - 1$ validators $\rep_j$ whose most-recent timestamp $\lts_j$ satisfies $\lts_j < \ppcert.\rperf$.
     Assume now there exists a transaction \tx, such that $\tx \not \in \ppcert.\Pod$ and a transaction certificate \txcert for \tx, such that
     $\txcert.\rconf \neq \bot$ and $\txcert.\rconf < \ppcert.\rperf$.
     This implies that \txcert contains at least $\lceil \frac{\alpha}{2} \rceil$ votes with a timestamp $\tsp_j$ such that $\tsp_j < \ppcert.\rperf$,
@@ -346,17 +343,17 @@ considering timestamps \allLts as the minimum possible for any future transactio
     in $\ppcert$, i.e., $\tsp_j \geq \lts_j$.
     All together, for these $\lceil \frac{\alpha}{2} \rceil - \beta$ honest validators it must hold that $\lts_j < \ppcert.\rperf$.
     But we have shown that there are only $\lceil \frac{\alpha}{2} \rceil - \beta - 1$ validators with $\lts_j \leq \ppcert.\rperf$,
-    hence such a \tx cannot exist.
+    hence such a \tx cannot exist. \oa{TODO: show how to identify malicious}
 \end{proof}
 
 \oa{The following lemmas may be useful or may not. The first is kind of obvious, but useful.}
 \begin{lemma}\label{lem:assign-min-max}
     The construction above returns
-    \begin{itemize}
+    \begin{enumerate}
         \item as \rmin the timestamp at index $\lceil \alpha / 2 \rceil - \beta$ of \txVotes
         \item as \rmax the timestamp at index $n - \alpha + \lceil \alpha / 2 \rceil + \beta$ of $\txVotes$
         \item as \rperf the timestamp at index $\lceil \alpha / 2 \rceil - \beta$ of \allLts
-    \end{itemize}
+    \end{enumerate}
 \end{lemma}
 \begin{proof}
     Functions \opMinPossibleTs{} and \opMinPossibleTsForNewTx{} append \beta times the $0$ value in the beginning of the list and return the median of the first \alpha values. Hence \rmin and \rperf are the elements at index $\lceil \alpha / 2 \rceil - \beta$ of \txVotes and \allLts, respectively.
@@ -365,17 +362,23 @@ considering timestamps \allLts as the minimum possible for any future transactio
     $n - \alpha  + \beta + \lceil \alpha / 2 \rceil$.
 \end{proof}
 
-\begin{lemma}
-    \begin{itemize}
-        \item If transaction \tx is assigned $\rmax \neq \infty$ as the maximum round, then at least  $n - \lfloor \alpha / 2 \rfloor - 1$ honest validators have logged \tx with a timestamp at most \rmax.
-        \item If a client computes some \rperf, then it has received timestamps $\tsp \geq \rperf$ by at least $n - \lceil \alpha / 2 \rceil + \beta$ parties and by at least $n - \lceil \alpha / 2 \rceil$ honest parties. \oa{continue. Use this in past-perfection safety property.}
-    \end{itemize}
+\begin{lemma}\label{lemma:number-votes-in-cert}
+    For $(\Pod, \rperf)$ valid according to some \ppcert, we have that
+    \begin{enumerate}
+        \item If some transaction $\tx \in \Pod$ is assigned $\rmax \neq \infty$ as the maximum round,
+        then \Pod contains votes on \tx from at least $n - \lfloor \alpha / 2 \rfloor - 1$ honest validators with a timestamp $\tsp \leq \rmax$.
+        \item The pod \Pod contains timestamps $\tsp < \rperf$ by at least $\lceil \alpha / 2 \rceil - \beta - 1$ parties and timestamps $\tsp \geq \rperf$ by at least $n - \lceil \alpha / 2 \rceil + \beta$ parties. \oa{We are using this in the past-perfection safety property.}
+    \end{enumerate}
 \end{lemma}
 \begin{proof}
-    From \Cref{lem:assign-min-max}, the list with all returned timestamps contains $n - \alpha  + \beta + \lceil \alpha / 2 \rceil - 1$ elements smaller or equal to \rmax,
-    and, since $\rmax \neq \infty$, at least $n - \alpha  + \lceil \alpha / 2 \rceil - 1 = n - \lfloor \alpha / 2 \rfloor - 1$
-    of them are timestamps returned by honest parties.
-    \oa{The equivalent of this is $2f$. We would ideally like it to be $2f+1$. Check again.}
+    \begin{enumerate}
+        \item From \Cref{lem:assign-min-max}, the list with all returned timestamps contains $n - \alpha  + \beta + \lceil \alpha / 2 \rceil - 1$ elements smaller or equal to \rmax,
+        and, since $\rmax \neq \infty$, at least $n - \alpha  + \lceil \alpha / 2 \rceil - 1 = n - \lfloor \alpha / 2 \rfloor - 1$
+        of them are timestamps returned by honest parties.
+        \oa{TODO: The equivalent of this is $2f$. We would ideally like it to be $2f+1$. Check again.}
+        \item It follows from \Cref{lem:assign-min-max}, as \rperf is the ($\lceil \alpha / 2 \rceil - \beta$)-th smallest value in \allLts.
+    \end{enumerate}
+    
 \end{proof}
 
 \begin{claim}
