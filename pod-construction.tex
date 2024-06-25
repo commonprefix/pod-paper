@@ -292,7 +292,7 @@ Finally, it checks whether \rperf can be updated (lines~\ref{line:upd-rperf-begi
 As shown in \Cref{alg:client-statistics}, \opMinPossibleTs{} and \opMaxPossibleTs{}
 pessimistically fill missing votes and
 allow up to \beta parties to equivocate.
-The former fills a missing vote from validator $\rep_j$ with $\lts_j$ (\cref{line:fill-vote-lts}), the minimum timestamp that can ever be  accepted from $\rep_j$ (smaller values will not pass the check on \cref{line:check-old-ts} of \Cref{alg:client-2}),
+The former fills a missing vote from validator $\rep_j$ with $\lts_j$ \oa{check again} (\cref{line:fill-vote-lts}), the minimum timestamp that can ever be  accepted from $\rep_j$ (smaller values will not pass the check on \cref{line:check-old-ts} of \Cref{alg:client-2}),
 while the latter fills a missing vote with $\infty$ (\cref{line:fill-vote-inf}).
 Finally, \opMinPossibleTsForNewTx{} works similarly to \opMinPossibleTs{}, except
 considering timestamps \allLts as the minimum possible for any future transaction.
@@ -349,25 +349,27 @@ considering timestamps \allLts as the minimum possible for any future transactio
     hence such a \tx cannot exist.
 \end{proof}
 
-\oa{The following lemmas may be useful or may not.}
+\oa{The following lemmas may be useful or may not. The first is kind of obvious, but useful.}
 \begin{lemma}\label{lem:assign-min-max}
-    The construction above returns, assuming we have sorted all received timestamps for \tx in increasing order,
+    The construction above returns
     \begin{itemize}
-        \item as \oa{\opMinPossibleTs{} ...},
-        \item as \opMaxPossibleTs{} the element at index $n - \alpha + \beta + \lceil \alpha / 2 \rceil$.
+        \item as \rmin the timestamp at index $\lceil \alpha / 2 \rceil - \beta$ of \txVotes
+        \item as \rmax the timestamp at index $n - \alpha + \lceil \alpha / 2 \rceil + \beta$ of $\txVotes$
+        \item as \rperf the timestamp at index $\lceil \alpha / 2 \rceil - \beta$ of \allLts
     \end{itemize}
 \end{lemma}
 \begin{proof}
-    \begin{itemize}
-        \item \oa{todo}
-        \item Function \opMaxPossibleTs{} (lines~\ref{line:fn-compute-max-begin}--\ref{line:fn-compute-max-end}) appends \beta times the $\infty$ value at the end of the list with all received timestamps, and looks at the last \alpha elements of that list, hence ignores the first $n - \alpha  + \beta$ elements.
-        It returns the median of the last \alpha elements, so all together the element at position
-        $n - \alpha  + \beta + \lceil \alpha / 2 \rceil$.
-    \end{itemize}
+    Functions \opMinPossibleTs{} and \opMinPossibleTsForNewTx{} append \beta times the $0$ value in the beginning of the list and return the median of the first \alpha values. Hence \rmin and \rperf are the elements at index $\lceil \alpha / 2 \rceil - \beta$ of \txVotes and \allLts, respectively.
+    Function \opMaxPossibleTs{} (lines~\ref{line:fn-compute-max-begin}--\ref{line:fn-compute-max-end}) appends \beta times the $\infty$ value at the end of the list with all received timestamps, and looks at the last \alpha elements of that list, hence ignores the first $n - \alpha  + \beta$ elements.
+    It returns the median of the last \alpha elements, so all together \rmax is the element at position
+    $n - \alpha  + \beta + \lceil \alpha / 2 \rceil$.
 \end{proof}
 
 \begin{lemma}
-    If transaction \tx is assigned $\rmax \neq \infty$ as the maximum round, then at least  $n - \lfloor \alpha / 2 \rfloor - 1$ honest validators have logged \tx with a timestamp at most \rmax.
+    \begin{itemize}
+        \item If transaction \tx is assigned $\rmax \neq \infty$ as the maximum round, then at least  $n - \lfloor \alpha / 2 \rfloor - 1$ honest validators have logged \tx with a timestamp at most \rmax.
+        \item If a client computes some \rperf, then it has received timestamps $\tsp \geq \rperf$ by at least $n - \lceil \alpha / 2 \rceil + \beta$ parties and by at least $n - \lceil \alpha / 2 \rceil$ honest parties. \oa{continue. Use this in past-perfection safety property.}
+    \end{itemize}
 \end{lemma}
 \begin{proof}
     From \Cref{lem:assign-min-max}, the list with all returned timestamps contains $n - \alpha  + \beta + \lceil \alpha / 2 \rceil - 1$ elements smaller or equal to \rmax,
