@@ -52,40 +52,45 @@ A pod satisfies the following properties.
     \item{Liveness}
     \begin{description}[left=0pt,itemindent=0pt]
 
-        \item[Confirmation within \parack:]
-        If an honest client writes a transaction \tx, then it will obtain output $(\tx, \rmin, \rmax, \rconf, \txcert)$, such that $\rconf \neq \bot$, within \parack time. \oa{define time}
-        
-        \item[Availability after \parlive:]
-        If an honest client writes a transaction \tx, then any other honest client that reads the pod after \parlive time will observe \tx as \confirmed.
+        \item[Confirmation within \parConf:]
+        If an honest client writes a transaction \tx at round \round, then it will obtain output $(\tx, \rmin, \rmax, \rconf, \txcert)$, such that $\rconf \neq \bot$, by round $\round + \parConf$.
 
-        \item[Past-perfection within \parpp:]
-        Rounds become past-perfect within $\parpp$ time. 
-        That is, if an honest client calls \opreadall{} at round $\round +\parpp$, then the returned \rperf will satisfy $\rperf \geq \round$.
+        \item[Availability after \parLive:]
+        If an honest client writes a transaction \tx at round \round, then any honest client that reads the pod at round at least $\round + \parLive$ will observe \tx as \confirmed.
+
+        \item[Past-perfection within \parPerf:]
+        Rounds become past-perfect within $\parPerf$ time. 
+        That is, if an honest client calls \opreadall{} at round $\round +\parPerf$, then the returned \rperf will satisfy $\rperf \geq \round$.
     \end{description}
 
     \item{Safety}
     \begin{description}[left=0pt,itemindent=0pt]
+        
+
         \item[Totality:]
         If an honest client observes transaction \tx as \confirmed,
         then eventually any other honest client will observe \tx as \confirmed.
-        \oa{See if we need a parameter for this,}
+        \oa{See if we need a parameter for this.}
         
         \item[Pending-confirmation soundness:]
         If an honest client observes transaction \tx as \pend, then eventually it will observe it as \confirmed.
         \oa{Define \pend. We need this property for the auction protocol.}
 
-        \item[Bounds:]
+        \item[Bounds temperature with parameter \parTemp:]
         The numbers $\rmin, \rmax$, and $\rconf$ for a transaction \tx satisfy the following:
         \begin{enumerate}[(1)]
             \item If an honest client obtains $\rmin$ and $\rmax$ for \tx,
             and an honest (possibly different) client observes \tx as \confirmed with round $\rconf$, then
             $\rmin \leq \rconf \leq \rmax$.
             \item If an honest client obtains $\rmin$ and $\rmax$ for \tx, and later obtains $\rmin'$ and $\rmax'$ for \tx, then $\rmin' \geq \rmin$ and $\rmax' \leq \rmax$.
-            \oa{Check if we need the following in the property level}
-            \item if \tx is confirmed, then $\rconf \in [\round, \round + \delta]$,
-            \item $\rmax \in [\round, \round + \delta]$,
-            \item $\rmax - \rmin \leq \delta$.
+            \item
+            If an honest client writes a transaction \tx at round \round,
+            and an honest client observes \tx as \confirmed with \rconf and \rmax,
+            then $\rconf \in [\round, \round + \parTemp]$,
+            $\rmax \in [\round, \round + \parTemp]$, and
+            $\rmax - \rmin \leq \parTemp$.
         \end{enumerate}
+
         \item[Past-perfection safety:]
         Assume a \opreadall{} returns a pod \Pod and a past-perfect round \rperf.
         For any transaction $\tx \not \in \Pod$, no honest client will ever observe \tx as confirmed with $\rconf < \rperf$.
