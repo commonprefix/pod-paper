@@ -16,6 +16,13 @@ The pod construction will impose limits on \alpha and \beta.
 \dotparagraph{Modeling Time}
 We assume that time proceeds in \emph{rounds} and that parties have loosely synchronized clocks allowing them to determine the current round. Each party keeps a local round counter that is used to assign timestamps to transactions and protocol messages as needed. Without loss of generality, our analysis can be extended to a model with loosely synchronized clocks where two honest parties may have two different round counters $r_1,r_2$ such that $|r_1-r_2|=\delta$ for a finite $\delta$.
 
+\dotparagraph{Modeling Time \oa{Version 2}}
+By \emph{time} and \emph{timestamp} we refer to actual time.
+Each party keeps a local clock that is used to assign timestamps to transactions and protocol messages as needed.
+We assume loosely synchronized clocks, such that the local time observed by two honest parties, $t_1,t_2$ satisfies $|r_1-r_2| \leq \delta$ for a finite $\delta$.
+We remark that this also holds in periods of asynchrony.
+\oa{Is this a valid assumption? If we keep it, we can get it of all `round' references and use `time' or `timestamp'. It would make our description less likely to get confused with the notion of `round' in other protocols.}
+
 \dotparagraph{Modeling Network Synchrony}
 In the synchronous model, we assume that every message is delivered within a \emph{known} finite delay of $\Delta$ rounds. In the partially synchronous model, we assume that messages are delivered within a known finite delay of $\Delta$ rounds only \emph{after} an unknown but finite period of time called the Global Stabilization Time (GST). Messages sent before the GST may be delivered only $\Delta$ rounds after the GST. Finally, in the asynchronous model, we assume that messages are delivered within an \emph{unknown} but finite delay $\Delta$.
 
