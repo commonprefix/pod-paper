@@ -3,30 +3,31 @@
 
 
 \dotparagraph{Client gossip}
-The construction employs the \emph{client gossip} technique. It could be the case that
-clients perform read operations on the validators and observe that some of them miss some data, such as client transactions.
-Client gossip consists in having clients re-broadcast these missing transactions.
-This technique ensures the client that a round becomes past perfect,
-hence the client has a finalized view of the system: a transaction that was re-broadcast will
-eventually reach all honest validators, hence it cannot get removed from the system in the future.
-\oa{TODO: Mention that we can use client gossip, gossiping, or relayers to achieve totality. We denote by $u$ the (average) time it takes
-in synchrony for a transaction to reach all validators. For example, $u = 2 \delta$ using client gossip or relayers.}
+\oa{todo: Define transaction propagation mechanism.}
+% The construction employs the \emph{client gossip} technique. It could be the case that
+% clients perform read operations on the validators and observe that some of them miss some data, such as client transactions.
+% Client gossip consists in having clients re-broadcast these missing transactions.
+% This technique ensures the client that a round becomes past perfect,
+% hence the client has a finalized view of the system: a transaction that was re-broadcast will
+% eventually reach all honest validators, hence it cannot get removed from the system in the future.
+% \oa{TODO: Mention that we can use client gossip, gossiping, or relayers to achieve totality. We denote by $u$ the (average) time it takes
+% in synchrony for a transaction to reach all validators. For example, $u = 2 \delta$ using client gossip or relayers.}
 
 \begin{definition}[Vote]
     We call a \emph{vote} a transaction-timestamp pair $(\tx, \round)$ signed by a validator.
 \end{definition}
 
 \begin{definition}[\Confirmed transaction]\label{def:rec-tx}
-    A transaction becomes \emph{\confirmed} for a client when that client obtains at least $\lceil \alpha n \rceil$ votes for that transaction.
+    A transaction becomes \emph{\confirmed} for a client when that client obtains at least $\alpha$ votes on it.
 \end{definition}
 
 \begin{definition}[Transaction certificate]
     A \emph{transaction certificate} \txcert is a collection of votes $(\tx, \round_j)$, for $j \in |\txcert|$,
     from which the values $\rmin, \rmax, \rconf$ associated with \tx can be verified.
     Given a certificate \txcert for \tx, we use $\txcert.\tx$, $\txcert.\rmin$, $\txcert.\rmax$, and $\txcert.\rconf$ to refer to \tx and the rounds associated with it.
-    According to \Cref{def:rec-tx}, \tx is \confirmed if and only if $|\txcert| \geq  \lceil \alpha n \rceil$.
+    According to \Cref{def:rec-tx}, \tx is \confirmed if and only if $|\txcert| \geq  \alpha$.
     We may also denote the size of the certificate as
-    \emph{$x$-certificate}, for any $x \in (0,1]$.
+    \emph{$x$-certificate}, for any $x \in (0,n]$.
     For example, an $\alpha$-certificate corresponds to a confirmed transaction.
 \end{definition}
 
@@ -133,7 +134,7 @@ in synchrony for a transaction to reach all validators. For example, $u = 2 \del
 \end{algorithm}
     
 \begin{algorithm}
-\caption{Code for a client, part 2. We denote by $\certSize = \lceil \alpha n \rceil$ the size of a certificate.}
+\caption{Code for a client, part 2.}
 \label{alg:client-2}
 \begin{algorithmic}[1]
     \Let{\allreps}{\{ \rep_1, \ldots, \rep_n  \} } \Comment{\text{The set of all validators}}
@@ -177,7 +178,7 @@ in synchrony for a transaction to reach all validators. For example, $u = 2 \del
 
         \Statex
 
-        \If{$| \transactions[\tx].votes | \geq \certSize$}\label{line:confirm-tx-begin}
+        \If{$| \transactions[\tx].votes | \geq \alpha$}\label{line:confirm-tx-begin}
             \Let{prev}{\transactions[\tx].\rconf}
             \Let{\transactions[\tx].\rconf}{\opMed{\transactions[\tx]}}
             \If{$prev = \bot$}
@@ -213,7 +214,7 @@ in synchrony for a transaction to reach all validators. For example, $u = 2 \del
         \EndFor
         \Let{\txVotes}{\text{sort \txVotes in increasing order}}
         \Let{\txVotes}{\{ 0, \stackrel{\beta \text{ times}}{\ldots}, 0 \} \| \txVotes}
-        \return $\opMed{\txVotes[1: \certSize]}$
+        \return $\opMed{\txVotes[1: \alpha]}$
     \EndFunction
     
     \Statex
@@ -225,14 +226,14 @@ in synchrony for a transaction to reach all validators. For example, $u = 2 \del
         \EndFor
         \Let{\txVotes}{\text{sort \txVotes in increasing order}}
         \Let{\txVotes}{\txVotes \| \{ \infty, \stackrel{\beta \text{ times}}{\ldots}, \infty \} }
-        \return $\opMed{\txVotes[(n - \certSize) : n]}$
+        \return $\opMed{\txVotes[(n - \alpha) : n]}$
     \EndFunction\label{line:fn-compute-max-end}
 
     \Statex
     \Function{\opMinPossibleTsForNewTx{}}{}\label{line:fn-compute-pp-begin}
         \Let{\allLts}{\text{sort \allLts in increasing order}}
         \Let{\allLts}{\{ 0, \stackrel{\beta \text{ times}}{\ldots}, 0 \} \| \allLts}
-        \return $\opMed{\allLts[1: \certSize]}$
+        \return $\opMed{\allLts[1: \alpha]}$
     \EndFunction\label{line:fn-compute-pp-end}
 
     \Statex
@@ -244,7 +245,7 @@ in synchrony for a transaction to reach all validators. For example, $u = 2 \del
 \end{algorithm}
 
 
-\dotparagraph{The protocol}
+\begin{construction}[Pod]
 As shown in \Cref{alg:client-1},
 in order to write a transaction \tx, a client sends a \msgwrite{\tx} message,
 and to read all transactions, it sends a \msgread{} message to all validators.
@@ -295,14 +296,8 @@ The former fills a missing vote from validator $\rep_j$ with $\lts_j$ (\cref{lin
 while the latter fills a missing vote with $\infty$ (\cref{line:fill-vote-inf}).
 Finally, \opMinPossibleTsForNewTx{} works similarly to \opMinPossibleTs{}, except
 considering timestamps \allLts as the minimum possible for any future transaction.
+\end{construction}
 
-\begin{remark}
-    We will require that $n - \lfloor \alpha n / 2 \rfloor - 1 - \beta n \geq \beta n + 1$,
-    or $2\beta n \leq n - \lfloor \alpha n / 2 \rfloor - 2$, or $\beta \leq \alpha / 4 - 1$.
-    \oa{Not ideal.}
-\end{remark}
-
-\oa{Better change \alpha to denote number, not fraction.}
 
 \begin{theorem}[Confirmation within $\parack = 2 \delta$]
     If the network is synchronous, the construction satisfies the \emph{confirmation} liveness property with $\parack = 2 \delta$.
@@ -338,44 +333,45 @@ considering timestamps \allLts as the minimum possible for any future transactio
     Assume there exists a past-perfection certificate \ppcert for some
     past-perfect round $\ppcert.\rperf$.
     The past-perfect round is computed (lines~\ref{line:fn-compute-pp-begin}--\ref{line:fn-compute-pp-end}) as the median of
-    \beta times the $0$ value and the $\lceil \alpha n \rceil - \beta$ smallest most-recent timestamps of the validators in $\ppcert.\votes$,
-    i.e., $\ppcert.\rperf$ is the value of the $\left( \lceil \frac{\alpha n}{2} \rceil - \beta \right)$-th smallest most-recent timestamp.
-    This implies that there are $\lceil \frac{\alpha n}{2} \rceil - \beta - 1$ validators $\rep_j$ whose most-recent timestamp $\lts_j$ satisfies $\lts_j \leq \ppcert.\rperf$.
+    \beta times the $0$ value and the $\lceil \alpha \rceil - \beta$ smallest most-recent timestamps of the validators in $\ppcert.\votes$,
+    i.e., $\ppcert.\rperf$ is the value of the $\left( \lceil \frac{\alpha}{2} \rceil - \beta \right)$-th smallest most-recent timestamp.
+    This implies that there are $\lceil \frac{\alpha}{2} \rceil - \beta - 1$ validators $\rep_j$ whose most-recent timestamp $\lts_j$ satisfies $\lts_j \leq \ppcert.\rperf$.
     Assume now there exists a transaction \tx, such that $\tx \not \in \ppcert.\Pod$ and a transaction certificate \txcert for \tx, such that
     $\txcert.\rconf \neq \bot$ and $\txcert.\rconf < \ppcert.\rperf$.
-    This implies that \txcert contains at least $\lceil \frac{\alpha n}{2} \rceil$ votes with a timestamp $\tsp_j$ such that $\tsp_j < \ppcert.\rperf$,
-    because the timestamp has been computed as the median of at least $\lceil \alpha n \rceil$ votes.
-    Out of those votes, at least $\lceil \frac{\alpha n}{2} \rceil - \beta$ must be from honest validators.
+    This implies that \txcert contains at least $\lceil \frac{\alpha}{2} \rceil$ votes with a timestamp $\tsp_j$ such that $\tsp_j < \ppcert.\rperf$,
+    because the timestamp has been computed as the median of at least $\lceil \alpha \rceil$ votes.
+    Out of those votes, at least $\lceil \frac{\alpha}{2} \rceil - \beta$ must be from honest validators.
     A vote from them is not in $\ppcert.\votes$ (since $\tx \not \in \ppcert.\Pod$),
     hence they can only assign it a timestamp $\tsp_j$ equal to or larger than their most-recent timestamp
     in $\ppcert$, i.e., $\tsp_j \geq \lts_j$.
-    All together, for these $\lceil \frac{\alpha n}{2} \rceil - \beta$ honest validators it must hold that $\lts_j < \ppcert.\rperf$.
-    But we have shown that there are only $\lceil \frac{\alpha n}{2} \rceil - \beta - 1$ validators with $\lts_j \leq \ppcert.\rperf$,
+    All together, for these $\lceil \frac{\alpha}{2} \rceil - \beta$ honest validators it must hold that $\lts_j < \ppcert.\rperf$.
+    But we have shown that there are only $\lceil \frac{\alpha}{2} \rceil - \beta - 1$ validators with $\lts_j \leq \ppcert.\rperf$,
     hence such a \tx cannot exist.
 \end{proof}
 
+\oa{The following lemmas may be useful or may not.}
 \begin{lemma}\label{lem:assign-min-max}
     The construction above returns, assuming we have sorted all received timestamps for \tx in increasing order,
     \begin{itemize}
         \item as \oa{\opMinPossibleTs{} ...},
-        \item as \opMaxPossibleTs{} the element at index $(1 - \alpha) n  + \beta + \lceil \alpha n / 2 \rceil$.
+        \item as \opMaxPossibleTs{} the element at index $n - \alpha + \beta + \lceil \alpha / 2 \rceil$.
     \end{itemize}
 \end{lemma}
 \begin{proof}
     \begin{itemize}
         \item \oa{todo}
-        \item Function \opMaxPossibleTs{} (lines~\ref{line:fn-compute-max-begin}--\ref{line:fn-compute-max-end}) appends \beta times the $\infty$ value at the end of the list with all received timestamps, and looks at the last $c = \alpha n$ elements of that list, hence ignores the first $(1 - \alpha) n  + \beta$ elements.
-        It returns the median of the last $c$ elements, so all together the element at position
-        $(1 - \alpha) n  + \beta + \lceil \alpha n / 2 \rceil$.
+        \item Function \opMaxPossibleTs{} (lines~\ref{line:fn-compute-max-begin}--\ref{line:fn-compute-max-end}) appends \beta times the $\infty$ value at the end of the list with all received timestamps, and looks at the last \alpha elements of that list, hence ignores the first $n - \alpha  + \beta$ elements.
+        It returns the median of the last \alpha elements, so all together the element at position
+        $n - \alpha  + \beta + \lceil \alpha / 2 \rceil$.
     \end{itemize}
 \end{proof}
 
 \begin{lemma}
-    If transaction \tx is assigned $\rmax \neq \infty$ as the maximum round, then at least  $n - \lfloor \alpha n / 2 \rfloor - 1$ honest validators have logged \tx with a timestamp at most \rmax.
+    If transaction \tx is assigned $\rmax \neq \infty$ as the maximum round, then at least  $n - \lfloor \alpha / 2 \rfloor - 1$ honest validators have logged \tx with a timestamp at most \rmax.
 \end{lemma}
 \begin{proof}
-    From \Cref{lem:assign-min-max}, the list with all returned timestamps contains $(1 - \alpha) n  + \beta + \lceil \alpha n / 2 \rceil - 1$ elements smaller or equal to \rmax,
-    and, since $\rmax \neq \infty$, at least $(1 - \alpha) n  + \lceil \alpha n / 2 \rceil - 1 = n - \lfloor \alpha n / 2 \rfloor - 1$
+    From \Cref{lem:assign-min-max}, the list with all returned timestamps contains $n - \alpha  + \beta + \lceil \alpha / 2 \rceil - 1$ elements smaller or equal to \rmax,
+    and, since $\rmax \neq \infty$, at least $n - \alpha  + \lceil \alpha / 2 \rceil - 1 = n - \lfloor \alpha / 2 \rfloor - 1$
     of them are timestamps returned by honest parties.
     \oa{The equivalent of this is $2f$. We would ideally like it to be $2f+1$. Check again.}
 \end{proof}

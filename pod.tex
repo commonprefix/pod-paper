@@ -45,12 +45,12 @@ We say that a client \emph{writes a transaction} \tx when it calls \opwrite{\tx}
 For a \tx, such that $(\tx, \cdot, \cdot, \rconf, \cdot) \in \Pod$, we say that the client \emph{observes} \tx, and if $\rconf \neq \bot$, we say that the client \emph{observes \tx as \confirmed}.
 \oa{Same for \pend. }
 
-\subsection{pod Security Guarantees}
+\dotparagraph{Security properties}
 A pod satisfies the following properties.
 
 \begin{enumerate}
     \item{Liveness}
-    \begin{description}
+    \begin{description}[left=0pt,itemindent=0pt]
 
         \item[Confirmation within \parack:]
         If an honest client writes a transaction \tx, then it will obtain output $(\tx, \rmin, \rmax, \rconf, \txcert)$, such that $\rconf \neq \bot$, within \parack time. \oa{define time}
@@ -64,7 +64,7 @@ A pod satisfies the following properties.
     \end{description}
 
     \item{Safety}
-    \begin{description}
+    \begin{description}[left=0pt,itemindent=0pt]
         \item[Totality:]
         If an honest client observes transaction \tx as \confirmed,
         then eventually any other honest client will observe \tx as \confirmed.

@@ -189,10 +189,26 @@
 % \fi
 \fi
 
+\usepackage{amsthm} 
+\newtheoremstyle{construction-style}% name
+  {\topsep}%      Space above
+  {\topsep}%      Space below
+  {\normalfont}% Body font
+  {}%         Indent amount (empty = no indent, \parindent = para indent)
+  {\bfseries}% Thm head font
+  {.}%        Punctuation after thm head
+  { }%     Space after thm head: " " = normal space; \newline = linebreak
+  {\thmname{#1}\thmnumber{ #2}\thmnote{ (\bfseries #3)}}%    Thm head spec
+\theoremstyle{construction-style}
+\newtheorem{construction}{Construction}
+
 \import{./}{macros.tex}
 
 \pagestyle{plain}
 
 \newenvironment{Claim}{claim}{claim}
 \newenvironment{Definition}{definition}{definition}
+% \newenvironment{Construction}{construction}{construction}
+
+
 \raggedbottom
