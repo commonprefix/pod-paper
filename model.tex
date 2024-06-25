@@ -1,12 +1,9 @@
-\section{Partially Ordered Datasets (POD)} \label{sec:system}
-We define the notion of Partially Ordered Datasets (POD), which allow a set of \emph{clients} to obtain a partially ordered list of transactions from a set of \emph{replicas} with censorship-freeness guarantees and accountability for safety violations. Before we define the syntax and security guarantees for PODs, we present basic notation and the model we consider. 
-
-\subsection{Model}
+\section{Model}\label{sec:system}
 
 \dotparagraph{Notation}
-We distinguish two types of parties, $n$ \emph{replicas} and an unlimited number of \emph{clients}.
+We distinguish two types of parties, $n$ \emph{validators} and an unlimited number of \emph{clients}.
 Replicas run the protocol and clients interact with it using its interface.
-We call a party -- replica or client -- \emph{correct}, if it follows the protocol, and \emph{malicious} otherwise.
+We call a party -- validator or client -- \emph{correct}, if it follows the protocol, and \emph{malicious} otherwise.
 We denote \CN the set of natural numbers including $0$.
 For a list $L$ of length $\ell$ we denote by $L[i]$ the element of $L$ at index $i$, where $i \in \{1, \ldots, \ell\}$.
 
@@ -23,114 +20,3 @@ We assume that time proceeds in \emph{rounds} and that parties have loosely sync
 In the synchronous model, we assume that every message is delivered within a \emph{known} finite delay of $\Delta$ rounds. In the partially synchronous model, we assume that messages are delivered within a known finite delay of $\Delta$ rounds only \emph{after} an unknown but finite period of time called the Global Stabilization Time (GST). Messages sent before the GST may be delivered only $\Delta$ rounds after the GST. Finally, in the asynchronous model, we assume that messages are delivered within an \emph{unknown} but finite delay $\Delta$.
 
 %We use the notion of a \emph{round}: each transaction gets associated with a specific round. We say the transaction becomes \emph{\confirmed} at that round. \bd{There's a confusion between the definition of a round as a unit of time during which communication takes place and the use of rounds as  timestamps for specific transactions. We also lack a definition of synchronous/semi-synchronous communication.}
-
-\subsection{POD Syntax}
-
-% \begin{definition}[Minimum and maximum transaction bounds]\label{def:min-max-bounds}
-%     We also associate with each transaction a \emph{minimum round} (\rmin) and a \emph{maximum round} (\rmax).
-%     They bound the \confirmed round \rconf for \tx across all clients and are monotonic. Specifically,
-%     (1) if an honest client computes some $\rmin$ and $\rmax$ for a transaction
-%     and that transaction becomes \confirmed for some (possibly different) client with recorded round $\rconf$, then
-%     $\rmin \leq \rconf \leq \rmax$,
-%     and (2) if an honest client computes $\rmin$ and $\rmax$, and later updates these values to $\rmin'$ and $\rmax'$,
-%     then $\rmin' \geq \rmin$ and $\rmax' \leq \rmax$.
-% \end{definition}
-% The \rmin, \rmax, \rconf are computed from the votes received for that transaction and they are updated when new votes are received.
-% Initially, $\rmin=0$ and $\rmax=\infty$.
-
-
-\begin{definition}[Transaction and associated values]
-    We associate with each transaction \tx values $(\tx, \rmin, \rmax, \rconf, \txcert )$.
-    We call $\rmin \in \CN$ the \emph{minimum round}, $\rmax \in \CN \cup \{\infty\}$ the \emph{maximum round},
-    and $\rconf \in \CN \cup \{\bot\}$ the \emph{\confirmed round}.
-    For the maximum round, symbol~$\infty$ stands for an unbounded large number,
-    and for the \confirmed round, symbol~$\bot$ stands for an undefined value.
-    \oa{also a filed unconfirmed, \pend, \confirmed.}
-    Finally, $\txcert$ is a \emph{transaction certificate} that proves the correctness of $\rmin, \rmax, \rconf$.
-    For a \confirmed transaction we have that $\rconf \neq \bot$, and for a transaction that is not \confirmed we have that $\rconf = \bot$.
-\end{definition}
-
-\begin{definition}[Partially Ordered Dataset (POD)]
-    A \emph{Partially Ordered Dataset (POD)} $\POD$ is a finite sequence of transactions and associated values $(\tx, \rmin, \rmax, \rconf, \txcert )$.
-\end{definition}
-    
-% \begin{definition}[Past-perfect round and past-perfection certificate]
-% \label{def:past-perfect}
-% We say that a round $\rperf$ becomes \emph{past perfect} in the view of a client
-% when the client obtains a past-perfection certificate for \rperf.
-% A \emph{past-perfection certificate} \ppcert is a collection of votes from replicas
-% that prove that any new transaction that enters the system will be assigned a \confirmed round larger than \rperf.
-% Given a past-perfection certificate \ppcert, we refer to the past-perfect round it implies by $\ppcert.\rperf$.
-% In the construction, we will have clients also output a POD \POD, containing all transactions they have seen by that point, together with \rperf.
-% We refer to that by $\ppcert.\POD$.
-% \end{definition}
-
-\begin{definition}[POD protocol]
-A POD protocol has the following interface.
-\begin{itemize}
-    \item $\opwrite{\tx} \returns (\tx, \rmin, \rmax, \rconf, \txcert)$:
-    It gets a transaction \tx and outputs its associated values $\rmin, \rmax$, $\rconf$, and \txcert.
-
-    \item $\opreadall{} \returns \left( \POD, \rperf, \ppcert \right)$:
-    It returns a POD \POD, a round number \rperf, called the \emph{past perfect round}, and a \emph{past-perfection certificate} \ppcert that proves the correctness of the \POD and \rperf.
-
-    \item \opidentify{\txcert, \ppcert} \returns $P' \subset P$ 
-    
-\end{itemize}
-\end{definition}
-
-We say that a client \emph{writes a transaction} \tx when it calls \opwrite{\tx}, and \emph{reads the pod} when it calls \opreadall{} to obtain some \POD.
-For a \tx, such that $(\tx, \cdot, \cdot, \rconf, \cdot) \in \POD$, we say that the client \emph{observes} \tx, and if $\rconf \neq \bot$, we say that the client \emph{observes \tx as \confirmed}.
-\oa{Same for \pend. }
-
-\subsection{POD Security Guarantees}
-A POD satisfies the following properties.
-
-\begin{enumerate}
-    \item{Liveness}
-    \begin{description}
-
-        \item[Confirmation within \parack:]
-        If an honest client writes a transaction \tx, then it will obtain output $(\tx, \rmin, \rmax, \rconf, \txcert)$, such that $\rconf \neq \bot$, within \parack time. \oa{define time}
-        
-        \item[Availability after \parlive:]
-        If an honest client writes a transaction \tx, then any other honest client that reads the pod after \parlive time will observe \tx as \confirmed.
-
-        \item[Past-perfection within \parpp:]
-        Rounds become past-perfect within $\parpp$ time. 
-        That is, if an honest client calls \opreadall{} at round $\round +\parpp$, then the returned \rperf will satisfy $\rperf \geq \round$.
-    \end{description}
-
-    \item{Safety}
-    \begin{description}
-        \item[Totality:]
-        If an honest client observes transaction \tx as \confirmed,
-        then eventually any other honest client will observe \tx as \confirmed.
-        \oa{See if we need a parameter for this,}
-        
-        \item[Pending-confirmation soundness:]
-        If an honest client observes transaction \tx as \pend, then eventually it will observe it as \confirmed.
-        \oa{Define \pend. We need this property for the auction protocol.}
-
-        \item[Bounds:]
-        The numbers $\rmin, \rmax$, and $\rconf$ for a transaction \tx satisfy the following:
-        \begin{enumerate}[(1)]
-            \item If an honest client obtains $\rmin$ and $\rmax$ for \tx,
-            and an honest (possibly different) client observes \tx as \confirmed with round $\rconf$, then
-            $\rmin \leq \rconf \leq \rmax$.
-            \item If an honest client obtains $\rmin$ and $\rmax$ for \tx, and later obtains $\rmin'$ and $\rmax'$ for \tx, then $\rmin' \geq \rmin$ and $\rmax' \leq \rmax$.
-            \oa{Check if we need the following in the property level}
-            \item if \tx is confirmed, then $\rconf \in [\round, \round + \delta]$,
-            \item $\rmax \in [\round, \round + \delta]$,
-            \item $\rmax - \rmin \leq \delta$.
-        \end{enumerate}
-        \item[Past-perfection safety:]
-        Assume a \opreadall{} returns a POD \POD and a past-perfect round \rperf.
-        For any transaction $\tx \not \in \POD$, no honest client will ever observe \tx as confirmed with $\rconf < \rperf$.
-
-        \item[Fair punishment]\oa{TODO: Update}
-        No honest replica gets punished as a result of malicious operation. If $\opidentify{\txcert, \ppcert} \returns P'$, where \txcert is a record certificate for transaction \tx
-        and $\ppcert$ is a past-perfect certificate for a POD \POD,
-        can only be created if all parties in $P'$ sign \tx and \POD. 
-    \end{description}
-\end{enumerate}

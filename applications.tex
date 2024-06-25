@@ -34,7 +34,7 @@ We desire the following properties from an auction framework.
     An honest auctioneer completes the auction by time $\ttwo + \parAuctionTerm$.
     \item [Accountable censorship resistance:]
     If an honest bidder calls submit\_bid(b) at time at most \tone, then $b \in B$.
-    Otherwise, either the auctioneer or at least \oa{how many?} replicas are accountable.
+    Otherwise, either the auctioneer or at least \oa{how many?} validators are accountable.
     \item[Fair punishment:]
     An honest auctioneer cannot be blamed for ignoring bids.
 \end{description}
@@ -65,22 +65,22 @@ The following lemmas capture the security of the auction construction.
 \begin{proof}
     % From the \emph{confirmation with \parack} property, we know that the honest client who writes bid $b$ at time \tone will obtain a certificate \txcert by time $\tone + 2 \delta$ time.
     Assume the bidder writes $b$ at time \tone, and that we are in synchrony.
-    Observe, first, that every honest replica will receive $b$ by time $\tone + \delta$ and assign it a timestamp at most $\tone + \delta$.
+    Observe, first, that every honest validator will receive $b$ by time $\tone + \delta$ and assign it a timestamp at most $\tone + \delta$.
 
     % If the auctioneer is honest and reads the pod at time after $\tone + \delta$, from the \emph{availability after \parlive} property we have that it will observe $b$ as confirmed.
     % , and, from the \emph{transaction bounds} property, the maximum round number of $b$ will satisfy $\rmax \in [\tone, \tone+\delta]$.
     % Assume now the auctioneer is malicious and tries to censor $b$.
     The auctioneer must output a certificate \ppcert, such that $\ppcert.\rperf \geq \ttwo$ (if this not the case, see accountability case 1 below).
-    For this to be the case, the pod \POD that is output by the auctioneer must contain votes with timestamp greater than or equal to \ttwo from at least \alpha replicas (otherwise, bad case 1 below), hence from at least $\alpha - \beta$ honest replicas.
-    Given that $\ttwo \geq \tone + \delta$, these honest replicas will have received $b$ by time \ttwo, and, since honest replicas do not omit transactions, the auctioneer will receive votes on $b$ from them.
+    For this to be the case, the pod \POD that is output by the auctioneer must contain votes with timestamp greater than or equal to \ttwo from at least \alpha validators (otherwise, bad case 1 below), hence from at least $\alpha - \beta$ honest validators.
+    Given that $\ttwo \geq \tone + \delta$, these honest validators will have received $b$ by time \ttwo, and, since honest validators do not omit transactions, the auctioneer will receive votes on $b$ from them.
     Hence, \POD will contain at least $\alpha - \beta$ votes on $b$ (otherwise, see bad case 2 below).
     However, a bid in pod that contains $\alpha - \beta$ votes is \pend, and an auctioneer will not output such a pod (otherwise, see bad case 1 below).
     Hence, \auc will wait until $b$ becomes \confirmed and will include in \POD all the corresponding votes,
     which means $b$ will not be censored.
     
     Bad case 1: if this event happens, then \auc has output a \POD that does not satisfy the requirements of the construction and \auc is accountable.
-    Bad case 2: if this event happens, then \auc has output a pod \POD that contains less that $\alpha - \beta$ votes on $b$, i.e., at least $\beta + 1$ signed replica logs, such that each of them contains a vote with timestamp greater or equal than \ttwo, but no vote on $b$. \oa{This cannot happen because there are not that many malicious, but how do we make it accountable?}
-    At least one of those replicas is accountable,
+    Bad case 2: if this event happens, then \auc has output a pod \POD that contains less that $\alpha - \beta$ votes on $b$, i.e., at least $\beta + 1$ signed validator logs, such that each of them contains a vote with timestamp greater or equal than \ttwo, but no vote on $b$. \oa{This cannot happen because there are not that many malicious, but how do we make it accountable?}
+    At least one of those validators is accountable,
     because the client that submitted $b$ possesses a certificate \txcert for $b$ with at least $\alpha - \beta$ votes with timestamp less that $\ttwo$. \oa{and so?}
 \end{proof}
 

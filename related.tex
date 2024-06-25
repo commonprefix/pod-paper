@@ -4,12 +4,12 @@ Recent literature has recognized the redundancy of consensus for implementing as
 Such schemes have been described in theory~\cite{DBLP:journals/corr/abs-1909-10926, DBLP:conf/dsn/CollinsGKKMPPST20} and deployed in the real world~\cite{DBLP:conf/aft/BaudetDS20}.
 
 The insight that is total order is not required in the case that each account is controlled by one client.
-Instead, it is sufficient to guarantee that a cheating clients cannot equivocate, that is, send different transactions to different replicas.
+Instead, it is sufficient to guarantee that a cheating clients cannot equivocate, that is, send different transactions to different validators.
 This property is guaranteed by broadcast protocols.
-These protocols have a similar architecture: the broadcast of transactions is initiated by clients, who either drive the whole broadcast instance~\cite{DBLP:conf/aft/BaudetDS20} or outsource it to trusted replicas~\cite{DBLP:conf/dsn/CollinsGKKMPPST20}.
+These protocols have a similar architecture: the broadcast of transactions is initiated by clients, who either drive the whole broadcast instance~\cite{DBLP:conf/aft/BaudetDS20} or outsource it to trusted validators~\cite{DBLP:conf/dsn/CollinsGKKMPPST20}.
 Therefore, a cheating client might lose liveness~\cite{DBLP:conf/aft/BaudetDS20,DBLP:journals/corr/abs-1909-10926}, but equivocating is not possible.
 
-FastPay~\cite{DBLP:conf/aft/BaudetDS20} reaches throughput of $140K$ tps with a latency of approx. 200 ms in a WAN deployment with four replicas.
+FastPay~\cite{DBLP:conf/aft/BaudetDS20} reaches throughput of $140K$ tps with a latency of approx. 200 ms in a WAN deployment with four validators.
 ABC~\cite{DBLP:journals/corr/abs-1909-10926} supports proof-of-stake, but provides no implementation or benchmarks.
 Astro~\cite{DBLP:conf/dsn/CollinsGKKMPPST20}, similarly, is based on reliable broadcast~\cite{DBLP:journals/iandc/Bracha87}.
 All these protocols are tailor-made for payment systems or for specific blockchains and cannot be used for general distributed applications.
