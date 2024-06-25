@@ -1,9 +1,6 @@
 \section{Construction}
 
-\dotparagraph{Notation}
-The system consists of $n$ validators and an unknown number of clients.
-We denote by $\beta \in [0,1]$ the fraction of Byzantine nodes and
-by $\alpha \in [0,1]$ the \emph{confirmation threshold}.
+
 
 \dotparagraph{Client gossip}
 The construction employs the \emph{client gossip} technique. It could be the case that
@@ -34,7 +31,7 @@ in synchrony for a transaction to reach all validators. For example, $u = 2 \del
 \end{definition}
 
 \begin{definition}[Replica transaction log]\label{def:rep-log}
-    Replicas maintain a \emph{transaction log}, which is a collection of transaction/timestamp pairs.
+    Validators maintain a \emph{transaction log}, which is a collection of transaction/timestamp pairs.
 \end{definition}
 
 \begin{definition}[Client transaction log]\label{def:local-log}
@@ -117,7 +114,7 @@ in synchrony for a transaction to reach all validators. For example, $u = 2 \del
     %         \State{\wip{wait $\Delta$}}
     %         \Let{\rloc}{(\text{\wip{now}})}
     %         \State{Send \msgread to all validators}\label{line:second_read}
-    %         \State{Upon receiving $2f+1$ responses $R^2_i = (\sigma^2_i, \round^2_i, \POD^2_i)$, for $i \in [2f+1]$, \textbf{such that} valid($R^2_i$) \andl$ \rloc < \round^2_i < \rloc + \Delta$:}
+    %         \State{Upon receiving $2f+1$ responses $R^2_i = (\sigma^2_i, \round^2_i, \Pod^2_i)$, for $i \in [2f+1]$, \textbf{such that} valid($R^2_i$) \andl$ \rloc < \round^2_i < \rloc + \Delta$:}
     %         \Let{\txfinal}{\emptyset}
     %         \Let{\txset_2}{ \{\tx | \tx \in \POD_i \text{, for } i \in [2f+1] \} }
     %         \For{$\tx \in \txset_2$}
@@ -261,9 +258,9 @@ and a \msgreadresp{$\repLog$} by calling \opOnReceiveVote{} for each transaction
 % then the \emph{recorded round} of the transaction is $\rconf = \opmed{R}$.
 
 % In order to read the transactions in the system a client sends a \opreadall{} request to all validators.
-% Upon receiving a read request, a validator responds with $(\round, \POD)$, where \round is its local round
-% and \POD contains all the pairs $(\tx', \round')$ it possesses~(\cref{line:respond-read}).
-% The client waits for $n-f$ valid \wip{$\opvalid{} = \round' \leq  \round$, for all the $\round' \in \POD$}
+% Upon receiving a read request, a validator responds with $(\round, \Pod)$, where \round is its local round
+% and \Pod contains all the pairs $(\tx', \round')$ it possesses~(\cref{line:respond-read}).
+% The client waits for $n-f$ valid \wip{$\opvalid{} = \round' \leq  \round$, for all the $\round' \in \Pod$}
 % read responses and does the following.
 % % in order to infer the current past-perfect round \rperf and the transactions with \confirmed round $\rconf \leq \rperf$.
 % First, it sets $\rperf$ to be the \emph{minimum} of the received \round values.
@@ -344,12 +341,12 @@ considering timestamps \allLts as the minimum possible for any future transactio
     \beta times the $0$ value and the $\lceil \alpha n \rceil - \beta$ smallest most-recent timestamps of the validators in $\ppcert.\votes$,
     i.e., $\ppcert.\rperf$ is the value of the $\left( \lceil \frac{\alpha n}{2} \rceil - \beta \right)$-th smallest most-recent timestamp.
     This implies that there are $\lceil \frac{\alpha n}{2} \rceil - \beta - 1$ validators $\rep_j$ whose most-recent timestamp $\lts_j$ satisfies $\lts_j \leq \ppcert.\rperf$.
-    Assume now there exists a transaction \tx, such that $\tx \not \in \ppcert.\POD$ and a transaction certificate \txcert for \tx, such that
+    Assume now there exists a transaction \tx, such that $\tx \not \in \ppcert.\Pod$ and a transaction certificate \txcert for \tx, such that
     $\txcert.\rconf \neq \bot$ and $\txcert.\rconf < \ppcert.\rperf$.
     This implies that \txcert contains at least $\lceil \frac{\alpha n}{2} \rceil$ votes with a timestamp $\tsp_j$ such that $\tsp_j < \ppcert.\rperf$,
     because the timestamp has been computed as the median of at least $\lceil \alpha n \rceil$ votes.
     Out of those votes, at least $\lceil \frac{\alpha n}{2} \rceil - \beta$ must be from honest validators.
-    A vote from them is not in $\ppcert.\votes$ (since $\tx \not \in \ppcert.\POD$),
+    A vote from them is not in $\ppcert.\votes$ (since $\tx \not \in \ppcert.\Pod$),
     hence they can only assign it a timestamp $\tsp_j$ equal to or larger than their most-recent timestamp
     in $\ppcert$, i.e., $\tsp_j \geq \lts_j$.
     All together, for these $\lceil \frac{\alpha n}{2} \rceil - \beta$ honest validators it must hold that $\lts_j < \ppcert.\rperf$.
@@ -386,26 +383,26 @@ considering timestamps \allLts as the minimum possible for any future transactio
 \begin{claim}
     Assume some client obtains certificate \txcert for a \confirmed transaction \tx,
     and another (possibly malicious) client
-    reads the pod and outputs $(\POD, \rperf, \ppcert)$, such that $\rperf \geq \txcert.\rconf$.
-    Then, \tx will be contained in \POD as \pend of \confirmed.
-    Otherwise, either $(\POD, \rperf)$ are invalid (they cannot be verified from \ppcert), in which case the reading client is malicious,
+    reads the pod and outputs $(\Pod, \rperf, \ppcert)$, such that $\rperf \geq \txcert.\rconf$.
+    Then, \tx will be contained in \Pod as \pend of \confirmed.
+    Otherwise, either $(\Pod, \rperf)$ are invalid (they cannot be verified from \ppcert), in which case the reading client is malicious,
     or the certificates (\txcert, \ppcert) together identify a set of parties that have misbehaved.
 \end{claim}
 \begin{proof}
     \oa{Not true. Maybe if $\rperf \geq \txcert.\rmax$?}
 \end{proof}
 % \begin{proof}
-%     Since $\rperf \geq \txcert.\rconf$, pod \POD must contain votes with timestamp greater than or equal to \txcert.\rconf from at least \alpha validators (otherwise \rperf is invalid), hence from at least $\alpha - \beta$ honest validators.
+%     Since $\rperf \geq \txcert.\rconf$, pod \Pod must contain votes with timestamp greater than or equal to \txcert.\rconf from at least \alpha validators (otherwise \rperf is invalid), hence from at least $\alpha - \beta$ honest validators.
 %     Given that $\ttwo \geq \tone + \delta$, these honest validators will have received $b$ by time \ttwo, and, since honest validators do not omit transactions, the auctioneer will receive votes on $b$ from them.
-%     Hence, \POD will contain at least $\alpha - \beta$ votes on $b$ (otherwise, see bad case 2 below).
+%     Hence, \Pod will contain at least $\alpha - \beta$ votes on $b$ (otherwise, see bad case 2 below).
 %     However, a bid in pod that contains $\alpha - \beta$ votes is \pend, and an auctioneer will not output such a pod (otherwise, see bad case 1 below).
-%     Hence, \auc will wait until $b$ becomes \confirmed and will include in \POD all the corresponding votes,
+%     Hence, \auc will wait until $b$ becomes \confirmed and will include in \Pod all the corresponding votes,
 %     which means $b$ will not be censored.
 % \end{proof}
 
 % \subsection{Optimizations}
 % \begin{enumerate}
-%     \item Replicas with secondaries to handle read operations.
+%     \item Validators with secondaries to handle read operations.
 %     \item Use committees. We can support a weighted model by having validators lock some stake in a slow-moving chain (such as Ethereum) and rotate the committee every, say, 24 hours.
 %     \item We can use `helper' nodes, that know the addresses of all validators, so that clients can use them, instead of having to contact all validators.
 % \end{enumerate}    

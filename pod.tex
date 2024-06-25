@@ -12,8 +12,8 @@ A pod protocol allows a set of \emph{clients} to obtain a partially ordered list
     For a \confirmed transaction we have that $\rconf \neq \bot$, and for a transaction that is not \confirmed we have that $\rconf = \bot$.
 \end{definition}
 
-\begin{definition}[Partially Ordered Dataset (POD)]
-    A \emph{Partially Ordered Dataset (POD)} $\POD$ is a finite sequence of transactions and associated values $(\tx, \rmin, \rmax, \rconf, \txcert )$.
+\begin{definition}[Pod]
+    A \emph{pod} $\Pod$ is a finite sequence of transactions and associated values $(\tx, \rmin, \rmax, \rconf, \txcert )$.
 \end{definition}
     
 % \begin{definition}[Past-perfect round and past-perfection certificate]
@@ -23,30 +23,30 @@ A pod protocol allows a set of \emph{clients} to obtain a partially ordered list
 % A \emph{past-perfection certificate} \ppcert is a collection of votes from validators
 % that prove that any new transaction that enters the system will be assigned a \confirmed round larger than \rperf.
 % Given a past-perfection certificate \ppcert, we refer to the past-perfect round it implies by $\ppcert.\rperf$.
-% In the construction, we will have clients also output a POD \POD, containing all transactions they have seen by that point, together with \rperf.
-% We refer to that by $\ppcert.\POD$.
+% In the construction, we will have clients also output a pod \Pod, containing all transactions they have seen by that point, together with \rperf.
+% We refer to that by $\ppcert.\Pod$.
 % \end{definition}
 
-\begin{definition}[POD protocol]
-A POD protocol has the following interface.
+\begin{definition}[Pod protocol]
+A pod protocol has the following interface.
 \begin{itemize}
     \item $\opwrite{\tx} \returns (\tx, \rmin, \rmax, \rconf, \txcert)$:
     It gets a transaction \tx and outputs its associated values $\rmin, \rmax$, $\rconf$, and \txcert.
 
-    \item $\opreadall{} \returns \left( \POD, \rperf, \ppcert \right)$:
-    It returns a POD \POD, a round number \rperf, called the \emph{past perfect round}, and a \emph{past-perfection certificate} \ppcert that proves the correctness of the \POD and \rperf.
+    \item $\opreadall{} \returns \left( \Pod, \rperf, \ppcert \right)$:
+    It returns a pod \Pod, a round number \rperf, called the \emph{past perfect round}, and a \emph{past-perfection certificate} \ppcert that proves the correctness of the \Pod and \rperf.
 
     \item \opidentify{\txcert, \ppcert} \returns $P' \subset P$ 
     
 \end{itemize}
 \end{definition}
 
-We say that a client \emph{writes a transaction} \tx when it calls \opwrite{\tx}, and \emph{reads the pod} when it calls \opreadall{} to obtain some \POD.
-For a \tx, such that $(\tx, \cdot, \cdot, \rconf, \cdot) \in \POD$, we say that the client \emph{observes} \tx, and if $\rconf \neq \bot$, we say that the client \emph{observes \tx as \confirmed}.
+We say that a client \emph{writes a transaction} \tx when it calls \opwrite{\tx}, and \emph{reads the pod} when it calls \opreadall{} to obtain some \Pod.
+For a \tx, such that $(\tx, \cdot, \cdot, \rconf, \cdot) \in \Pod$, we say that the client \emph{observes} \tx, and if $\rconf \neq \bot$, we say that the client \emph{observes \tx as \confirmed}.
 \oa{Same for \pend. }
 
-\subsection{POD Security Guarantees}
-A POD satisfies the following properties.
+\subsection{pod Security Guarantees}
+A pod satisfies the following properties.
 
 \begin{enumerate}
     \item{Liveness}
@@ -87,12 +87,12 @@ A POD satisfies the following properties.
             \item $\rmax - \rmin \leq \delta$.
         \end{enumerate}
         \item[Past-perfection safety:]
-        Assume a \opreadall{} returns a POD \POD and a past-perfect round \rperf.
-        For any transaction $\tx \not \in \POD$, no honest client will ever observe \tx as confirmed with $\rconf < \rperf$.
+        Assume a \opreadall{} returns a pod \Pod and a past-perfect round \rperf.
+        For any transaction $\tx \not \in \Pod$, no honest client will ever observe \tx as confirmed with $\rconf < \rperf$.
 
         \item[Fair punishment]\oa{TODO: Update}
         No honest validator gets punished as a result of malicious operation. If $\opidentify{\txcert, \ppcert} \returns P'$, where \txcert is a record certificate for transaction \tx
-        and $\ppcert$ is a past-perfect certificate for a POD \POD,
-        can only be created if all parties in $P'$ sign \tx and \POD. 
+        and $\ppcert$ is a past-perfect certificate for a pod \Pod,
+        can only be created if all parties in $P'$ sign \tx and \Pod. 
     \end{description}
 \end{enumerate}

@@ -1,17 +1,17 @@
 \section{Model}\label{sec:system}
 
 \dotparagraph{Notation}
-We distinguish two types of parties, $n$ \emph{validators} and an unlimited number of \emph{clients}.
-Replicas run the protocol and clients interact with it using its interface.
-We call a party -- validator or client -- \emph{correct}, if it follows the protocol, and \emph{malicious} otherwise.
 We denote \CN the set of natural numbers including $0$.
 For a list $L$ of length $\ell$ we denote by $L[i]$ the element of $L$ at index $i$, where $i \in \{1, \ldots, \ell\}$.
 
-% \begin{remark}[Clients]
-% Certain operations are driven by the client.
-% However, a malicious client can lose liveness for \emph{its own} operations or transactions, but cannot affect other clients.
-% Importantly, a malicious client cannot break any safety property of the system.
-% \end{remark}
+\dotparagraph{Parties and failure model}
+We distinguish two types of parties, $n$ \emph{validators} and an unlimited number of \emph{clients}.
+Validators run the protocol and clients interact with it using its interface.
+We call a party -- validator or client -- \emph{honest}, if it follows the protocol, and \emph{malicious} otherwise.
+Malicious parties can be Byzantine, that is, deviate arbitrarily from the protocol.
+We denote by $\beta \in [0,n]$ the fraction of malicious validators and
+by $\alpha \in [0,n]$ the \emph{confirmation threshold}.
+The pod construction will impose limits on \alpha and \beta.
 
 \dotparagraph{Modeling Time}
 We assume that time proceeds in \emph{rounds} and that parties have loosely synchronized clocks allowing them to determine the current round. Each party keeps a local round counter that is used to assign timestamps to transactions and protocol messages as needed. Without loss of generality, our analysis can be extended to a model with loosely synchronized clocks where two honest parties may have two different round counters $r_1,r_2$ such that $|r_1-r_2|=\delta$ for a finite $\delta$.
