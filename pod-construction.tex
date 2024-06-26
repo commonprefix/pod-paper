@@ -1,4 +1,4 @@
-\section{Construction}
+\section{Pod core construction}\label{sec:pod-core-const}
 
 
 
@@ -31,21 +31,21 @@
     For example, an $\alpha$-certificate corresponds to a confirmed transaction.
 \end{definition}
 
-\begin{definition}[Replica transaction log]\label{def:rep-log}
+\begin{definition}[Validator transaction log]\label{def:rep-log}
     Validators maintain a \emph{transaction log}, which is a collection of transaction/timestamp pairs.
 \end{definition}
+
+\begin{remark}[Logs without ommissions]
+    In this section we assume that validators respond to each \opread{} by sending their whole log, or a prefix of it, without omitting any transactions within that prefix.
+    We show in \oa{reference} how this can be guaranteed.
+\end{remark}
+
 
 \begin{definition}[Client transaction log]\label{def:local-log}
     Clients maintain a \emph{client log} for each transaction they are aware of,
     which contains the received votes and the current \rmin, \rmax, and \rconf.
     The \confirmed round \rconf is undefined (denoted as $\bot$) until the transaction becomes \confirmed.
 \end{definition}
-
-\begin{remark}
-    In this section we assume that validators respond to each \opread{} by sending their whole log, or a prefix of it, without omitting any transactions within that prefix.
-    We show in \oa{reference} how this can be guaranteed.
-\end{remark}
-
 
 \begin{algorithm}
 \caption{Code for a client, part 1.}
@@ -365,6 +365,7 @@ considering timestamps \allLts as the minimum possible for any future transactio
 \begin{lemma}\label{lemma:number-votes-in-cert}
     For $(\Pod, \rperf)$ valid according to some \ppcert, we have that
     \begin{enumerate}
+        \item
         \item If some transaction $\tx \in \Pod$ is assigned $\rmax \neq \infty$ as the maximum round,
         then \Pod contains votes on \tx from at least $n - \lfloor \alpha / 2 \rfloor - 1$ honest validators with a timestamp $\tsp \leq \rmax$.
         \item The pod \Pod contains timestamps $\tsp < \rperf$ by at least $\lceil \alpha / 2 \rceil - \beta - 1$ parties and timestamps $\tsp \geq \rperf$ by at least $n - \lceil \alpha / 2 \rceil + \beta$ parties. \oa{We are using this in the past-perfection safety property.}
@@ -372,6 +373,7 @@ considering timestamps \allLts as the minimum possible for any future transactio
 \end{lemma}
 \begin{proof}
     \begin{enumerate}
+        \item
         \item From \Cref{lem:assign-min-max}, the list with all returned timestamps contains $n - \alpha  + \beta + \lceil \alpha / 2 \rceil - 1$ elements smaller or equal to \rmax,
         and, since $\rmax \neq \infty$, at least $n - \alpha  + \lceil \alpha / 2 \rceil - 1 = n - \lfloor \alpha / 2 \rfloor - 1$
         of them are timestamps returned by honest parties.
@@ -407,3 +409,38 @@ considering timestamps \allLts as the minimum possible for any future transactio
 %     \item Use committees. We can support a weighted model by having validators lock some stake in a slow-moving chain (such as Ethereum) and rotate the committee every, say, 24 hours.
 %     \item We can use `helper' nodes, that know the addresses of all validators, so that clients can use them, instead of having to contact all validators.
 % \end{enumerate}    
+
+
+\section{Pod with transaction propagation}  
+In the construction of \Cref{sec:pod-core-const}, replicas do not communicate with each other.
+As we saw, we were still able to prove all security properties.
+In this section we introduce two additional properties and describe a construction that satisfies them.
+
+\begin{definition}[\pend transaction]
+    We associate one more value with each transaction \tx, a boolean value \emph{\ispend}.
+    Now $\opwrite{\tx}$ returns $(\tx, \rmin, \rmax, \rconf, \ispend, \txcert)$,
+    and \opreadall{} returns a pod \Pod, which contains entries $(\tx, \rmin, \rmax, \rconf, \ispend, \txcert)$.
+    If $\ispend = \true$ and $\rconf = \bot$, we say that \tx is a \emph{\pend} transaction.
+\end{definition}
+
+We require the following two safety properties from a pod primitive, in addition to the ones presented in \Cref{sec:pod-model}.
+\begin{description}[left=0pt,itemindent=0pt]
+    \item[Totality:]
+    If an honest client observes transaction \tx as \confirmed,
+    then eventually any other honest client will observe \tx as \confirmed.
+    \oa{See if we need a parameter for this.}
+    
+    \item[Pending-confirmation soundness:]
+    If an honest client observes transaction \tx as \pend, then eventually it will observe it as \confirmed.
+    \oa{Define \pend. We need this property for the auction protocol.}
+\end{description}
+
+\begin{construction}[Pod with transaction propagation]
+
+\end{construction}
+
+\begin{remark}[Transaction propagation]
+    In order to satisfy the \emph{totality} and \emph{\pend soundness} properties,
+    the construction requires a transaction propagation mechanism, that ensures that all honest validators see the same set of transactions,
+    even
+\end{remark}

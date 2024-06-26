@@ -1,4 +1,4 @@
-\section{Model and security of pod} 
+\section{Model and security of pod} \label{sec:pod-model}
 A pod protocol allows a set of \emph{clients} to obtain a partially ordered list of transactions from a set of \emph{validators} with censorship-freedom guarantees and accountability for safety violations. 
 
 \begin{definition}[Transaction and associated values]
@@ -7,7 +7,6 @@ A pod protocol allows a set of \emph{clients} to obtain a partially ordered list
     and $\rconf \in \CN \cup \{\bot\}$ the \emph{\confirmed round}.
     For the maximum round, symbol~$\infty$ stands for an unbounded large number,
     and for the \confirmed round, symbol~$\bot$ stands for an undefined value.
-    \oa{also a filed unconfirmed, \pend, \confirmed.}
     Finally, $\txcert$ is a \emph{transaction certificate} that proves the correctness of $\rmin, \rmax, \rconf$.
     For a \confirmed transaction we have that $\rconf \neq \bot$, and for a transaction that is not \confirmed we have that $\rconf = \bot$.
 \end{definition}
@@ -15,17 +14,11 @@ A pod protocol allows a set of \emph{clients} to obtain a partially ordered list
 \begin{definition}[Pod]
     A \emph{pod} $\Pod$ is a finite sequence of transactions and associated values $(\tx, \rmin, \rmax, \rconf, \txcert )$.
 \end{definition}
-    
-% \begin{definition}[Past-perfect round and past-perfection certificate]
-% \label{def:past-perfect}
-% We say that a round $\rperf$ becomes \emph{past perfect} in the view of a client
-% when the client obtains a past-perfection certificate for \rperf.
-% A \emph{past-perfection certificate} \ppcert is a collection of votes from validators
-% that prove that any new transaction that enters the system will be assigned a \confirmed round larger than \rperf.
-% Given a past-perfection certificate \ppcert, we refer to the past-perfect round it implies by $\ppcert.\rperf$.
-% In the construction, we will have clients also output a pod \Pod, containing all transactions they have seen by that point, together with \rperf.
-% We refer to that by $\ppcert.\Pod$.
-% \end{definition}
+
+\begin{definition}[Past-perfect round]
+    A round is \emph{past-perfect} for a pod \Pod if,
+    for any transaction $\tx \not \in \Pod$, no honest client will ever observe \tx as confirmed with $\rconf < \rperf$.
+\end{definition}
 
 \begin{definition}[Pod protocol]
 A pod protocol has the following interface.
@@ -34,7 +27,7 @@ A pod protocol has the following interface.
     It gets a transaction \tx and outputs its associated values $\rmin, \rmax$, $\rconf$, and \txcert.
 
     \item $\opreadall{} \returns \left( \Pod, \rperf, \ppcert \right)$:
-    It returns a pod \Pod, a round number \rperf, called the \emph{past perfect round}, and a \emph{past-perfection certificate} \ppcert that proves the correctness of the \Pod and \rperf.
+    It returns a pod \Pod, a past-perfect round \rperf, and a \emph{past-perfection certificate} \ppcert that proves the correctness of the \Pod and \rperf.
 
     \item \opidentify{\txcert, \ppcert} \returns $P' \subset P$ 
     
@@ -60,22 +53,12 @@ A pod satisfies the following properties.
 
         \item[Past-perfection within \parPerf:]
         Rounds become past-perfect within $\parPerf$ time. 
-        That is, if an honest client calls \opreadall{} at round $\round +\parPerf$, then the returned \rperf will satisfy $\rperf \geq \round$.
+        That is, if an honest client calls \opreadall{} at round $\round +\parPerf$, then the returned \rperf will satisfy $\rperf \geq \round$,
+        for any $\round > 0$.
     \end{description}
 
     \item{Safety}
     \begin{description}[left=0pt,itemindent=0pt]
-        
-
-        \item[Totality:]
-        If an honest client observes transaction \tx as \confirmed,
-        then eventually any other honest client will observe \tx as \confirmed.
-        \oa{See if we need a parameter for this.}
-        
-        \item[Pending-confirmation soundness:]
-        If an honest client observes transaction \tx as \pend, then eventually it will observe it as \confirmed.
-        \oa{Define \pend. We need this property for the auction protocol.}
-
         \item[Bounds temperature with parameter \parTemp:]
         The numbers $\rmin, \rmax$, and $\rconf$ for a transaction \tx satisfy the following:
         \begin{enumerate}[(1)]
@@ -91,9 +74,16 @@ A pod satisfies the following properties.
             $\rmax - \rmin \leq \parTemp$.
         \end{enumerate}
 
-        \item[Accountable past-perfection:]
-        Assume a \opreadall{} returns a pod \Pod and a past-perfect round \rperf.
-        For any transaction $\tx \not \in \Pod$, no honest client will ever observe \tx as confirmed with $\rconf < \rperf$.
+        % \item[Accountable past-perfection:]
+        % Assume a \opreadall{} returns a pod \Pod and a past-perfect round \rperf.
+        % For any transaction $\tx \not \in \Pod$, no honest client will ever observe \tx as confirmed with $\rconf < \rperf$.
+        \item[Accountability]
+        \oa{TODO
+        - two reads with a \tx  with different timestamp
+        - the same party returns two different timestamps}
+
+        \item[Past-perfection monotonicity:]
+        If an honest client calls \opreadall{} at round $\round_1$ to obtain $\Pod^1, \rperf^1$, and at round $\round_2$ to obtain $\Pod^2, \rperf^2$, then $\rperf^2 \geq \rperf^1$.
 
         \item[Fair punishment]\oa{TODO: Update}
         No honest validator gets punished as a result of malicious operation. If $\opidentify{\txcert, \ppcert} \returns P'$, where \txcert is a record certificate for transaction \tx
