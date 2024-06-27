@@ -1,4 +1,6 @@
 \section{Auctions on pod}
+\oa{About synchrony  assumptions: Only in this section we need to assume  synchrony, and only to say that $\ttwo \geq  \tone +  \Delta$. If  this does  not hold, then the censorship-resistance property is not satisfied. However, the fair-punishment property does not rely on synchrony. 
+Maybe we can still prove the construction secure in  the asynchronous setting: we get rid of the  `starting time' \tone, we let the client send the transactin whenever it considers early enough (clients choose their own \tone), and censorship resistance is  satisfied for clients that send the bid  early  enough.}
 
 \begin{definition}[Auction protocol]
     An \emph{auction protocol} exposes the following interface.
@@ -29,20 +31,35 @@ It treats the auction protocol as black box.
 
 \dotparagraph{Properties}
 A censorship-resistant auction framework satisfies the following properties.
-\begin{description}
-    \item[Termination within \parAuctionTerm:]
-    An honest auctioneer completes the auction by time $\ttwo + \parAuctionTerm$.
-    \item [Accountable censorship resistance:]
-    If an honest bidder calls \opSubmitBid{\bid} at time at most \tone, then $\bid \in \bag$.
-    Otherwise, the auctioneer is accountable.
-    \item[Fair punishment:]
-    An honest auctioneer cannot be blamed for ignoring bids.
-    \item[Verifiability:]
-    Given the bag \bag, the correctness of the output \opResult{} can be verified.
-\end{description}
+\begin{enumerate}[leftmargin=*, align=left]
+    \item Liveness:
+    \begin{description}
+        \item[Termination within \parAuctionTerm:]
+        An honest auctioneer completes the auction by time $\ttwo + \parAuctionTerm$.
+    \end{description}
+    
+    \item Safety:
+    \begin{description}
+    \item [Censorship resistance:]
+        If an honest bidder calls \opSubmitBid{\bid} at time at most \tone, then $\bid \in \bag$.
+        \item[Verifiability:]
+        Given the bag \bag, the correctness of the output \opResult{} can be verified.
+    \end{description}
+
+    \item Accountability:
+    \begin{description}
+        \item [Accountable auctioneer:]
+        If any of the security properties is violated, the auctioneer is accountable.
+        \item[Fair punishment:]
+        An honest auctioneer cannot be blamed.
+    \end{description}
+        
+\end{enumerate}
+
 
 \begin{construction}[Censorship-resistant auction over pod]\label{const:auction}
 Any client can run the auction, but we assume w.l.o.g. that a client \auc is pre-appointed to be the auctioneer.
+The construction requires $\ttwo \geq \tone + \Delta$.
 \begin{itemize}
     \item function \opSubmitBid{\bid}:
         At time at most \tone, the bidder creates a transaction \tx that contains \bid and writes it to the pod using \opwrite{\tx}.
@@ -68,30 +85,21 @@ Any client can run the auction, but we assume w.l.o.g. that a client \auc is pre
 % The reason why pod can be used to run auctions is that bid order is not important for auctions: As long as we can agree on the bids we are considering, we are good to go.
 
 \begin{lemma}
-    Assuming $\ttwo \geq \tone + \delta$, a bid submitted by an honest bidder during synchrony will be \confirmed with $\rconf \leq \ttwo$.
+    Assuming $\ttwo \geq \tone + \Delta$, a bid submitted by an honest bidder during synchrony will be \confirmed with $\rconf \leq \ttwo$.
 \end{lemma}
 \begin{proof}
-    From the \emph{bounds temperature} property of pod, we know that, if the honest bidder writes a
-    transaction at round \tone, it will be \confirmed with $\rconf \leq \parTemp$, for $\parTemp = \delta$ during synchrony.
+    From the \emph{Bounds for \rconf, \rmin, \rmax with parameter \parTemp} property of pod, we know that, if the honest bidder writes a
+    transaction at round \tone, it will be \confirmed with $\rconf \leq \tone + \parTemp$, for $\parTemp = \delta$ during synchrony.
 \end{proof}
 
-\begin{theorem}[Censorship-resistant auction over pod]
-    Assuming $\ttwo \geq \tone + \delta$, Construction~\ref{const:auction} satisfies \Cref{def:auction-framework}
-    for clients that write their bid to pod during a synchronous period.
-    \oa{$\ttwo \geq \tone + \delta$ or $\ttwo \geq \tone + \Delta$?}
+\begin{theorem}[Censorship resistance]
+    Assuming  $\ttwo \geq \tone + \Delta$, the construction satisfies the \emph{accountable censorship resistance} property during synchronous periods.
 \end{theorem}
-\begin{proof}
-    In the following lemmas.
-\end{proof}
-
-\begin{lemma}[Accountable censorship resistance]
-    In a synchronous period, and if $\ttwo \geq \tone + \Delta$, the construction satisfies the \emph{accountable censorship resistance} property.
-    Specifically, if $\bid \not \in \bag$, then the auctioneer \auc or at least \oa{how many?} validators are accountable.
-\end{lemma}
 \begin{proof}
     % If the auctioneer is honest and reads the pod at time after $\tone + \delta$, from the \emph{availability after \parLive} property we have that it will observe \bid as confirmed.
     % , and, from the \emph{transaction bounds} property, the maximum round number of \bid will satisfy $\rmax \in [\tone, \tone+\delta]$.
     % Assume now the auctioneer is malicious and tries to censor \bid.
+    \oa{TODO:  extract accountability stuff from this proof. Use  past-perfection safety  of pod.}
     The auctioneer must output a certificate \ppcert, such that $\ppcert.\rperf \geq \ttwo$ (if this not the case, see accountability case 1 below).
     For this to be the case, the pod \Pod that is output by the auctioneer must contain votes with timestamp greater than or equal to \ttwo from at least \alpha validators (otherwise, bad case 1 below), hence from at least $\alpha - \beta$ honest validators.
     Given that $\ttwo \geq \tone + \delta$, these honest validators will have received \bid by time \ttwo, and, since honest validators do not omit transactions, the auctioneer will receive votes on \bid from them.
@@ -106,25 +114,27 @@ Any client can run the auction, but we assume w.l.o.g. that a client \auc is pre
     because the client that submitted \bid possesses a certificate \txcert for \bid with at least $\alpha - \beta$ votes with timestamp less that $\ttwo$. \oa{and so?}
 \end{proof}
 
-\begin{lemma}[Termination within $\parAuctionTerm = \delta$]
+\begin{theorem}[Termination within $\parAuctionTerm = \delta$]
     In a synchronous period, the construction satisfies the \emph{termination} property for $\parAuctionTerm = \delta$. \oa{Is it $\delta$?}
-\end{lemma}
+\end{theorem}
 \begin{proof}
     It follows from the \emph{past-perfection liveness} property that
-    the round \round that corresponds to the auction deadline will eventually become past perfect.
-    In synchrony this will become at round $\round + \delta$.
-    Moreover, from the \emph{totality} property of pod, every \pend transaction will eventually become \confirmed.
+    \ttwo will eventually become past perfect.
+    In synchrony this will become at round $\ttwo + \delta$.
+    Moreover, from the \emph{totality} property of pod, every \pend transaction will eventually become \confirmed. \oa{Say when exactly.}
 \end{proof}
 
-\begin{lemma}[Fair punishment]
-    The construction satisfies the \emph{fair punishment} property.
-\end{lemma}
+\begin{theorem}[Accountability]
+    The construction satisfies the \emph{accountability} property.
+\end{theorem}
 \begin{proof}
-    From the \emph{past-perfection} safety property, it follows that, after the auctioneer creates a past-perfection certificate \ppcert for a round \rperf,
+    \oa{TODO}
+    Regarding fair punishment,
+    from the \emph{past-perfection} safety property, it follows that, after the auctioneer creates a past-perfection certificate \ppcert for a round \rperf,
     no new transaction can be \confirmed with $\rconf < \rperf$.
 \end{proof}
 
-\begin{lemma}[Verifiability]
+\begin{theorem}[Verifiability]
     The construction satisfies the \emph{verifiability} property.
-\end{lemma}
+\end{theorem}
 

@@ -36,20 +36,20 @@ A pod protocol has the following interface.
 
 We say that a client \emph{writes a transaction} \tx when it calls \opwrite{\tx}, and \emph{reads the pod} when it calls \opreadall{} to obtain some \Pod.
 For a \tx, such that $(\tx, \cdot, \cdot, \rconf, \cdot) \in \Pod$, we say that the client \emph{observes} \tx, and if $\rconf \neq \bot$, we say that the client \emph{observes \tx as \confirmed}.
-\oa{Same for \pend. }
 
 \dotparagraph{Security properties}
 A pod satisfies the following properties.
 
-\begin{enumerate}
-    \item{Liveness}
-    \begin{description}[left=0pt,itemindent=0pt]
+\begin{enumerate}[leftmargin=*, align=left]
+    \item{Liveness:}
+    \begin{description}[leftmargin=*, align=left]
 
         \item[Confirmation within \parConf:]
         If an honest client writes a transaction \tx at round \round, then it will obtain output $(\tx, \rmin, \rmax, \rconf, \txcert)$, such that $\rconf \neq \bot$, by round $\round + \parConf$.
 
         \item[Availability after \parLive:]
         If an honest client writes a transaction \tx at round \round, then any honest client that reads the pod at round at least $\round + \parLive$ will observe \tx as \confirmed.
+        \oa{Alternative: If an honest client writes a transaction \tx at round \round, then for any honest client $c$ it holds that $\tx \in \Pod^{c}_{\round + \parLive}$ and $\tx.\rconf \neq \bot$. Then we do not have to say "client reads the pod", because \opreadall{} might be called at some round but \tx returned later, because the implementation is a streaming protocol.}
 
         \item[Past-perfection within \parPerf:]
         Rounds become past-perfect within $\parPerf$ time. 
@@ -57,37 +57,45 @@ A pod satisfies the following properties.
         for any $\round > 0$.
     \end{description}
 
-    \item{Safety}
+    \item{Safety:}
     \begin{description}[left=0pt,itemindent=0pt]
-        \item[Bounds temperature with parameter \parTemp:]
+        
+        \item[Confirmation monotonicity:]
+        If an honest client observes transaction \tx as \confirmed at round \round, then it will observe it as \confirmed at any round $\round' \geq \round$.
+        \oa{Alternative: If $\tx \in \Pod^{c}_{\round}$ and $\tx.\rconf \neq \bot$, then $\tx \in \Pod^{c}_{\round'}$ and $\tx.\rconf \neq \bot$, for any $\round' > \round$.}
+
+        \item[Correctness of \rconf, \rmin, \rmax:]
         The numbers $\rmin, \rmax$, and $\rconf$ for a transaction \tx satisfy the following:
-        \begin{enumerate}[(1)]
+        \begin{enumerate}[label=(\arabic*)]
             \item If an honest client obtains $\rmin$ and $\rmax$ for \tx,
             and an honest (possibly different) client observes \tx as \confirmed with round $\rconf$, then
             $\rmin \leq \rconf \leq \rmax$.
             \item If an honest client obtains $\rmin$ and $\rmax$ for \tx, and later obtains $\rmin'$ and $\rmax'$ for \tx, then $\rmin' \geq \rmin$ and $\rmax' \leq \rmax$.
-            \item
-            If an honest client writes a transaction \tx at round \round,
-            and an honest client observes \tx as \confirmed with \rconf and \rmax,
-            then $\rconf \in [\round, \round + \parTemp]$,
-            $\rmax \in [\round, \round + \parTemp]$, and
-            $\rmax - \rmin \leq \parTemp$.
         \end{enumerate}
 
-        % \item[Accountable past-perfection:]
-        % Assume a \opreadall{} returns a pod \Pod and a past-perfect round \rperf.
-        % For any transaction $\tx \not \in \Pod$, no honest client will ever observe \tx as confirmed with $\rconf < \rperf$.
-        \item[Accountability]
-        \oa{TODO
-        - two reads with a \tx  with different timestamp
-        - the same party returns two different timestamps}
+        \item[Bounds for \rconf, \rmin, \rmax with parameter \parTemp:]
+        If an honest client writes a transaction \tx at round \round,
+        and an honest client observes \tx as \confirmed with confirmed round \rconf and maximum round \rmax,
+        then 
+        \begin{enumerate}[label=(\arabic*)]
+            \item $\rconf \in [\round, \round + \parTemp]$
+            \item $\rmax \in [\round, \round + \parTemp]$
+            \item $\rmax - \rmin \leq \parTemp$.
+        \end{enumerate}
+
+        \item[Past-perfection correctness:]
+        If an honest client calls \opreadall{} to obtain a pod \Pod and a past-perfect round \rperf,
+        then, for any transaction $\tx \not \in \Pod$, no honest client will ever observe \tx as confirmed with $\rconf < \rperf$.
 
         \item[Past-perfection monotonicity:]
         If an honest client calls \opreadall{} at round $\round_1$ to obtain $\Pod^1, \rperf^1$, and at round $\round_2$ to obtain $\Pod^2, \rperf^2$, then $\rperf^2 \geq \rperf^1$.
-
-        \item[Fair punishment]\oa{TODO: Update}
-        No honest validator gets punished as a result of malicious operation. If $\opidentify{\txcert, \ppcert} \returns P'$, where \txcert is a record certificate for transaction \tx
-        and $\ppcert$ is a past-perfect certificate for a pod \Pod,
-        can only be created if all parties in $P'$ sign \tx and \Pod. 
     \end{description}
+    
+    \item{Accountability:}
+    If more than \beta replicas misbehave and there is a safety failure, then at least \oa{how many?} malicious parties can be identified, without identifying honest parties.
+    % \item[Fair punishment]
+    % No honest validator gets punished as a result of malicious operation. If $\opidentify{\txcert, \ppcert} \returns P'$, where \txcert is a record certificate for transaction \tx
+    % and $\ppcert$ is a past-perfect certificate for a pod \Pod,
+    % can only be created if all parties in $P'$ sign \tx and \Pod. 
+        
 \end{enumerate}

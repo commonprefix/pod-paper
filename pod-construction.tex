@@ -1,9 +1,7 @@
 \section{Pod core construction}\label{sec:pod-core-const}
 
-
-
-\dotparagraph{Client gossip}
-\oa{todo: Define transaction propagation mechanism.}
+\oa{REMARK: In this section I describe ``pod core'', that is, pod without a transaction propagation mechanism (client gossip, replica gossip, or relayers). This achieves all properties mentioned in the previous section, but not the additional ``totality'' property (if an honest client sees \tx as confirmed, then every honest will). Moreover, in the auction protocol we need an additional attribute for a transaction, what I call ``\pend''. A \tx is \pend when it has received more than \beta but less than \alpha votes. We also need the property that ``\pend transactions eventually become \confirmed.'' To satisfy this, we need the transaction propagation mechanism. (See the auction section on why this is needed, but, in short, we will have the auctioneer output a bag \textbf{without} \pend transactions.)
+To keep things cleaner, I define these two additional properties, the notion of \pend, and the propagation mechanism in \Cref{sec:pod-with-propagation}}
 % The construction employs the \emph{client gossip} technique. It could be the case that
 % clients perform read operations on the validators and observe that some of them miss some data, such as client transactions.
 % Client gossip consists in having clients re-broadcast these missing transactions.
@@ -245,7 +243,7 @@
 \end{algorithm}
 
 
-\begin{construction}[Pod]
+\begin{construction}[Pod]\label{const:pod-core}
 As shown in \Cref{alg:client-1},
 in order to write a transaction \tx, a client sends a \msgwrite{\tx} message,
 and to read all transactions, it sends a \msgread{} message to all validators.
@@ -299,60 +297,16 @@ considering timestamps \allLts as the minimum possible for any future transactio
 \end{construction}
 
 
-\begin{theorem}[Confirmation within $\parConf = 2 \delta$]
-    If the network is synchronous, the construction satisfies the \emph{confirmation} liveness property with $\parConf = 2 \delta$.
-\end{theorem}
-\begin{proof}
-\end{proof}
+\subsection{Security}
+We first prove some intermediate results and then that Construction~\ref{const:pod-core} satisfies the security properties of pod.
 
-\begin{theorem}[Availability after $\parLive = \delta$]
-    If the network is synchronous, the construction satisfies the \emph{availability} liveness property with $\parConf = \delta$.
-\end{theorem}
-\begin{proof}
-\end{proof}
-
-\begin{theorem}[Past-perfection within $\parPerf = \delta$]
-    If the network is synchronous, the construction satisfies the \emph{past-perfection} liveness property with $\parPerf = \delta$.
-\end{theorem}
-\begin{proof}
-\end{proof}
-
-\begin{theorem}[Totality]
-    The construction satisfies the \emph{totality} safety property.
-\end{theorem}
-\begin{proof}
-    Particularly in synchrony, this holds for any $\round' \geq \round + u$.
-        \oa{Proof sketch: a malicious validator returns \tx only to the first client, making the difference
-        between being confirmed and not. Using gossip/relaying, after $u$ all honest will have seen \tx, hence the second client also sees it as confirmed. }
-\end{proof}
-
-\begin{theorem}[Past-perfection safety]
-    The construction satisfies the \emph{past-perfection safety} property.
-\end{theorem}
-\begin{proof}[Past-perfection safety]
-    Assume there exists a past-perfection certificate \ppcert for some
-    past-perfect round $\ppcert.\rperf$.
-    From \Cref{lemma:number-votes-in-cert}, there are at least $\lceil \frac{\alpha}{2} \rceil - \beta - 1$ validators $\rep_j$ whose most-recent timestamp $\lts_j$ satisfies $\lts_j < \ppcert.\rperf$.
-    Assume now there exists a transaction \tx, such that $\tx \not \in \ppcert.\Pod$ and a transaction certificate \txcert for \tx, such that
-    $\txcert.\rconf \neq \bot$ and $\txcert.\rconf < \ppcert.\rperf$.
-    This implies that \txcert contains at least $\lceil \frac{\alpha}{2} \rceil$ votes with a timestamp $\tsp_j$ such that $\tsp_j < \ppcert.\rperf$,
-    because the timestamp has been computed as the median of at least $\lceil \alpha \rceil$ votes.
-    Out of those votes, at least $\lceil \frac{\alpha}{2} \rceil - \beta$ must be from honest validators.
-    A vote from them is not in $\ppcert.\votes$ (since $\tx \not \in \ppcert.\Pod$),
-    hence they can only assign it a timestamp $\tsp_j$ equal to or larger than their most-recent timestamp
-    in $\ppcert$, i.e., $\tsp_j \geq \lts_j$.
-    All together, for these $\lceil \frac{\alpha}{2} \rceil - \beta$ honest validators it must hold that $\lts_j < \ppcert.\rperf$.
-    But we have shown that there are only $\lceil \frac{\alpha}{2} \rceil - \beta - 1$ validators with $\lts_j \leq \ppcert.\rperf$,
-    hence such a \tx cannot exist. \oa{TODO: show how to identify malicious}
-\end{proof}
-
-\oa{The following lemmas may be useful or may not. The first is kind of obvious, but useful.}
+\oa{The following two lemmas may be useful or may not. Kind of obvious, but useful.}
 \begin{lemma}\label{lem:assign-min-max}
     The construction above returns
     \begin{enumerate}
         \item as \rmin the timestamp at index $\lceil \alpha / 2 \rceil - \beta$ of \txVotes
         \item as \rmax the timestamp at index $n - \alpha + \lceil \alpha / 2 \rceil + \beta$ of $\txVotes$
-        \item as \rperf the timestamp at index $\lceil \alpha / 2 \rceil - \beta$ of \allLts
+        \item as \rperf the ($\lceil \alpha / 2 \rceil - \beta$)-th smallest most-recent round of \allLts
     \end{enumerate}
 \end{lemma}
 \begin{proof}
@@ -368,7 +322,8 @@ considering timestamps \allLts as the minimum possible for any future transactio
         \item
         \item If some transaction $\tx \in \Pod$ is assigned $\rmax \neq \infty$ as the maximum round,
         then \Pod contains votes on \tx from at least $n - \lfloor \alpha / 2 \rfloor - 1$ honest validators with a timestamp $\tsp \leq \rmax$.
-        \item The pod \Pod contains timestamps $\tsp < \rperf$ by at least $\lceil \alpha / 2 \rceil - \beta - 1$ parties and timestamps $\tsp \geq \rperf$ by at least $n - \lceil \alpha / 2 \rceil + \beta$ parties. \oa{We are using this in the past-perfection safety property.}
+        \item There are at most $\lceil \alpha / 2 \rceil - \beta - 1$ validators for whom the most-recent timestamp satisfies  $\lts < \rperf$,
+        and at least $n - \lceil \alpha / 2 \rceil + \beta + 1$ validators from which a vote with timestamp $\tsp \geq \rperf$ is included in \Pod. \oa{Probably we  don't need this.}
     \end{enumerate}
 \end{lemma}
 \begin{proof}
@@ -383,17 +338,58 @@ considering timestamps \allLts as the minimum possible for any future transactio
     
 \end{proof}
 
-\begin{claim}
-    Assume some client obtains certificate \txcert for a \confirmed transaction \tx,
-    and another (possibly malicious) client
-    reads the pod and outputs $(\Pod, \rperf, \ppcert)$, such that $\rperf \geq \txcert.\rconf$.
-    Then, \tx will be contained in \Pod as \pend of \confirmed.
-    Otherwise, either $(\Pod, \rperf)$ are invalid (they cannot be verified from \ppcert), in which case the reading client is malicious,
-    or the certificates (\txcert, \ppcert) together identify a set of parties that have misbehaved.
-\end{claim}
+
+\begin{theorem}[Confirmation within $\parConf = 2 \delta$]
+    If the network is synchronous, the construction satisfies the \emph{confirmation within $\parConf$} property for $\parConf = 2 \delta$.
+\end{theorem}
 \begin{proof}
-    \oa{Not true. Maybe if $\rperf \geq \txcert.\rmax$?}
+    The honest client will send a message \msgwrite{\tx} to all validators at round \round, hence all honest validators will receive \tx by round $\round + \delta$.
+    They will send a message \msgwriteresp{\tx, \tsp} back to the client, who will receive it by round $\round + 2\delta$.
+    There are at least \alpha honest validators, hence the client will be able to create a certificate \txcert and compute a \confirmed round $\rconf \neq \bot$ for \tx.
+    \oa{CHECK AGAIN: We do not synchrony for this. The proof holds for any value of $\delta$, it does not need to be bounded.}
 \end{proof}
+
+\begin{theorem}[Availability after $\parLive = \delta$]
+    If the network is synchronous, the construction satisfies the \emph{availability after $\parLive$} property for $\parConf = \delta$.
+\end{theorem}
+\begin{proof}
+    The honest client will send a message \msgwrite{\tx} to all validators at round \round, hence all honest validators will receive \tx by round $\round + \delta$.
+    When the reading client sends \msgread{} to the honest validators at round $\round' \geq \round + \delta$, they will respond
+    with a log that contains \tx, and the reading client will observe \tx as \confirmed.
+    \oa{CHECK AGAIN: Same remark for $\delta$.}
+\end{proof}
+
+\begin{theorem}[Past-perfection within $\parPerf = \delta$]
+    If the network is synchronous, the construction satisfies the \emph{past-perfection within $\parPerf$} property for $\parPerf = \delta$.
+\end{theorem}
+\begin{proof}
+    \oa{TODO}
+\end{proof}
+
+\begin{theorem}[Past-perfection correctness]
+    The $(\Pod, \rperf)$ ouput by Construction~\ref{const:pod-core} satisfy the \emph{past-perfection correctness} property.
+\end{theorem}
+\begin{proof}
+    Assume there exists a past-perfection certificate \ppcert for some
+    past-perfect round $\ppcert.\rperf$.
+    From \Cref{lemma:number-votes-in-cert}, there are at most $\lceil \frac{\alpha}{2} \rceil - \beta - 1$ validators $\rep_j$
+    whose most-recent timestamp $\lts_j$ satisfies $\lts_j < \ppcert.\rperf$.
+    Assume now there exists a transaction \tx, such that $\tx \not \in \ppcert.\Pod$ and a transaction certificate \txcert for \tx, such that
+    $\txcert.\rconf \neq \bot$ and $\txcert.\rconf < \ppcert.\rperf$.
+    This implies that \txcert contains at least $\lceil \frac{\alpha}{2} \rceil$ votes with a timestamp $\tsp_j$ such that $\tsp_j < \ppcert.\rperf$,
+    because the timestamp has been computed as the median of at least $\lceil \alpha \rceil$ votes.
+    Out of those votes, at least $\lceil \frac{\alpha}{2} \rceil - \beta$ must be from honest validators.
+    A vote from them is not in $\ppcert.\votes$ (since $\tx \not \in \ppcert.\Pod$),
+    hence they cannot have assigned \tx a timestamp smaller than $\lts_j$,
+    hence they must have assigned  it a timestamp \tsp, such that $\lts_j \leq \tsp < \ppcert.\rperf$.
+    % But an honest validator $\rep_j$ only assigns timestamps equal to or larger than $\lts_j$, hence for these validators it must hold that $\lts_j < \ppcert.\rperf$
+    % in $\ppcert$, i.e., $\tsp_j \geq \lts_j$.
+    Summarizing, there must exist at least $\lceil \frac{\alpha}{2} \rceil - \beta$ honest validators for whom $\lts_j < \ppcert.\rperf$.
+    This is impossible, because there are most $\lceil \frac{\alpha}{2} \rceil - \beta - 1$ validators with $\lts_j \leq \ppcert.\rperf$,
+    hence such a \tx cannot exist.
+\end{proof}
+
+
 % \begin{proof}
 %     Since $\rperf \geq \txcert.\rconf$, pod \Pod must contain votes with timestamp greater than or equal to \txcert.\rconf from at least \alpha validators (otherwise \rperf is invalid), hence from at least $\alpha - \beta$ honest validators.
 %     Given that $\ttwo \geq \tone + \delta$, these honest validators will have received $b$ by time \ttwo, and, since honest validators do not omit transactions, the auctioneer will receive votes on $b$ from them.
@@ -411,7 +407,7 @@ considering timestamps \allLts as the minimum possible for any future transactio
 % \end{enumerate}    
 
 
-\section{Pod with transaction propagation}  
+\section{Pod with transaction propagation} \label{sec:pod-with-propagation}
 In the construction of \Cref{sec:pod-core-const}, replicas do not communicate with each other.
 As we saw, we were still able to prove all security properties.
 In this section we introduce two additional properties and describe a construction that satisfies them.
@@ -444,3 +440,24 @@ We require the following two safety properties from a pod primitive, in addition
     the construction requires a transaction propagation mechanism, that ensures that all honest validators see the same set of transactions,
     even
 \end{remark}
+
+\subsection{Security}
+\begin{theorem}[Totality]
+    The construction satisfies the \emph{totality} safety property.
+\end{theorem}
+\begin{proof}
+    Particularly in synchrony, this holds for any $\round' \geq \round + u$.
+        \oa{Proof sketch: a malicious validator returns \tx only to the first client, making the difference
+        between being confirmed and not. Using gossip/relaying, after $u$ all honest will have seen \tx, hence the second client also sees it as confirmed. }
+\end{proof}
+
+
+\begin{claim}
+    Assume some client obtains certificate \txcert for a \confirmed transaction \tx,
+    and another (possibly malicious) client
+    reads the pod and outputs $(\Pod, \rperf, \ppcert)$, such that $\rperf \geq \txcert.\rconf$.
+    Then, \tx will be contained in \Pod as \pend of \confirmed.
+    \oa{This does not hold. Maybe if $\rperf \geq \txcert.\rmax$?
+    I  thought  we need  it  for the auction, but  we  do  not. The  auctioneer  can  make a confirmed  \tx appear as \pend, and a \pend appear with $<\beta$  votes, but not a
+    confirmed  appear with  $<\beta$ votes, so that's ok.}
+\end{claim}
