@@ -13,7 +13,7 @@ We denote by $\beta \in [0,n]$ the fraction of malicious validators and
 by $\alpha \in [0,n]$ the \emph{confirmation threshold}.
 The pod construction will impose limits on \alpha and \beta.
 
-\dotparagraph{Modeling Time}
+\dotparagraph{Modeling time}
 We assume that time proceeds in \emph{rounds} and that parties have loosely synchronized clocks allowing them to determine the current round. Each party keeps a local round counter that is used to assign timestamps to transactions and protocol messages as needed.
 A \emph{timestamp} is defined as a round number.
 
@@ -26,10 +26,12 @@ A \emph{timestamp} is defined as a round number.
 % We remark that this also holds in periods of asynchrony.
 % \oa{Is this a valid assumption? If we keep it, we can get it of all `round' references and use `time' or `timestamp'. It would make our description less likely to get confused with the notion of `round' in other protocols.}
 
-\dotparagraph{Modeling Network Synchrony}
-In the synchronous model, we assume that every message is delivered within a \emph{known} finite delay of $\Delta$ rounds. In the partially synchronous model, we assume that messages are delivered within a known finite delay of $\Delta$ rounds only \emph{after} an unknown but finite period of time called the Global Stabilization Time (GST). Messages sent before the GST may be delivered only $\Delta$ rounds after the GST. Finally, in the asynchronous model, we assume that messages are delivered within an \emph{unknown} but finite delay $\Delta$.
-We define $\delta \in [1, \Delta]$ as the number of rounds it actually takes to deliver a message between honest parties.
+\dotparagraph{Modeling network}
+% In the synchronous model, we assume that every message is delivered within a \emph{known} finite delay of $\Delta$ rounds. In the partially synchronous model, we assume that messages are delivered within a known finite delay of $\Delta$ rounds only \emph{after} an unknown but finite period of time called the Global Stabilization Time (GST). Messages sent before the GST may be delivered only $\Delta$ rounds after the GST.
+In this work we assume an \emph{asynchronous} network, where messages are delivered within an \emph{unknown} but finite delay $\Delta$.
+% We define $\delta \in [1, \Delta]$ as the number of rounds it actually takes to deliver a message between honest parties.
 %We use the notion of a \emph{round}: each transaction gets associated with a specific round. We say the transaction becomes \emph{\confirmed} at that round. \bd{There's a confusion between the definition of a round as a unit of time during which communication takes place and the use of rounds as  timestamps for specific transactions. We also lack a definition of synchronous/semi-synchronous communication.}
 
-\oa{MAYBE THIS: We assume an asynchronous network, which means there is no upper bound on message delay, but all messages are eventually delivered.
-In some liveness properties and in the efficiency analysis we use $\delta > 0$ to denote the maximum number of rounds it actually takes to deliver a message between two honest parties (maximum over all pairs of honest parties), whatever that number may be, depending on the network conditions.}
+\dotparagraph{Modeling communication}
+We assume reliable and authenticated point-to-point links between parties, implemented by a low-level primitive independent to our protocols.
+For point-to-point communication, we say that parties \emph{send} and \emph{deliver} messages.

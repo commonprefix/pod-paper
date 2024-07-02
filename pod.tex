@@ -1,4 +1,4 @@
-\section{Model and security of pod} \label{sec:pod-model}
+\section{Modelling pod} \label{sec:pod-model}
 A pod protocol allows a set of \emph{clients} to obtain a partially ordered list of transactions from a set of \emph{validators} with censorship-freedom guarantees and accountability for safety violations. 
 
 \begin{definition}[Transaction and associated values]
@@ -73,8 +73,8 @@ A pod satisfies the following properties.
             \item If an honest client obtains $\rmin$ and $\rmax$ for \tx, and later obtains $\rmin'$ and $\rmax'$ for \tx, then $\rmin' \geq \rmin$ and $\rmax' \leq \rmax$.
         \end{enumerate}
 
-        \item[Bounds for \rconf, \rmin, \rmax with parameter \parTemp:]
-        If an honest client writes a transaction \tx at round \round,
+        \item[Bounds with parameter \parTemp for \rconf, \rmin, \rmax:]
+        If an honest client writes a transaction \tx at round \round
         and an honest client observes \tx as \confirmed with confirmed round \rconf and maximum round \rmax,
         then 
         \begin{enumerate}[label=(\arabic*)]

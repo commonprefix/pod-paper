@@ -9,7 +9,7 @@ To keep things cleaner, I define these two additional properties, the notion of 
 % hence the client has a finalized view of the system: a transaction that was re-broadcast will
 % eventually reach all honest validators, hence it cannot get removed from the system in the future.
 % \oa{TODO: Mention that we can use client gossip, gossiping, or relayers to achieve totality. We denote by $u$ the (average) time it takes
-% in synchrony for a transaction to reach all validators. For example, $u = 2 \delta$ using client gossip or relayers.}
+% in synchrony for a transaction to reach all validators. For example, $u = 2 \Delta$ using client gossip or relayers.}
 
 \begin{definition}[Vote]
     We call a \emph{vote} a transaction-timestamp pair $(\tx, \round)$ signed by a validator.
@@ -302,7 +302,7 @@ We first prove some intermediate results and then that Construction~\ref{const:p
 
 \oa{The following two lemmas may be useful or may not. Kind of obvious, but useful.}
 \begin{lemma}\label{lem:assign-min-max}
-    The construction above returns
+    \Cref{alg:client-statistics} returns
     \begin{enumerate}
         \item as \rmin the timestamp at index $\lceil \alpha / 2 \rceil - \beta$ of \txVotes
         \item as \rmax the timestamp at index $n - \alpha + \lceil \alpha / 2 \rceil + \beta$ of $\txVotes$
@@ -339,36 +339,49 @@ We first prove some intermediate results and then that Construction~\ref{const:p
 \end{proof}
 
 
-\begin{theorem}[Confirmation within $\parConf = 2 \delta$]
-    If the network is synchronous, the construction satisfies the \emph{confirmation within $\parConf$} property for $\parConf = 2 \delta$.
-\end{theorem}
+\begin{lemma}[Confirmation within $\parConf$]
+  \Cref{const:pod-core} satisfies the \emph{confirmation within $\parConf$} property for $\parConf = 2 \Delta$.
+\end{lemma}
 \begin{proof}
-    The honest client will send a message \msgwrite{\tx} to all validators at round \round, hence all honest validators will receive \tx by round $\round + \delta$.
-    They will send a message \msgwriteresp{\tx, \tsp} back to the client, who will receive it by round $\round + 2\delta$.
+    The honest client will send a message \msgwrite{\tx} to all validators at round \round, hence all honest validators will receive \tx by round $\round + \Delta$.
+    They will send a message \msgwriteresp{\tx, \tsp} back to the client, who will receive it by round $\round + 2\Delta$.
     There are at least \alpha honest validators, hence the client will be able to create a certificate \txcert and compute a \confirmed round $\rconf \neq \bot$ for \tx.
-    \oa{CHECK AGAIN: We do not synchrony for this. The proof holds for any value of $\delta$, it does not need to be bounded.}
 \end{proof}
 
-\begin{theorem}[Availability after $\parLive = \delta$]
-    If the network is synchronous, the construction satisfies the \emph{availability after $\parLive$} property for $\parConf = \delta$.
-\end{theorem}
+\begin{lemma}[Availability after $\parLive$]
+    \Cref{const:pod-core} satisfies the \emph{availability after $\parLive$} property for $\parConf = \Delta$.
+\end{lemma}
 \begin{proof}
-    The honest client will send a message \msgwrite{\tx} to all validators at round \round, hence all honest validators will receive \tx by round $\round + \delta$.
-    When the reading client sends \msgread{} to the honest validators at round $\round' \geq \round + \delta$, they will respond
+    The honest client will send a message \msgwrite{\tx} to all validators at round \round, hence all honest validators will receive \tx by round $\round + \Delta$.
+    When the reading client sends \msgread{} to the validators at any round $\round' \geq \round + \Delta$, the honest validators will respond
     with a log that contains \tx, and the reading client will observe \tx as \confirmed.
-    \oa{CHECK AGAIN: Same remark for $\delta$.}
 \end{proof}
 
-\begin{theorem}[Past-perfection within $\parPerf = \delta$]
-    If the network is synchronous, the construction satisfies the \emph{past-perfection within $\parPerf$} property for $\parPerf = \delta$.
-\end{theorem}
+\begin{lemma}[Past-perfection within $\parPerf$]
+    \Cref{const:pod-core} satisfies the \emph{past-perfection within $\parPerf$} property for $\parPerf = \Delta$.
+\end{lemma}
 \begin{proof}
     \oa{TODO}
 \end{proof}
 
-\begin{theorem}[Past-perfection correctness]
-    The $(\Pod, \rperf)$ ouput by Construction~\ref{const:pod-core} satisfy the \emph{past-perfection correctness} property.
-\end{theorem}
+\begin{lemma}[Confirmation monotonicity]
+    
+\end{lemma}
+
+\begin{lemma}[Correctness of \rconf, \rmin, \rmax]
+    
+\end{lemma}
+
+\begin{lemma}[Bounds with parameter \parTemp for \rconf, \rmin, \rmax]
+    \Cref{const:pod-core} satisfies the \emph{bounds with parameter \parTemp for \rconf, \rmin, \rmax} property for $\parTemp = \Delta$.
+\end{lemma}
+\begin{proof}
+    \oa{Remark: This does not include drifts of the clocks.}
+\end{proof}
+
+\begin{lemma}[Past-perfection correctness]
+    The $(\Pod, \rperf)$ output by Construction~\ref{const:pod-core} satisfies the \emph{past-perfection correctness} property.
+\end{lemma}
 \begin{proof}
     Assume there exists a past-perfection certificate \ppcert for some
     past-perfect round $\ppcert.\rperf$.
@@ -392,7 +405,7 @@ We first prove some intermediate results and then that Construction~\ref{const:p
 
 % \begin{proof}
 %     Since $\rperf \geq \txcert.\rconf$, pod \Pod must contain votes with timestamp greater than or equal to \txcert.\rconf from at least \alpha validators (otherwise \rperf is invalid), hence from at least $\alpha - \beta$ honest validators.
-%     Given that $\ttwo \geq \tone + \delta$, these honest validators will have received $b$ by time \ttwo, and, since honest validators do not omit transactions, the auctioneer will receive votes on $b$ from them.
+%     Given that $\ttwo \geq \tone + \Delta$, these honest validators will have received $b$ by time \ttwo, and, since honest validators do not omit transactions, the auctioneer will receive votes on $b$ from them.
 %     Hence, \Pod will contain at least $\alpha - \beta$ votes on $b$ (otherwise, see bad case 2 below).
 %     However, a bid in pod that contains $\alpha - \beta$ votes is \pend, and an auctioneer will not output such a pod (otherwise, see bad case 1 below).
 %     Hence, \auc will wait until $b$ becomes \confirmed and will include in \Pod all the corresponding votes,
@@ -407,9 +420,9 @@ We first prove some intermediate results and then that Construction~\ref{const:p
 % \end{enumerate}    
 
 
-\section{Pod with transaction propagation} \label{sec:pod-with-propagation}
+\section{Pod with confirmation agreement on all transactions} \label{sec:pod-with-propagation}
 In the construction of \Cref{sec:pod-core-const}, replicas do not communicate with each other.
-As we saw, we were still able to prove all security properties.
+As we saw, we were still able to prove all security properties of \Cref{sec:pod-model}.
 In this section we introduce two additional properties and describe a construction that satisfies them.
 
 \begin{definition}[\pend transaction]
@@ -421,14 +434,12 @@ In this section we introduce two additional properties and describe a constructi
 
 We require the following two safety properties from a pod primitive, in addition to the ones presented in \Cref{sec:pod-model}.
 \begin{description}[left=0pt,itemindent=0pt]
-    \item[Totality:]
+    \item[Agreement after \parAgr:]
     If an honest client observes transaction \tx as \confirmed,
-    then eventually any other honest client will observe \tx as \confirmed.
-    \oa{See if we need a parameter for this.}
+    then every honest client will observe \tx as \confirmed after at most \parAgr rounds.
     
     \item[Pending-confirmation soundness:]
     If an honest client observes transaction \tx as \pend, then eventually it will observe it as \confirmed.
-    \oa{Define \pend. We need this property for the auction protocol.}
 \end{description}
 
 \begin{construction}[Pod with transaction propagation]
@@ -436,21 +447,27 @@ We require the following two safety properties from a pod primitive, in addition
 \end{construction}
 
 \begin{remark}[Transaction propagation]
-    In order to satisfy the \emph{totality} and \emph{\pend soundness} properties,
+    In order to satisfy the \emph{agreement} and \emph{\pend soundness} properties,
     the construction requires a transaction propagation mechanism, that ensures that all honest validators see the same set of transactions,
-    even
+    even for transactions sent by malicious parties.
+    We denote by \tProp the maximum number of rounds it takes for a transaction to be delivered by all replicas.
 \end{remark}
 
 \subsection{Security}
-\begin{theorem}[Totality]
-    The construction satisfies the \emph{totality} safety property.
-\end{theorem}
+\begin{lemma}[Agreement after \parAgr]
+    Construction \oa{TODO} satisfies the \emph{agreement after \parAgr} property for $\parAgr = 0$ for transactions written by honest clients and $\parAgr = \tProp$ for transactions written by malicious clients.
+\end{lemma}
 \begin{proof}
-    Particularly in synchrony, this holds for any $\round' \geq \round + u$.
-        \oa{Proof sketch: a malicious validator returns \tx only to the first client, making the difference
-        between being confirmed and not. Using gossip/relaying, after $u$ all honest will have seen \tx, hence the second client also sees it as confirmed. }
+    \oa{Proof sketch: a malicious validator returns \tx only to the first client, making the difference
+    between being confirmed and not. Using gossip/relaying, after \tProp all honest will have seen \tx, hence the second client also sees it as confirmed. }
 \end{proof}
 
+\begin{lemma}[Pending-confirmation soundness]
+    Construction \oa{TODO} satisfies the \emph{pending-confirmation soundness} property.
+\end{lemma}
+\begin{proof}
+    \oa{TODO}
+\end{proof}
 
 \begin{claim}
     Assume some client obtains certificate \txcert for a \confirmed transaction \tx,
