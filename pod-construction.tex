@@ -136,7 +136,7 @@ To keep things cleaner, I define these two additional properties, the notion of 
 \label{alg:client-2}
 \begin{algorithmic}[1]
     \Let{\allreps}{\{ \rep_1, \ldots, \rep_n  \} } \Comment{\text{The set of all validators}}
-    \Let{ \allLts = \{ \lts_1, \ldots, \lts_n \} }{ \{ 0, \ldots, 0 \}} \Comment{The last timestamp returned by each validator}
+    \Let{ \allLts = \{ \lts_1, \ldots, \lts_n \} }{ \{ 0, \ldots, 0 \}} \Comment{The most recent timestamp returned by each validator}
     \Let{\rperf}{0} \Comment{The most recent round deemed perfect by the client}
     \Let{\transactions}{\emptyset} \label{line:txs-map-init}
     
@@ -302,11 +302,11 @@ We first prove some intermediate results and then that Construction~\ref{const:p
 
 \oa{The following two lemmas may be useful or may not. Kind of obvious, but useful.}
 \begin{lemma}\label{lem:assign-min-max}
-    \Cref{alg:client-statistics} returns
+    \Cref{alg:client-statistics} returns, assuming timestamps in \txVotes and \allLts are sorted in increasing order, and starting indexing at 1,
     \begin{enumerate}
         \item as \rmin the timestamp at index $\lceil \alpha / 2 \rceil - \beta$ of \txVotes
         \item as \rmax the timestamp at index $n - \alpha + \lceil \alpha / 2 \rceil + \beta$ of $\txVotes$
-        \item as \rperf the ($\lceil \alpha / 2 \rceil - \beta$)-th smallest most-recent round of \allLts
+        \item as \rperf the timestamp at index $\lceil \alpha / 2 \rceil - \beta$ of \allLts
     \end{enumerate}
 \end{lemma}
 \begin{proof}
@@ -316,76 +316,86 @@ We first prove some intermediate results and then that Construction~\ref{const:p
     $n - \alpha  + \beta + \lceil \alpha / 2 \rceil$.
 \end{proof}
 
-\begin{lemma}\label{lemma:number-votes-in-cert}
-    For $(\Pod, \rperf)$ valid according to some \ppcert, we have that
-    \begin{enumerate}
-        \item
-        \item If some transaction $\tx \in \Pod$ is assigned $\rmax \neq \infty$ as the maximum round,
-        then \Pod contains votes on \tx from at least $n - \lfloor \alpha / 2 \rfloor - 1$ honest validators with a timestamp $\tsp \leq \rmax$.
-        \item There are at most $\lceil \alpha / 2 \rceil - \beta - 1$ validators for whom the most-recent timestamp satisfies  $\lts < \rperf$,
-        and at least $n - \lceil \alpha / 2 \rceil + \beta + 1$ validators from which a vote with timestamp $\tsp \geq \rperf$ is included in \Pod. \oa{Probably we  don't need this.}
-    \end{enumerate}
-\end{lemma}
-\begin{proof}
-    \begin{enumerate}
-        \item
-        \item From \Cref{lem:assign-min-max}, the list with all returned timestamps contains $n - \alpha  + \beta + \lceil \alpha / 2 \rceil - 1$ elements smaller or equal to \rmax,
-        and, since $\rmax \neq \infty$, at least $n - \alpha  + \lceil \alpha / 2 \rceil - 1 = n - \lfloor \alpha / 2 \rfloor - 1$
-        of them are timestamps returned by honest parties.
-        \oa{TODO: The equivalent of this is $2f$. We would ideally like it to be $2f+1$. Check again.}
-        \item It follows from \Cref{lem:assign-min-max}, as \rperf is the ($\lceil \alpha / 2 \rceil - \beta$)-th smallest value in \allLts.
-    \end{enumerate}
-    
-\end{proof}
+% \begin{lemma}\label{lemma:number-votes-in-cert}
+%     For a $\Pod.\rperf$, we have that
+%     \begin{enumerate}
+%         \item
+%         \item If some transaction $\tx \in \Pod$ is assigned $\rmax \neq \infty$ as the maximum round,
+%         then \Pod contains votes on \tx from at least $n - \lfloor \alpha / 2 \rfloor - 1$ honest validators with a timestamp $\tsp \leq \rmax$.
+%         \item There are at most $\lceil \alpha / 2 \rceil - \beta - 1$ validators for which the most-recent timestamp satisfies  $\lts < \rperf$,
+%         and at least $n - \lceil \alpha / 2 \rceil + \beta + 1$ validators from which a vote with timestamp $\tsp \geq \Pod.\rperf$ is included in \Pod.
+%     \end{enumerate}
+% \end{lemma}
+% \begin{proof}
+%     \begin{enumerate}
+%         \item
+%         \item From \Cref{lem:assign-min-max}, the list with all returned timestamps contains $n - \alpha  + \beta + \lceil \alpha / 2 \rceil - 1$ elements smaller or equal to \rmax,
+%         and, since $\rmax \neq \infty$, at least $n - \alpha  + \lceil \alpha / 2 \rceil - 1 = n - \lfloor \alpha / 2 \rfloor - 1$
+%         of them are timestamps returned by honest parties.
+%         \oa{TODO: The equivalent of this is $2f$. We would ideally like it to be $2f+1$. Check again.}
+%         \item It follows from \Cref{lem:assign-min-max}, as \rperf is the ($\lceil \alpha / 2 \rceil - \beta$)-th smallest value in \allLts.
+%     \end{enumerate}
+% \end{proof}
 
-
-\begin{lemma}[Confirmation within $\parConf$]
+\begin{theorem}[Confirmation within $\parConf$]
   \Cref{const:pod-core} satisfies the \emph{confirmation within $\parConf$} property for $\parConf = 2 \Delta$.
-\end{lemma}
+\end{theorem}
 \begin{proof}
     The honest client will send a message \msgwrite{\tx} to all validators at round \round, hence all honest validators will receive \tx by round $\round + \Delta$.
     They will send a message \msgwriteresp{\tx, \tsp} back to the client, who will receive it by round $\round + 2\Delta$.
     There are at least \alpha honest validators, hence the client will be able to create a certificate \txcert and compute a \confirmed round $\rconf \neq \bot$ for \tx.
 \end{proof}
 
-\begin{lemma}[Availability after $\parLive$]
+\begin{theorem}[Availability after $\parLive$]
     \Cref{const:pod-core} satisfies the \emph{availability after $\parLive$} property for $\parConf = \Delta$.
-\end{lemma}
+\end{theorem}
 \begin{proof}
     The honest client will send a message \msgwrite{\tx} to all validators at round \round, hence all honest validators will receive \tx by round $\round + \Delta$.
     When the reading client sends \msgread{} to the validators at any round $\round' \geq \round + \Delta$, the honest validators will respond
     with a log that contains \tx, and the reading client will observe \tx as \confirmed.
 \end{proof}
 
-\begin{lemma}[Past-perfection within $\parPerf$]
+\begin{lemma}\label{lem:rperf-value-of-honest}
+    For $\alpha \geq 4 \beta + 1$, if \Cref{const:pod-core} returns \rperf as the past-perfect round,
+    then there exists some honest validator $\rep_j$ wtih most-recent timestamp (MRT) $\lts_j$, such that $\rperf \geq \lts_j$.
+\end{lemma}
+\begin{proof}
+    From \Cref{lem:assign-min-max} we have that \rperf is the ($\lceil \alpha / 2 \rceil - \beta$)-th smallest value in \allLts.
+    If the number of malicious validators is smaller than this, i.e., $\beta < \lceil \alpha / 2 \rceil - \beta$, or, equivalently, $\alpha \geq 4\beta + 1$, then \rperf will be either the MRT of an honest validator,
+    or there will an MRT of an honest validator that is smaller or equal to \rperf.
+\end{proof}
+
+\begin{theorem}[Past-perfection within $\parPerf$]
+    For $\alpha \geq 4 \beta + 1$, and assuming at least one honest client writes a transaction at each round,
     \Cref{const:pod-core} satisfies the \emph{past-perfection within $\parPerf$} property for $\parPerf = \Delta$.
-\end{lemma}
+\end{theorem}
 \begin{proof}
-    \oa{TODO}
+    Assume client \client has view $\podView{c}{\round}$.
+    From \Cref{lem:rperf-value-of-honest}, we have that $\podView{c}{\round}.\rperf \geq \lts_j$, for some honest validator $\rep_j$,
+    and, since messages from honest validators arrive within at most $\Delta$ rounds, we have that $\lts_j \geq \round - \Delta$.
+    All together, $\podView{c}{\round}.\rperf \geq \round - \Delta$.
 \end{proof}
 
-\begin{lemma}[Confirmation monotonicity]
-    
-\end{lemma}
-
-\begin{lemma}[Correctness of \rconf, \rmin, \rmax]
-    
-\end{lemma}
-
-\begin{lemma}[Bounds with parameter \parTemp for \rconf, \rmin, \rmax]
-    \Cref{const:pod-core} satisfies the \emph{bounds with parameter \parTemp for \rconf, \rmin, \rmax} property for $\parTemp = \Delta$.
-\end{lemma}
+\begin{theorem}[Confirmation monotonicity]
+    \Cref{const:pod-core} satisfies the \emph{confirmation monotonicity} property.
+\end{theorem}
 \begin{proof}
-    \oa{Remark: This does not include drifts of the clocks.}
+    It follows from the fact that \Cref{const:pod-core} uses a streaming connection between a client and the replicas.
 \end{proof}
 
-\begin{lemma}[Past-perfection correctness]
+\begin{theorem}[Correctness of \rconf, \rmin, \rmax with parameter \parTemp]
+\end{theorem}
+\begin{proof}
+    \oa{TODO. Remark: This does not include drifts of the clocks.}
+\end{proof}
+
+\begin{theorem}[Past-perfection correctness]
     The $(\Pod, \rperf)$ output by Construction~\ref{const:pod-core} satisfies the \emph{past-perfection correctness} property.
-\end{lemma}
+\end{theorem}
 \begin{proof}
     Assume there exists a past-perfection certificate \ppcert for some
     past-perfect round $\ppcert.\rperf$.
-    From \Cref{lemma:number-votes-in-cert}, there are at most $\lceil \frac{\alpha}{2} \rceil - \beta - 1$ validators $\rep_j$
+    From \Cref{lem:assign-min-max}, there are at most $\lceil \frac{\alpha}{2} \rceil - \beta - 1$ validators $\rep_j$
     whose most-recent timestamp $\lts_j$ satisfies $\lts_j < \ppcert.\rperf$.
     Assume now there exists a transaction \tx, such that $\tx \not \in \ppcert.\Pod$ and a transaction certificate \txcert for \tx, such that
     $\txcert.\rconf \neq \bot$ and $\txcert.\rconf < \ppcert.\rperf$.

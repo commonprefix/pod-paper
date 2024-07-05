@@ -8,16 +8,21 @@ A pod protocol allows a set of \emph{clients} to obtain a partially ordered list
     For the maximum round, symbol~$\infty$ stands for an unbounded large number,
     and for the \confirmed round, symbol~$\bot$ stands for an undefined value.
     Finally, $\txcert$ is a \emph{transaction certificate} that proves the correctness of $\rmin, \rmax, \rconf$.
-    For a \confirmed transaction we have that $\rconf \neq \bot$, and for a transaction that is not \confirmed we have that $\rconf = \bot$.
+    For transaction \tx, we refer to its associated values as $\tx.\rmin, \tx.\rmax, \tx.\rconf$, and $\tx.\txcert$.
+\end{definition}
+
+\begin{definition}
+    A transaction is \emph{\confirmed} if $\rconf \neq \bot$, and not \confirmed otherwise.
 \end{definition}
 
 \begin{definition}[Pod]
-    A \emph{pod} $\Pod$ is a finite sequence of transactions and associated values $(\tx, \rmin, \rmax, \rconf, \txcert )$.
+    A \emph{pod} $\Pod$ is a triple $(\txSet, \rperf, \ppcert)$, where \txSet is a finite sequence of transactions and associated values, \rperf is a round number, called the \emph{past-perfect round},
+    and \ppcert is a \emph{past-perfection certificate} \ppcert that proves the correctness of the \Pod and \rperf.
 \end{definition}
 
 \begin{definition}[Past-perfect round]
-    A round is \emph{past-perfect} for a pod \Pod if,
-    for any transaction $\tx \not \in \Pod$, no honest client will ever observe \tx as confirmed with $\rconf < \rperf$.
+    Given a set of transactions \txSet, a round \rperf is \emph{past-perfect} if,
+    for any transaction $\tx \not \in \txSet$, no honest client will ever observe \tx as confirmed with $\rconf < \rperf$.
 \end{definition}
 
 \begin{definition}[Pod protocol]
@@ -25,17 +30,24 @@ A pod protocol has the following interface.
 \begin{itemize}
     \item $\opwrite{\tx} \returns (\tx, \rmin, \rmax, \rconf, \txcert)$:
     It gets a transaction \tx and outputs its associated values $\rmin, \rmax$, $\rconf$, and \txcert.
+    We say that a client \emph{writes a transaction} \tx when it calls \opwrite{\tx}.
 
-    \item $\opreadall{} \returns \left( \Pod, \rperf, \ppcert \right)$:
-    It returns a pod \Pod, a past-perfect round \rperf, and a \emph{past-perfection certificate} \ppcert that proves the correctness of the \Pod and \rperf.
+    \item $\opreadall{} \returns \pod$:
+    It outputs a pod $\Pod = (\txSet, \rperf, \ppcert)$.
+    It used by clients to \emph{read the pod}.
+    For a \tx, such that $(\tx, \cdot, \cdot, \rconf, \cdot) \in \txSet$, we say that the client \emph{observes} \tx, and if $\rconf \neq \bot$, we say that the client \emph{observes \tx as \confirmed}.
 
-    \item \opidentify{\txcert, \ppcert} \returns $P' \subset P$ 
-    
+    \item \opidentify{\txcert, \ppcert} \returns $P' \subset P$ \oa{Describe.}
 \end{itemize}
+The notation \podView{\client}{\round} denotes the output of \opreadall{} at the end of round \round.
+We refer to the fields (\txSet, \rperf, \ppcert) in that output as $\podView{\client}{\round}.\txSet$,
+$\podView{\client}{\round}.\rperf$, and $\podView{\client}{\round}.\ppcert$, respectively.
+We also use the notation $\tx \in \podView{\client}{\round}$ as a shortcut for  $\tx \in \podView{\client}{\round}.\txSet$. 
 \end{definition}
 
-We say that a client \emph{writes a transaction} \tx when it calls \opwrite{\tx}, and \emph{reads the pod} when it calls \opreadall{} to obtain some \Pod.
-For a \tx, such that $(\tx, \cdot, \cdot, \rconf, \cdot) \in \Pod$, we say that the client \emph{observes} \tx, and if $\rconf \neq \bot$, we say that the client \emph{observes \tx as \confirmed}.
+\begin{definition}
+    
+\end{definition}
 
 \dotparagraph{Security properties}
 A pod satisfies the following properties.
@@ -48,47 +60,56 @@ A pod satisfies the following properties.
         If an honest client writes a transaction \tx at round \round, then it will obtain output $(\tx, \rmin, \rmax, \rconf, \txcert)$, such that $\rconf \neq \bot$, by round $\round + \parConf$.
 
         \item[Availability after \parLive:]
-        If an honest client writes a transaction \tx at round \round, then any honest client that reads the pod at round at least $\round + \parLive$ will observe \tx as \confirmed.
-        \oa{Alternative: If an honest client writes a transaction \tx at round \round, then for any honest client $c$ it holds that $\tx \in \Pod^{c}_{\round + \parLive}$ and $\tx.\rconf \neq \bot$. Then we do not have to say "client reads the pod", because \opreadall{} might be called at some round but \tx returned later, because the implementation is a streaming protocol.}
+        If an honest client writes a transaction \tx at round \round, then for any honest client $\client$, it holds that $\tx \in \podView{c}{\round + \parLive}$ and $\tx.\rconf \neq \bot$.
 
         \item[Past-perfection within \parPerf:]
-        Rounds become past-perfect within $\parPerf$ time. 
-        That is, if an honest client calls \opreadall{} at round $\round +\parPerf$, then the returned \rperf will satisfy $\rperf \geq \round$,
-        for any $\round > 0$.
+        Rounds become past-perfect after at most $\parPerf$ rounds. 
+        That is, for any honest client \client and round $\round \geq \parPerf$,
+        it holds that $\podView{c}{\round}.\rperf \geq \round - \parPerf$.
     \end{description}
 
     \item{Safety:}
     \begin{description}[left=0pt,itemindent=0pt]
         
         \item[Confirmation monotonicity:]
-        If an honest client observes transaction \tx as \confirmed at round \round, then it will observe it as \confirmed at any round $\round' \geq \round$.
-        \oa{Alternative: If $\tx \in \Pod^{c}_{\round}$ and $\tx.\rconf \neq \bot$, then $\tx \in \Pod^{c}_{\round'}$ and $\tx.\rconf \neq \bot$, for any $\round' > \round$.}
+        % If an honest client observes transaction \tx as \confirmed at round \round, then it will observe it as \confirmed at any round $\round' \geq \round$.
+        If $\tx \in \podView{\client}{\round}$ and $\tx.\rconf \neq \bot$, then $\tx \in \podView{\client}{\round'}$ and $\tx.\rconf \neq \bot$, for any honest client \client and rounds $\round \geq 0$ and $\round' \geq \round$.
 
-        \item[Correctness of \rconf, \rmin, \rmax:]
+        \item[Correctness of \rconf, \rmin, \rmax with parameter \parTemp:]
         The numbers $\rmin, \rmax$, and $\rconf$ for a transaction \tx satisfy the following:
         \begin{enumerate}[label=(\arabic*)]
             \item If an honest client obtains $\rmin$ and $\rmax$ for \tx,
             and an honest (possibly different) client observes \tx as \confirmed with round $\rconf$, then
             $\rmin \leq \rconf \leq \rmax$.
             \item If an honest client obtains $\rmin$ and $\rmax$ for \tx, and later obtains $\rmin'$ and $\rmax'$ for \tx, then $\rmin' \geq \rmin$ and $\rmax' \leq \rmax$.
+            \item If $\rconf \neq \bot$, then $\rmin \neq 0$ and $\rmax \neq \infty$.
+            In particular, there exists parameter $\theta$, such that:
+            (a) $\rconf \in [\round, \round + \parTemp]$,
+            (b) $\rmax \in [\round, \round + \parTemp]$, and
+            (c) $\rmax - \rmin \leq \parTemp$,
+            where \round is the round on which \tx was written by an honest client.
         \end{enumerate}
 
-        \item[Bounds with parameter \parTemp for \rconf, \rmin, \rmax:]
-        If an honest client writes a transaction \tx at round \round
-        and an honest client observes \tx as \confirmed with confirmed round \rconf and maximum round \rmax,
-        then 
-        \begin{enumerate}[label=(\arabic*)]
-            \item $\rconf \in [\round, \round + \parTemp]$
-            \item $\rmax \in [\round, \round + \parTemp]$
-            \item $\rmax - \rmin \leq \parTemp$.
-        \end{enumerate}
+        % \item[Bounds with parameter \parTemp for \rconf, \rmin, \rmax:]
+        % If an honest client writes a transaction \tx at round \round
+        % and an honest client observes \tx as \confirmed with confirmed round \rconf and maximum round \rmax,
+        % then 
+        % \begin{enumerate}[label=(\arabic*)]
+        %     \item $\rconf \in [\round, \round + \parTemp]$
+        %     \item $\rmax \in [\round, \round + \parTemp]$
+        %     \item $\rmax - \rmin \leq \parTemp$.
+        % \end{enumerate}
 
         \item[Past-perfection correctness:]
-        If an honest client calls \opreadall{} to obtain a pod \Pod and a past-perfect round \rperf,
-        then, for any transaction $\tx \not \in \Pod$, no honest client will ever observe \tx as confirmed with $\rconf < \rperf$.
+        % If an honest client calls \opreadall{} to obtain a pod \Pod and a past-perfect round \rperf,
+        % then, for any transaction $\tx \not \in \Pod$, no honest client will ever observe \tx as confirmed with $\rconf < \rperf$.
+        For any honest client \client and round $\round$,
+        it holds that, if $\tx \not \in \podView{\client}{\round}$, then no honest client will ever observe \tx as confirmed with $\rconf < \podView{\client}{\round}.\rperf$.
 
         \item[Past-perfection monotonicity:]
-        If an honest client calls \opreadall{} at round $\round_1$ to obtain $\Pod^1, \rperf^1$, and at round $\round_2$ to obtain $\Pod^2, \rperf^2$, then $\rperf^2 \geq \rperf^1$.
+        % If an honest client calls \opreadall{} at round $\round_1$ to obtain $\Pod^1, \rperf^1$, and at round $\round_2$ to obtain $\Pod^2, \rperf^2$, then $\rperf^2 \geq \rperf^1$.
+        For any honest client \client and rounds $\round_1, \round_2 \geq \round_1$,
+        it holds that $\podView{\client}{\round_2}.\rperf \geq \podView{\client}{\round_1}.\rperf$.
     \end{description}
     
     \item{Accountability:}
