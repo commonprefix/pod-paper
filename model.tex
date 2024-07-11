@@ -1,7 +1,7 @@
 \section{Model}\label{sec:system}
 
 \dotparagraph{Notation}
-We denote \CN the set of natural numbers including $0$.
+We denote \BN the set of natural numbers including $0$.
 For a list $L$ of length $\ell$ we denote by $L[i]$ the element of $L$ at index $i$, where $i \in \{1, \ldots, \ell\}$.
 
 \dotparagraph{Parties and failure model}
@@ -14,7 +14,9 @@ by $\alpha \in [0,n]$ the \emph{confirmation threshold}.
 The pod construction will impose limits on \alpha and \beta.
 
 \dotparagraph{Modeling time}
-We assume that time proceeds in \emph{rounds} and that parties have loosely synchronized clocks allowing them to determine the current round. Each party keeps a local round counter that is used to assign timestamps to transactions and protocol messages as needed.
+We assume that time proceeds in \emph{rounds} and that parties have \emph{synchronized clocks} allowing them to determine the current round.
+\oa{Mention that if we know an upper bound then we can include this into the properties.}
+Each party keeps a local round counter that is used to assign timestamps to transactions and protocol messages as needed.
 A \emph{timestamp} is defined as a round number.
 
 % Without loss of generality, our analysis can be extended to a model with loosely synchronized clocks where two honest parties may have two different round counters $r_1,r_2$ such that $|r_1-r_2|=\delta$ for a finite $\delta$.
