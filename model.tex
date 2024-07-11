@@ -29,6 +29,7 @@ A \emph{timestamp} is defined as a round number.
 \dotparagraph{Modeling network}
 % In the synchronous model, we assume that every message is delivered within a \emph{known} finite delay of $\Delta$ rounds. In the partially synchronous model, we assume that messages are delivered within a known finite delay of $\Delta$ rounds only \emph{after} an unknown but finite period of time called the Global Stabilization Time (GST). Messages sent before the GST may be delivered only $\Delta$ rounds after the GST.
 In this work we assume an \emph{asynchronous} network, where messages are delivered within an \emph{unknown} but finite delay $\Delta$.
+\oa{Is it valid to assume that parties have loosely synchronized clocks in asynchrony? Also, current analysis ignores the drift among the clocks.}
 % We define $\delta \in [1, \Delta]$ as the number of rounds it actually takes to deliver a message between honest parties.
 %We use the notion of a \emph{round}: each transaction gets associated with a specific round. We say the transaction becomes \emph{\confirmed} at that round. \bd{There's a confusion between the definition of a round as a unit of time during which communication takes place and the use of rounds as  timestamps for specific transactions. We also lack a definition of synchronous/semi-synchronous communication.}
 

@@ -200,31 +200,31 @@ To keep things cleaner, I define these two additional properties, the notion of 
 \end{algorithm}
 
 \begin{algorithm}[t]
-    \caption{Code for a client, part 3. Computing worst-case \rmin and \rmax for existing and new transactions, allowing \beta equivocations.}
+    \caption{Code for a client, part 3. Computing worst-case \rmin and \rmax for existing and new transactions, allowing \beta equivocations. \oa{TODO: make line number not reset}}
     \label{alg:client-statistics}
     \begin{algorithmic}[1]
     \Function{\opMinPossibleTs{\tx}}{}
         % \Let{\votedReplicas}{\{\rep_j \in \allreps \mid \rep_j \in \transactions[\tx].\votes \}}
-        \Let{\txVotes}{\text{all timestamps in } \transactions[\tx].\votes}
+        \Let{\txVotesMin}{\text{all timestamps in } \transactions[\tx].\votes}
         % \Let{\missingReplicas}{ \{ \rep_j \in \allreps \mid \rep_j \not \in \transactions[\tx].\votes \} }
-        \For{$\rep_j$ \st $\rep_j \not \in \transactions[\tx].\votes$}
-            \Let{\txVotes}{\txVotes \| \lts_j}\label{line:fill-vote-lts}
-        \EndFor
-        \Let{\txVotes}{\text{sort \txVotes in increasing order}}
-        \Let{\txVotes}{\{ 0, \stackrel{\beta \text{ times}}{\ldots}, 0 \} \| \txVotes}
-        \return $\opMed{\txVotes[1: \alpha]}$
+        \For{$\rep_j$ \st $\rep_j \not \in \transactions[\tx].\votes$}\label{linee:assing-missing-min-begin}
+            \Let{\txVotesMin}{\txVotesMin \| \lts_j}\label{line:fill-vote-lts}
+        \EndFor\label{linee:assing-missing-min-end}
+        \Let{\txVotesMin}{\text{sort \txVotesMin in increasing order}}
+        \Let{\txVotesMin}{\{ 0, \stackrel{\beta \text{ times}}{\ldots}, 0 \} \| \txVotesMin}
+        \return $\opMed{\txVotesMin[1: \alpha]}$
     \EndFunction
     
     \Statex
 
     \Function{\opMaxPossibleTs{\tx}}{}\label{line:fn-compute-max-begin}
-        \Let{\txVotes}{\text{all timestamps in } \transactions[\tx].\votes}
-        \For{$\rep_j$ \st $\rep_j \not \in \transactions[\tx].\votes$}
-            \Let{\txVotes}{\txVotes \| \infty}\label{line:fill-vote-inf}
-        \EndFor
-        \Let{\txVotes}{\text{sort \txVotes in increasing order}}
-        \Let{\txVotes}{\txVotes \| \{ \infty, \stackrel{\beta \text{ times}}{\ldots}, \infty \} }
-        \return $\opMed{\txVotes[(n - \alpha) : n]}$
+        \Let{\txVotesMax}{\text{all timestamps in } \transactions[\tx].\votes}
+        \For{$\rep_j$ \st $\rep_j \not \in \transactions[\tx].\votes$}\label{linee:assing-missing-max-begin}
+            \Let{\txVotesMax}{\txVotesMax \| \infty}\label{line:fill-vote-inf}
+        \EndFor\label{linee:assing-missing-max-end}
+        \Let{\txVotesMax}{\text{sort \txVotesMax in increasing order}}
+        \Let{\txVotesMax}{\txVotesMax \| \{ \infty, \stackrel{\beta \text{ times}}{\ldots}, \infty \} }
+        \return $\opMed{\txVotesMax[(n - \alpha) : n]}$
     \EndFunction\label{line:fn-compute-max-end}
 
     \Statex
@@ -298,19 +298,18 @@ considering timestamps \allLts as the minimum possible for any future transactio
 
 
 \subsection{Security}
-We first prove some intermediate results and then that Construction~\ref{const:pod-core} satisfies the security properties of pod.
+We first prove some useful intermediate results.
 
-\oa{The following two lemmas may be useful or may not. Kind of obvious, but useful.}
 \begin{lemma}\label{lem:assign-min-max}
-    \Cref{alg:client-statistics} returns, assuming timestamps in \txVotes and \allLts are sorted in increasing order, and starting indexing at 1,
+    \Cref{alg:client-statistics} returns, assuming timestamps in \txVotesMin, \txVotesMax, and \allLts are sorted in increasing order, and starting indexing at 1,
     \begin{enumerate}
-        \item as \rmin the timestamp at index $\lceil \alpha / 2 \rceil - \beta$ of \txVotes
-        \item as \rmax the timestamp at index $n - \alpha + \lceil \alpha / 2 \rceil + \beta$ of $\txVotes$
+        \item as \rmin the timestamp at index $\lceil \alpha / 2 \rceil - \beta$ of \txVotesMin
+        \item as \rmax the timestamp at index $n - \alpha + \lceil \alpha / 2 \rceil + \beta$ of \txVotesMax
         \item as \rperf the timestamp at index $\lceil \alpha / 2 \rceil - \beta$ of \allLts
     \end{enumerate}
 \end{lemma}
 \begin{proof}
-    Functions \opMinPossibleTs{} and \opMinPossibleTsForNewTx{} append \beta times the $0$ value in the beginning of the list and return the median of the first \alpha values. Hence \rmin and \rperf are the elements at index $\lceil \alpha / 2 \rceil - \beta$ of \txVotes and \allLts, respectively.
+    Functions \opMinPossibleTs{} and \opMinPossibleTsForNewTx{} append \beta times the $0$ value in the beginning of the list and return the median of the first \alpha values. Hence \rmin and \rperf are the elements at index $\lceil \alpha / 2 \rceil - \beta$ of \txVotesMin and \allLts, respectively.
     Function \opMaxPossibleTs{} (lines~\ref{line:fn-compute-max-begin}--\ref{line:fn-compute-max-end}) appends \beta times the $\infty$ value at the end of the list with all received timestamps, and looks at the last \alpha elements of that list, hence ignores the first $n - \alpha  + \beta$ elements.
     It returns the median of the last \alpha elements, so all together \rmax is the element at position
     $n - \alpha  + \beta + \lceil \alpha / 2 \rceil$.
@@ -336,6 +335,8 @@ We first prove some intermediate results and then that Construction~\ref{const:p
 %         \item It follows from \Cref{lem:assign-min-max}, as \rperf is the ($\lceil \alpha / 2 \rceil - \beta$)-th smallest value in \allLts.
 %     \end{enumerate}
 % \end{proof}
+
+We now prove, through the following theorems, that \Cref{const:pod-core} satisfies the security definition of pod.
 
 \begin{theorem}[Confirmation within $\parConf$]
   \Cref{const:pod-core} satisfies the \emph{confirmation within $\parConf$} property for $\parConf = 2 \Delta$.
@@ -381,12 +382,36 @@ We first prove some intermediate results and then that Construction~\ref{const:p
 \end{theorem}
 \begin{proof}
     It follows from the fact that \Cref{const:pod-core} uses a streaming connection between a client and the replicas.
+    Once a transaction receives enough votes and gets \confirmed at round $\round_1$,
+    it will remain confirmed at all rounds $\round_2 \geq \round_1$.
 \end{proof}
 
 \begin{theorem}[Correctness of \rconf, \rmin, \rmax with parameter \parTemp]
 \end{theorem}
 \begin{proof}
-    \oa{TODO. Remark: This does not include drifts of the clocks.}
+    \begin{enumerate}[label=(\arabic*)]
+        \item Assume client $\client_1$ computes \rmin and client $\client_2$ computes $\rconf < \rmin$ for \tx.
+        From \Cref{lem:assign-min-max}, the number of validators that have sent to $\client_1$ a timestamp for \tx smaller than \rmin can  be  at most $\lceil \alpha / 2 \rceil - \beta - 1$.
+        Allowing up to \beta validators to equivocate, there can be at most $\lceil \alpha / 2 \rceil - 1$ validators that send $\client_2$  a timestamp smaller than \rmin.
+        However, in order to assign $\rconf < \rmin$ to \tx, client $\client_2$ must have received timestamps smaller than \rmin from at least $\lceil \alpha / 2 \rceil$ validators, a contradiction.
+        For \rmax, assume $\client_1$ computes \rmax and $\client_2$ computes $\rconf > \rmax$.
+        From \Cref{lem:assign-min-max}, the number of validators that have sent to  $\client_1$ a timestamp larger than \rmax can be at most $\alpha - \lceil \alpha / 2 \rceil - \beta$,
+        hence at most $\alpha - \lceil \alpha / 2 \rceil$ validators will send such a timestamp to $\client_2$.
+        If \alpha is odd, the $\alpha - \lceil \alpha / 2 \rceil = \lceil \alpha / 2 \rceil - 1$, while $\client_2$ would need at least
+        $\ceil{\alpha / 2}$ votes larger that \rmax,
+        and if \alpha is even, then $\alpha - \lceil \alpha / 2 \rceil = \lceil \alpha / 2 \rceil$, while $\client_2$ would need at least
+        $\ceil{\alpha / 2} + 1$ votes larger that \rmax in order to  
+        compute a median larger than \rmax (we remind that \cref{alg:client-statistics}) returns as median the value at position $\ceil{\alpha /  2}$).
+
+        \item From \Cref{lem:assign-min-max}, \rmin is the element at index $\lceil \alpha / 2 \rceil - \beta$ of \txVotesMin. This value can only grow, because, for a missing vote from validator $\rep_j$, it is assigned $\lts_j$ (lines~\ref{linee:assing-missing-min-begin}--\ref{linee:assing-missing-min-end}),
+        and the construction only accepts a timestamp \tsp from $\rep_j$ if
+        $\tsp \geq \lts_j$ (\cref{line:check-old-ts}).
+        Similarly for \rmax, as the construction fills missing votes in \txVotesMax with $\infty$ (lines~\ref{linee:assing-missing-max-begin}--\ref{linee:assing-missing-max-end}), which can only become lower when the vote is received.
+        Also note that the construction only considers the first vote from each validator on \tx (\cref{line:dup-tsp}).
+        
+        \item \oa{TODO}
+    \end{enumerate}
+    \oa{Remark: This does not include  drifts of the clocks.}
 \end{proof}
 
 \begin{theorem}[Past-perfection correctness]
@@ -410,6 +435,15 @@ We first prove some intermediate results and then that Construction~\ref{const:p
     Summarizing, there must exist at least $\lceil \frac{\alpha}{2} \rceil - \beta$ honest validators for whom $\lts_j < \ppcert.\rperf$.
     This is impossible, because there are most $\lceil \frac{\alpha}{2} \rceil - \beta - 1$ validators with $\lts_j \leq \ppcert.\rperf$,
     hence such a \tx cannot exist.
+\end{proof}
+
+
+\begin{theorem}[Past-perfection monotonicity]
+    \Cref{const:pod-core} satisfies the \emph{past-perfection monotonicity} property.
+\end{theorem}
+\begin{proof}
+    It follows from the fact that \Cref{const:pod-core} uses a streaming connection between a client and the replicas,
+    and the fact that the most-recent timestamps can only increase.
 \end{proof}
 
 

@@ -73,7 +73,7 @@ A pod satisfies the following properties.
         
         \item[Confirmation monotonicity:]
         % If an honest client observes transaction \tx as \confirmed at round \round, then it will observe it as \confirmed at any round $\round' \geq \round$.
-        If $\tx \in \podView{\client}{\round}$ and $\tx.\rconf \neq \bot$, then $\tx \in \podView{\client}{\round'}$ and $\tx.\rconf \neq \bot$, for any honest client \client and rounds $\round \geq 0$ and $\round' \geq \round$.
+        If $\tx \in \podView{\client}{\round_1}$ and $\tx.\rconf \neq \bot$, then $\tx \in \podView{\client}{\round_2}$ and $\tx.\rconf \neq \bot$, for any honest client \client and rounds $\round_1, \round_2 \geq \round_1$.
 
         \item[Correctness of \rconf, \rmin, \rmax with parameter \parTemp:]
         The numbers $\rmin, \rmax$, and $\rconf$ for a transaction \tx satisfy the following:
