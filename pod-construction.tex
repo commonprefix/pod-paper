@@ -145,6 +145,7 @@ To keep things cleaner, I define these two additional properties, the notion of 
     \Function{\opOnReceiveVote{$(\tx, \tsp),  \rep_j$}}{}
         \If{$\tsp < \lts_j$}\label{line:check-old-ts}
             \return \Comment{accountable fault, $\rep_j$ assigned old timestamp to \tx}\label{line:old-tsp}
+            \State{\oa{Create and output \ppcert, $\ppcert'$ here.}}
         \EndIf
         \If{$\transactions[\tx] = \bot$}
             \Let{\transactions[\tx]}{(\votes: \emptyset, \rmin: 0, \rmax: \infty, \rconf: \bot)}
@@ -194,7 +195,7 @@ To keep things cleaner, I define these two additional properties, the notion of 
             \Let{\rperf}{\rperf'}
             \State{\textbf{output event} PERFECT-ROUND-UPDATE \rperf}
         \EndIf\label{line:upd-rperf-end}
-
+        \State{\oa{Return \txcert for writing user. Return \ppcert for reading client.}}
     \EndFunction
 \end{algorithmic}
 \end{algorithm}
@@ -296,6 +297,12 @@ Finally, \opMinPossibleTsForNewTx{} works similarly to \opMinPossibleTs{}, excep
 considering timestamps \allLts as the minimum possible for any future transaction.
 \end{construction}
 
+
+
+\begin{definition}[Identification function]
+    \opidentify{$\pod, \tilde{\Pod}$} \returns $P' \subset P$ 
+\end{definition}
+\oa{Show the following two functions for equivocation: Given \ppcert, $\ppcert'$, identify 1) replicas that  assgign different timestamps to a \tx, 2) replicas that include new transactions with old \tsp. Say these are local, using only \ppcert.}
 
 \subsection{Security}
 We first prove some useful intermediate results.
@@ -446,6 +453,14 @@ We now prove, through the following theorems, that \Cref{const:pod-core} satisfi
     and the fact that the most-recent timestamps can only increase.
 \end{proof}
 
+\begin{theorem}[Accountability]
+    The accountability properties are satisfied using
+    \opidentify{$\pod, \tilde{\Pod}$}, for the \emph{accountability from the  view of a single party} property,
+    and \opidentify{$\podView{\client_1}{\round_1}$, $\podView{\client_2}{\round_2}$}, for the \emph{accountability from the  view of two parties} properties.
+\end{theorem}
+\begin{proof}
+    \oa{TODO. For the past-perfection property, add \txcert to \Pod.}
+\end{proof}
 
 % \begin{proof}
 %     Since $\rperf \geq \txcert.\rconf$, pod \Pod must contain votes with timestamp greater than or equal to \txcert.\rconf from at least \alpha validators (otherwise \rperf is invalid), hence from at least $\alpha - \beta$ honest validators.

@@ -31,10 +31,28 @@ A \emph{timestamp} is defined as a round number.
 \dotparagraph{Modeling network}
 % In the synchronous model, we assume that every message is delivered within a \emph{known} finite delay of $\Delta$ rounds. In the partially synchronous model, we assume that messages are delivered within a known finite delay of $\Delta$ rounds only \emph{after} an unknown but finite period of time called the Global Stabilization Time (GST). Messages sent before the GST may be delivered only $\Delta$ rounds after the GST.
 In this work we assume an \emph{asynchronous} network, where messages are delivered within an \emph{unknown} but finite delay $\Delta$.
-\oa{Is it valid to assume that parties have loosely synchronized clocks in asynchrony? Also, current analysis ignores the drift among the clocks.}
 % We define $\delta \in [1, \Delta]$ as the number of rounds it actually takes to deliver a message between honest parties.
 %We use the notion of a \emph{round}: each transaction gets associated with a specific round. We say the transaction becomes \emph{\confirmed} at that round. \bd{There's a confusion between the definition of a round as a unit of time during which communication takes place and the use of rounds as  timestamps for specific transactions. We also lack a definition of synchronous/semi-synchronous communication.}
 
 \dotparagraph{Modeling communication}
 We assume reliable and authenticated point-to-point links between parties, implemented by a low-level primitive independent to our protocols.
 For point-to-point communication, we say that parties \emph{send} and \emph{deliver} messages.
+
+
+\begin{definition}[Next-message function]
+    We define a function $\opnext(\state, \req) \returns (\state', \nextmsg)$. It gets as input \state, the current state  of a validator, and \req, which can be either a client request or a messagee from another validator, and returns $\state'$, the new state of the validator, and \nextmsg, a message to be sent over point-to-poin channel to one or more clients or validators.
+\end{definition}
+
+\begin{definition}[Distributed protocol execution]
+    A validator starts executing a distributed protocol from an initial state $\state_0$, defined by the protocol.
+    The execution proceeds by running the \opnext{} function on every received request.
+\end{definition}
+
+\begin{definition}[Equivocation]\sloppy
+    A party is \emph{equivocating} when it sends two messages \nextmsg, $\nextmsg'$, for which there exists no sequence of $\ell \geq 2$ states $\state_1, \ldots, \state_\ell$ and $\ell$ client requests $\req_1, \ldots, \req_{\ell}$, such that
+    $\opnext(\state_1, \req_1) \returns (\state_2, \nextmsg),
+    \ldots,
+    \opnext(\state_{\ell}, \req_{\ell}) \returns (\state_{\ell+1}, \nextmsg')$,
+\end{definition}
+
+\oa{Bernie, here is what we discussed in Athens. I will use the definition of \emph{equivocation} in  the  accountability properties of pod.}

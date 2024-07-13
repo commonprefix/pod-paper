@@ -2,12 +2,12 @@
 A pod protocol allows a set of \emph{clients} to obtain a partially ordered list of transactions from a set of \emph{validators} with censorship-freedom guarantees and accountability for safety violations. 
 
 \begin{definition}[Transaction and associated values]
-    We associate with each transaction \tx values $(\tx, \rmin, \rmax, \rconf, \txcert )$.
+    We associate with each transaction $\tx \in \zo^*$ values $(\tx, \rmin, \rmax, \rconf, \txcert)$.
     We call $\rmin \in \BN$ the \emph{minimum round}, $\rmax \in \BN \cup \{\infty\}$ the \emph{maximum round},
     and $\rconf \in \BN \cup \{\bot\}$ the \emph{\confirmed round}.
-    For the maximum round, symbol~$\infty$ stands for an unbounded large number,
-    and for the \confirmed round, symbol~$\bot$ stands for an undefined value.
-    Finally, $\txcert$ is a \emph{transaction certificate} that proves the correctness of $\rmin, \rmax, \rconf$.
+    For the maximum round, symbol~$\infty$ denotes an unbounded large number,
+    and for the \confirmed round, symbol~$\bot$ denotes an undefined value.
+    Finally, $\txcert \in \zo^*$ is a \emph{transaction certificate} that proves the correctness of $\rmin, \rmax, \rconf$.
     For transaction \tx, we refer to its associated values as $\tx.\rmin, \tx.\rmax, \tx.\rconf$, and $\tx.\txcert$.
 \end{definition}
 
@@ -17,7 +17,7 @@ A pod protocol allows a set of \emph{clients} to obtain a partially ordered list
 
 \begin{definition}[Pod]
     A \emph{pod} $\Pod$ is a triple $(\txSet, \rperf, \ppcert)$, where \txSet is a finite sequence of transactions and associated values, \rperf is a round number, called the \emph{past-perfect round},
-    and \ppcert is a \emph{past-perfection certificate} \ppcert that proves the correctness of the \Pod and \rperf.
+    and $\ppcert \in \zo^*$ is a \emph{past-perfection certificate} \ppcert that proves the correctness of the \Pod.
 \end{definition}
 
 \begin{definition}[Past-perfect round]
@@ -28,26 +28,28 @@ A pod protocol allows a set of \emph{clients} to obtain a partially ordered list
 \begin{definition}[Pod protocol]
 A pod protocol has the following interface.
 \begin{itemize}
-    \item $\opwrite{\tx} \returns (\tx, \rmin, \rmax, \rconf, \txcert)$:
+    \item $\opwrite{\tx} \returns (\rmin, \rmax, \rconf, \txcert)$:
     It gets a transaction \tx and outputs its associated values $\rmin, \rmax$, $\rconf$, and \txcert.
     We say that a client \emph{writes a transaction} \tx when it calls \opwrite{\tx}.
 
-    \item $\opreadall{} \returns \pod$:
+    \item $\opreadall{} \returns (\Pod, \tilde{\Pod})$:
     It outputs a pod $\Pod = (\txSet, \rperf, \ppcert)$.
     It used by clients to \emph{read the pod}.
     For a \tx, such that $(\tx, \cdot, \cdot, \rconf, \cdot) \in \txSet$, we say that the client \emph{observes} \tx, and if $\rconf \neq \bot$, we say that the client \emph{observes \tx as \confirmed}.
+    The second output is an equivocation evidence and contains either $\bot$ or a pod $\tilde{\Pod}$.
 
-    \item \opidentify{\txcert, \ppcert} \returns $P' \subset P$ \oa{Describe.}
 \end{itemize}
-The notation \podView{\client}{\round} denotes the output of \opreadall{} at the end of round \round.
-We refer to the fields (\txSet, \rperf, \ppcert) in that output as $\podView{\client}{\round}.\txSet$,
-$\podView{\client}{\round}.\rperf$, and $\podView{\client}{\round}.\ppcert$, respectively.
-We also use the notation $\tx \in \podView{\client}{\round}$ as a shortcut for  $\tx \in \podView{\client}{\round}.\txSet$. 
 \end{definition}
 
-\begin{definition}
-    
+\begin{definition}[View]
+    We call \emph{view of the pod} the pod \Pod in the output of \opreadall{} to client \client at the end of round \round,
+    and denote it as \podView{\client}{\round}.
+    We refer to the fields (\txSet, \rperf, \ppcert) in that output as $\podView{\client}{\round}.\txSet$,
+    $\podView{\client}{\round}.\rperf$, and $\podView{\client}{\round}.\ppcert$, respectively.
+    We also use the notation $\tx \in \podView{\client}{\round}$ as a shortcut for  $\tx \in \podView{\client}{\round}.\txSet$. 
 \end{definition}
+    
+
 
 \dotparagraph{Security properties}
 A pod satisfies the following properties.
@@ -113,8 +115,22 @@ A pod satisfies the following properties.
     \end{description}
     
     \item{Accountability:}
-    If more than \beta replicas misbehave and there is a safety failure, then at least \oa{how many?} malicious parties can be identified, without identifying honest parties.
-    % \item[Fair punishment]
+    \begin{description}
+        \item [Accountability for equivocation from the view of a single client:]
+        If $\tilde\Pod \neq \bot$, then $\Pod$ and $\tilde\Pod'$ identify at least one validator that is equivocating.
+        \item [Accountability for equivocation from the view of two clients:]
+        If some replica equivocates, then there exist
+        views $\podView{\client_1}{\round_1}$ and $\podView{\client_2}{\round_2}$, for some clients $\client_1$, $\client_2 \neq \client_1$ and rounds $\round_1, \round_2$,
+        that identify the equivocating replica.
+        \item [Accountability for safety failures from the view of two clients:]
+        If there is a safety failure, then there exist
+        views $\podView{\client_1}{\round_1}$ and $\podView{\client_2}{\round_2}$, for some clients $\client_1$, $\client_2 \neq \client_1$ and rounds $\round_1, \round_2$,
+        that identify at least $\beta + 1$ equivocating replicas.
+        \item [Fairness]
+        Pod does not identify honest parties.
+
+    \end{description}
+        % \item[Fair punishment]
     % No honest validator gets punished as a result of malicious operation. If $\opidentify{\txcert, \ppcert} \returns P'$, where \txcert is a record certificate for transaction \tx
     % and $\ppcert$ is a past-perfect certificate for a pod \Pod,
     % can only be created if all parties in $P'$ sign \tx and \Pod. 
