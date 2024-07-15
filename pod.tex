@@ -41,6 +41,11 @@ A pod protocol has the following interface.
 \end{itemize}
 \end{definition}
 
+\begin{definition}[Cheater Identification Function]
+A cheater identification function $\identify{\Pod_1,\Pod_2} \rightarrow \cheaters$  
+takes as input two PODs $\Pod_1,\Pod_2$ and outputs a set of parties $\cheaters$ such that $\cheaters \subset \replicas$.
+\end{definition}
+
 \begin{definition}[View]
     We call \emph{view of the pod} the pod \Pod in the output of \opreadall{} to client \client at the end of round \round,
     and denote it as \podView{\client}{\round}.
@@ -49,6 +54,7 @@ A pod protocol has the following interface.
     We also use the notation $\tx \in \podView{\client}{\round}$ as a shortcut for  $\tx \in \podView{\client}{\round}.\txSet$. 
 \end{definition}
     
+\bd{We can't say in general that \opreadall{} takes only 1 round. Maybe we can rephrase the view definition as  \podView{\client}{\round} being the output of the last \opreadall{} that terminated before round \round? Or if we want to keep the streaming style definition, it is important to clearly define that \opreadall{} is constantly executing and that at every round \round there is necessarily a view \podView{\client}{\round} derived from the messages received by \client at that round.}
 
 
 \dotparagraph{Security properties}
@@ -77,19 +83,20 @@ A pod satisfies the following properties.
         % If an honest client observes transaction \tx as \confirmed at round \round, then it will observe it as \confirmed at any round $\round' \geq \round$.
         If $\tx \in \podView{\client}{\round_1}$ and $\tx.\rconf \neq \bot$, then $\tx \in \podView{\client}{\round_2}$ and $\tx.\rconf \neq \bot$, for any honest client \client and rounds $\round_1, \round_2 \geq \round_1$.
 
+\bd{Confirmation monotonicity should hold for any two honest clients $\client_1,\client_2$ and $\podView{\client_1}{\round_1}, \podView{\client_2}{\round_2}$ and not just for $\client_1=\client_2$ as above, no?}
+
         \item[Correctness of \rconf, \rmin, \rmax with parameter \parTemp:]
         The numbers $\rmin, \rmax$, and $\rconf$ for a transaction \tx satisfy the following:
         \begin{enumerate}[label=(\arabic*)]
-            \item If an honest client obtains $\rmin$ and $\rmax$ for \tx,
-            and an honest (possibly different) client observes \tx as \confirmed with round $\rconf$, then
+            \item For any honest clients $\client_1,\client_2$, if $\client_1$ obtains $\rmin$ and $\rmax$ for \tx,
+            and $\client_2$ observes \tx as \confirmed with round $\rconf$, then
             $\rmin \leq \rconf \leq \rmax$.
-            \item If an honest client obtains $\rmin$ and $\rmax$ for \tx, and later obtains $\rmin'$ and $\rmax'$ for \tx, then $\rmin' \geq \rmin$ and $\rmax' \leq \rmax$.
-            \item If $\rconf \neq \bot$, then $\rmin \neq 0$ and $\rmax \neq \infty$.
+            \item If an honest client obtains $\rmin$ and $\rmax$ for \tx in round $\round_1$, and later obtains $\rmin'$ and $\rmax'$ for \tx in round $\round_2 > \round_1$, then $\rmin' \geq \rmin$ and $\rmax' \leq \rmax$.
+            \item For a transaction $\tx$ written by an honest client in round $\round$, if $\rconf \neq \bot$, then $\rmin \neq 0$ and $\rmax \neq \infty$.
             In particular, there exists parameter $\theta$, such that:
             (a) $\rconf \in [\round, \round + \parTemp]$,
             (b) $\rmax \in [\round, \round + \parTemp]$, and
-            (c) $\rmax - \rmin \leq \parTemp$,
-            where \round is the round on which \tx was written by an honest client.
+            (c) $\rmax - \rmin \leq \parTemp$.
         \end{enumerate}
 
         % \item[Bounds with parameter \parTemp for \rconf, \rmin, \rmax:]
@@ -116,12 +123,11 @@ A pod satisfies the following properties.
     
     \item{Accountability:}
     \begin{description}
-        \item [Accountability for equivocation from the view of a single client:]
-        If $\tilde\Pod \neq \bot$, then $\Pod$ and $\tilde\Pod'$ identify at least one validator that is equivocating.
+        \item [Accountable equivocation for a single client:]
+        For an honest client \client calling $\opreadall{} \returns (\Pod, \tilde{\Pod})$, if $\tilde\Pod \neq \bot$, then $\identify{\Pod,\tilde\Pod} \rightarrow \cheaters$  outputs a non-empty set $\cheaters$ of replicas who have equivocated.
         \item [Accountability for equivocation from the view of two clients:]
-        If some replica equivocates, then there exist
-        views $\podView{\client_1}{\round_1}$ and $\podView{\client_2}{\round_2}$, for some clients $\client_1$, $\client_2 \neq \client_1$ and rounds $\round_1, \round_2$,
-        that identify the equivocating replica.
+        If one or more replicas equivocate, then there exist
+        views $\podView{\client_1}{\round_1}$ and $\podView{\client_2}{\round_2}$, for some clients $\client_1,\client_2$ and rounds $\round_1, \round_2$ such that $\identify{\podView{\client_1}{\round_1},\podView{\client_2}{\round_2}} \rightarrow \cheaters$ outputs a non-empty set $\cheaters$ of replicas who have equivocated.
         \item [Accountability for safety failures from the view of two clients:]
         If there is a safety failure, then there exist
         views $\podView{\client_1}{\round_1}$ and $\podView{\client_2}{\round_2}$, for some clients $\client_1$, $\client_2 \neq \client_1$ and rounds $\round_1, \round_2$,
