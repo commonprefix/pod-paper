@@ -129,11 +129,9 @@ A pod satisfies the following properties.
         If one or more replicas equivocate, then there exist
         views $\podView{\client_1}{\round_1}$ and $\podView{\client_2}{\round_2}$, for some clients $\client_1,\client_2$ and rounds $\round_1, \round_2$ such that $\identify{\podView{\client_1}{\round_1},\podView{\client_2}{\round_2}} \rightarrow \cheaters$ outputs a non-empty set $\cheaters$ of replicas who have equivocated.
         \item [Accountability for safety failures from the view of two clients:]
-        If there is a safety failure, then there exist
-        views $\podView{\client_1}{\round_1}$ and $\podView{\client_2}{\round_2}$, for some clients $\client_1$, $\client_2 \neq \client_1$ and rounds $\round_1, \round_2$,
-        that identify at least $\beta + 1$ equivocating replicas.
-        \item [Fairness]
-        Pod does not identify honest parties.
+        If there is a safety property is violated, then there exist
+        views $\podView{\client_1}{\round_1}$ and $\podView{\client_2}{\round_2}$, for some clients $\client_1$, $\client_2$ and rounds $\round_1, \round_2$ such that $\identify{\podView{\client_1}{\round_1},\podView{\client_2}{\round_2}} \rightarrow \cheaters$ outputs a non-empty set $\cheaters$ containing at least $\beta+1$ replicas who have equivocated.
+        \item [Fairness] For any PODs $\Pod_1,\Pod_2$ and $\identify{\Pod_1,\Pod_2} \rightarrow \cheaters$, the set $\cheaters$ does not contain any honest replicas.
 
     \end{description}
         % \item[Fair punishment]
