@@ -123,15 +123,22 @@ A pod satisfies the following properties.
     
     \item{Accountability:}
     \begin{description}
-        \item [Accountable equivocation for a single client:]
-        For an honest client \client calling $\opreadall{} \returns (\Pod, \tilde{\Pod})$, if $\tilde\Pod \neq \bot$, then $\identify{\Pod,\tilde\Pod} \rightarrow \cheaters$  outputs a non-empty set $\cheaters$ of replicas who have equivocated.
-        \item [Accountability for equivocation from the view of two clients:]
+        %\item [Accountable equivocation for a single client:]
+        %For an honest client \client calling $\opreadall{} \returns (\Pod, \tilde{\Pod})$, if $\tilde\Pod \neq \bot$, then $\identify{\Pod,\tilde\Pod} \rightarrow \cheaters$  outputs a non-empty set $\cheaters$ of replicas who have equivocated.
+        
+        \bd{"Accountable equivocation for a single client" is a special case of the two clients case, and is rather a property of the \opreadall{} call, which returns a $\Pod'$ that will be non-empty in case of equivocation against that single client. I'm trying to unify those below.}
+        
+        \item [Accountability for equivocation:]
         If one or more replicas equivocate, then there exist
-        views $\podView{\client_1}{\round_1}$ and $\podView{\client_2}{\round_2}$, for some clients $\client_1,\client_2$ and rounds $\round_1, \round_2$ such that $\identify{\podView{\client_1}{\round_1},\podView{\client_2}{\round_2}} \rightarrow \cheaters$ outputs a non-empty set $\cheaters$ of replicas who have equivocated.
-        \item [Accountability for safety failures from the view of two clients:]
+        views $\podView{\client_1}{\round_1}$ and $\podView{\client_2}{\round_2}$, for some clients $\client_1,\client_2$ and rounds $\round_1, \round_2$ such that $\identify{\podView{\client_1}{\round_1},\podView{\client_2}{\round_2}} \rightarrow \cheaters$ outputs a non-empty set $\cheaters$ of equivocating replicas.
+        
+        \item [Accountability for safety failures:]
         If there is a safety property is violated, then there exist
-        views $\podView{\client_1}{\round_1}$ and $\podView{\client_2}{\round_2}$, for some clients $\client_1$, $\client_2$ and rounds $\round_1, \round_2$ such that $\identify{\podView{\client_1}{\round_1},\podView{\client_2}{\round_2}} \rightarrow \cheaters$ outputs a non-empty set $\cheaters$ containing at least $\beta+1$ replicas who have equivocated.
-        \item [Fairness] For any PODs $\Pod_1,\Pod_2$ and $\identify{\Pod_1,\Pod_2} \rightarrow \cheaters$, the set $\cheaters$ does not contain any honest replicas.
+        views $\podView{\client_1}{\round_1}$ and $\podView{\client_2}{\round_2}$, for some clients $\client_1$, $\client_2$ and rounds $\round_1, \round_2$ such that $\identify{\podView{\client_1}{\round_1},\podView{\client_2}{\round_2}} \rightarrow \cheaters$ outputs a non-empty set $\cheaters$ containing at least $\beta+1$ replicas who have caused the failure.
+        
+        \bd{Accountability for safety failures is implied by accountability for equivocation for single or two clients.}
+        
+        \item [Unforgeability:] For any PODs $\Pod_1,\Pod_2$ and $\identify{\Pod_1,\Pod_2} \rightarrow \cheaters$, the set $\cheaters$ does not contain any honest replicas.
 
     \end{description}
         % \item[Fair punishment]

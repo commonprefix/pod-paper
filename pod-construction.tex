@@ -11,6 +11,9 @@ To keep things cleaner, I define these two additional properties, the notion of 
 % \oa{TODO: Mention that we can use client gossip, gossiping, or relayers to achieve totality. We denote by $u$ the (average) time it takes
 % in synchrony for a transaction to reach all validators. For example, $u = 2 \Delta$ using client gossip or relayers.}
 
+
+\bd{Missing a clear definition of $\beta$, and $\alpha$ only appears in the definition of confirmation. Some discussion of  the meaning of $\alpha,\beta$ would be helpful.}
+
 \begin{definition}[Vote]
     We call a \emph{vote} a transaction-timestamp pair $(\tx, \round)$ signed by a validator.
 \end{definition}
@@ -145,13 +148,14 @@ To keep things cleaner, I define these two additional properties, the notion of 
     \Function{\opOnReceiveVote{$(\tx, \tsp),  \rep_j$}}{}
         \If{$\tsp < \lts_j$}\label{line:check-old-ts}
             \return \Comment{accountable fault, $\rep_j$ assigned old timestamp to \tx}\label{line:old-tsp}
-            \State{\oa{Create and output \ppcert, $\ppcert'$ here.}}
+            \State{\oa{Create and output \Pod,\Pod' here.}}
         \EndIf
         \If{$\transactions[\tx] = \bot$}
             \Let{\transactions[\tx]}{(\votes: \emptyset, \rmin: 0, \rmax: \infty, \rconf: \bot)}
         \EndIf
         \If{$\transactions[\tx].\votes[\rep_j] \neq \bot$ \andl $\transactions[\tx].\votes[\rep_j] \neq \tsp$}
             \return \Comment{accountable fault, $\rep_j$ has sent different timestamp}\label{line:dup-tsp}
+             \State{\oa{Create and output \Pod,\Pod' here.}}
         \EndIf    
         % \If{$\transactions[\tx].\votes[\rep_j] = \emptyset$}
         %     \Let{\transactions[\tx].\votes[\rep_j]}{}
@@ -252,6 +256,12 @@ and to read all transactions, it sends a \msgread{} message to all validators.
 Upon receiving a \msgread{} message, a validator returns its log \repLog in  a \msgreadresp{$\repLog$} message.
 A client handles a \msgwriteresp{\tx, \tsp} message by calling \opOnReceiveVote{},
 and a \msgreadresp{$\repLog$} by calling \opOnReceiveVote{} for each transaction in \repLog.
+
+\bd{For this construction to work, all \msgwriteresp{\tx, \tsp} messages must be accompanied by a signature on (\tx,\tsp) generated under the replica's signing key. We need to explicit keep all the signatures received from different replicates in order to create transaction certificates as well as the $\Pi$ certificate for the POD. It would be clearer to explicitly right these signatures on these messages, so we can clearly show that not only are the messages  authenticated but also that clients collect signatures related to specific transactions.}
+
+\bd{When signing messages in the protocol, the replicas must also include a unique session identifier nonce specific to the protocol execution they are participating in. If all that is signed is a pair $(\tx,\tsp)$, it becomes trivial to forge certificates across different executions of the protocol in settings where multiple instances of the protocol are executed concurrently.}
+
+
 % Upon receiving a write request, a validator assigns it its local round number \rloc and returns it to the client.
 % Upon receiving $n-f$ write responses, a client considers the request \emph{\confirmed}.
 % It $R$ is the set with the $n-f$ local rounds received by the client,
@@ -275,10 +285,12 @@ The client log is implemented as a map from transactions \tx to $(\votes, \rmin,
 initialized to $(\emptyset, 0, \infty, \bot)$ for each \tx, and \votes is a map from validators to timestamps (\cref{line:txs-map-init}).
 Upon receiving a transaction-timestamp pair $(\tx, \tsp)$ from validator $\rep_j$, the client performs some sanity checks.
 First, \tsp must be equal or larger than $\lts_j$, the most recent timestamp returned by $\rep_j$ (\cref{line:old-tsp}).
-Second, the validator must have not previously returned a different timestamp for \tx (\cref{line:dup-tsp}).
-If any of these is not the case, the client ignores this value and $\rep_j$ can be held accountable.
+Second, the validator must have not previously returned a different timestamp for \tx (\cref{line:dup-tsp}) .
+If any of these is not the case, the client ignores this value and $\rep_j$ can be held accountable (\bd{This should output a $\Pod'$ that serves as a proof of equivocation}).
 If the checks pass, the client records \tsp returned by $\rep_j$ in $\transactions[\tx].\votes$ (\cref{line:rec-tsp})
 and updates $\lts_j$ with \tsp.
+
+
 
 The client then updates the values \rmin (lines~\ref{line:upd-rmin-begin}--\ref{line:upd-rmin-end}) and
 \rmax (lines~\ref{line:upd-rmax-begin}--\ref{line:upd-rmax-end})
@@ -345,6 +357,8 @@ We first prove some useful intermediate results.
 
 We now prove, through the following theorems, that \Cref{const:pod-core} satisfies the security definition of pod.
 
+\bd{Shouldn't theorems 1 and 2 also be conditioned of certain relationships between $\alpha$ and $\beta$ and a corruption threshold? If not sufficiently honest replicas exist, a transaction will never be confirmed. We need to explicit phrase the theorems to state that we assume $\alpha$ parties are honest.}
+
 \begin{theorem}[Confirmation within $\parConf$]
   \Cref{const:pod-core} satisfies the \emph{confirmation within $\parConf$} property for $\parConf = 2 \Delta$.
 \end{theorem}
@@ -392,6 +406,8 @@ We now prove, through the following theorems, that \Cref{const:pod-core} satisfi
     Once a transaction receives enough votes and gets \confirmed at round $\round_1$,
     it will remain confirmed at all rounds $\round_2 \geq \round_1$.
 \end{proof}
+
+\bd{Theorem 4 (above) does not necessarily need streaming to hold. It still holds if clients call \opreadall{} sequentially.}
 
 \begin{theorem}[Correctness of \rconf, \rmin, \rmax with parameter \parTemp]
 \end{theorem}
@@ -445,6 +461,8 @@ We now prove, through the following theorems, that \Cref{const:pod-core} satisfi
 \end{proof}
 
 
+\bd{As before, this should also hold when parties make many sequential calls to \opreadall{} regardless of using a streaming algorithm or not.}
+
 \begin{theorem}[Past-perfection monotonicity]
     \Cref{const:pod-core} satisfies the \emph{past-perfection monotonicity} property.
 \end{theorem}
@@ -452,6 +470,8 @@ We now prove, through the following theorems, that \Cref{const:pod-core} satisfi
     It follows from the fact that \Cref{const:pod-core} uses a streaming connection between a client and the replicas,
     and the fact that the most-recent timestamps can only increase.
 \end{proof}
+
+\bd{Let's adjust this according to the updated accountability for equivocation encompassing both cases. In the proof we can argue two cases: 1. equivocating towards a single party where we have  $\podView{\client_1}{\round_1},\podView{\client_1}{\round_2}=\Pod'$  output by \opreadall{}; 2. equivocating towards two or more parties, where the $\podView{\client_1}{\round_1}$ view is obtained by $\client_1$ and $\podView{\client_2}{\round_2}$ view is obtained by $\client_1$ with $\client_1\neq \client_2$.}
 
 \begin{theorem}[Accountability]
     The accountability properties are satisfied using
