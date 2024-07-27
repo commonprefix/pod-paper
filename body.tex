@@ -1,15 +1,3 @@
-Open issues log:
-\begin{enumerate}
-    \item Dio's question: `What assurances can a user have about timestamp wiggle for a transaction for which he holds a certificate with X\% signatures when a the honest parties control Y\% of the population'?
-    \item Past-perfection in synchrony only? Can we have a construction that achieves safety always and liveness in synchrony?
-    \item Light client details.
-    \item Fee logic.
-    \item Check again whether we really want the certificates + accountability on the primitive level. I think we do, it's nice to show it in the properties. \bd{When we retrieve the data, we don't necessarily need to also get a certificate on that data, unless we want to publicly prove to third parties that a certain dataset has been recorded by the protocol. I think it is sufficient that we have the required liveness and safety guarantees on this data for the parties executing the protocol. In fact, it seems we don't even need a certificate to be given to parties who store data, unless we really want to have accountability.}
-    \item I think the current return type of \opreadall{}: $(\round, \limbo, \Pod, \ppcert)$ is too complicated. As discussed with Dionysis, it contains three levels: (1)It allows certain transaction to appear in \limbo, hence not assigned a round, (2) transaction that are in \Pod but have round $<r$ may not be available to all clients, and (3) the rest are available to all. Do we need this? For now, I am not using \limbo anywhere in the properties.
-    \bd{I agree that L in not needed in this notion.}
-    \oa{I have now removed that.}
-\end{enumerate}
-
 
 \input{related.tex}
 \input{model.tex}

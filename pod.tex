@@ -34,7 +34,7 @@ A pod protocol has the following interface.
 
     \item $\opreadall{} \returns (\Pod, \tilde{\Pod})$:
     It outputs a pod $\Pod = (\txSet, \rperf, \ppcert)$.
-    It used by clients to \emph{read the pod}.
+    It is used by clients to \emph{read the pod}.
     For a \tx, such that $(\tx, \cdot, \cdot, \rconf, \cdot) \in \txSet$, we say that the client \emph{observes} \tx, and if $\rconf \neq \bot$, we say that the client \emph{observes \tx as \confirmed}.
     The second output is an equivocation evidence and contains either $\bot$ or a pod $\tilde{\Pod}$.
 
@@ -51,10 +51,12 @@ takes as input two PODs $\Pod_1,\Pod_2$ and outputs a set of parties $\cheaters$
     and denote it as \podView{\client}{\round}.
     We refer to the fields (\txSet, \rperf, \ppcert) in that output as $\podView{\client}{\round}.\txSet$,
     $\podView{\client}{\round}.\rperf$, and $\podView{\client}{\round}.\ppcert$, respectively.
-    We also use the notation $\tx \in \podView{\client}{\round}$ as a shortcut for  $\tx \in \podView{\client}{\round}.\txSet$. 
+    We also use the notation $\tx \in \podView{\client}{\round}$ as a shortcut for  $\tx \in \podView{\client}{\round}.\txSet$.
+    We remark that \round denotes the round in which \opread{} gives output -- the client may have invoked it at an earlier round.
 \end{definition}
     
 \bd{We can't say in general that \opreadall{} takes only 1 round. Maybe we can rephrase the view definition as  \podView{\client}{\round} being the output of the last \opreadall{} that terminated before round \round? Or if we want to keep the streaming style definition, it is important to clearly define that \opreadall{} is constantly executing and that at every round \round there is necessarily a view \podView{\client}{\round} derived from the messages received by \client at that round.}
+\oa{Check the last sentence I added.}
 
 
 \dotparagraph{Security properties}
@@ -84,6 +86,7 @@ A pod satisfies the following properties.
         If $\tx \in \podView{\client}{\round_1}$ and $\tx.\rconf \neq \bot$, then $\tx \in \podView{\client}{\round_2}$ and $\tx.\rconf \neq \bot$, for any honest client \client and rounds $\round_1, \round_2 \geq \round_1$.
 
 \bd{Confirmation monotonicity should hold for any two honest clients $\client_1,\client_2$ and $\podView{\client_1}{\round_1}, \podView{\client_2}{\round_2}$ and not just for $\client_1=\client_2$ as above, no?}
+\oa{We would want that but we cannot prove it, the combination of a malicious client who writes to only \alpha replicas and then a malicious replica withholds the transaction from a client. We prove it in \Cref{sec:pod-with-propagation} though. Should we add a remark here? Because readers might have the same question as you. Or, we can say that this property holds for any two honest clients $\client_1,\client_2$, but only for honest transactions.}
 
         \item[Correctness of \rconf, \rmin, \rmax with parameter \parTemp:]
         The numbers $\rmin, \rmax$, and $\rconf$ for a transaction \tx satisfy the following:
@@ -133,10 +136,11 @@ A pod satisfies the following properties.
         views $\podView{\client_1}{\round_1}$ and $\podView{\client_2}{\round_2}$, for some clients $\client_1,\client_2$ and rounds $\round_1, \round_2$ such that $\identify{\podView{\client_1}{\round_1},\podView{\client_2}{\round_2}} \rightarrow \cheaters$ outputs a non-empty set $\cheaters$ of equivocating replicas.
         
         \item [Accountability for safety failures:]
-        If there is a safety property is violated, then there exist
-        views $\podView{\client_1}{\round_1}$ and $\podView{\client_2}{\round_2}$, for some clients $\client_1$, $\client_2$ and rounds $\round_1, \round_2$ such that $\identify{\podView{\client_1}{\round_1},\podView{\client_2}{\round_2}} \rightarrow \cheaters$ outputs a non-empty set $\cheaters$ containing at least $\beta+1$ replicas who have caused the failure.
+        If a safety property is violated, then there exist
+        views $\podView{\client_1}{\round_1}$ and $\podView{\client_2}{\round_2}$, for some clients $\client_1$, $\client_2$ and rounds $\round_1, \round_2$ such that $\identify{\podView{\client_1}{\round_1},\podView{\client_2}{\round_2}} \rightarrow \cheaters$ outputs a non-empty set $\cheaters$ containing at least $\beta+1$ replicas who have caused the violation.
         
         \bd{Accountability for safety failures is implied by accountability for equivocation for single or two clients.}
+        \oa{I will merge them. TODO.}
         
         \item [Unforgeability:] For any PODs $\Pod_1,\Pod_2$ and $\identify{\Pod_1,\Pod_2} \rightarrow \cheaters$, the set $\cheaters$ does not contain any honest replicas.
 

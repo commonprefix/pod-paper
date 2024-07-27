@@ -13,6 +13,7 @@ To keep things cleaner, I define these two additional properties, the notion of 
 
 
 \bd{Missing a clear definition of $\beta$, and $\alpha$ only appears in the definition of confirmation. Some discussion of  the meaning of $\alpha,\beta$ would be helpful.}
+\oa{They are in \Cref{sec:system}. Is that not enough?}
 
 \begin{definition}[Vote]
     We call a \emph{vote} a transaction-timestamp pair $(\tx, \round)$ signed by a validator.
@@ -52,7 +53,10 @@ To keep things cleaner, I define these two additional properties, the notion of 
 \caption{Code for a client, part 1.}
 \label{alg:client-1}
 \begin{algorithmic}[1]
+    \Let{count}{0} \Comment{\oa{TODO: Count votes for each \tx.}}
+
     \On{event $\opwrite{\tx}$}
+        \Let{count}{0}
         % \Let{\rexp}{(\text{\wip{now + client's expected network delay}})}
         % \Let{\sigma}{\opsign{(\tx, \rexp)}}
         % \State{Send $(\msgwrite, (\tx, \rexp, \sigma))$ to all validators}
@@ -60,28 +64,39 @@ To keep things cleaner, I define these two additional properties, the notion of 
         \State{Send \msgwrite{\tx} to all validators}
         % \EndFor
     \EndOn
-            
+    
+    \Statex
+
+    \On{receive \msgwriteresp{\tx, \tsp} from $\rep_j$}
+        \Let{count}{count + 1}
+        \State{\opOnReceiveVote{$(\tx, \tsp),  \rep_j$}}
+        \If{count = \alpha}
+            \return $\Pod[\tx]$
+        \EndIf{}
+    \EndOn
+
     \Statex
 
     \On{event \opreadall{}}{}
         % \Let{\rloc}{(\text{\wip{now}})}
         % \For{$\rep_j \in \allreps$}
+        \State{\oa{Start a timer with duration $2\Delta$}}
         \State{Send \msgread{} to all validators} 
         % \EndFor
     \EndOn
 
     \Statex
 
-    \On{receive \msgwriteresp{\tx, \tsp} from $\rep_j$}
-        \State{\opOnReceiveVote{$(\tx, \tsp),  \rep_j$}}
-    \EndOn
-
-    \Statex
-
-    \On{receive \msgreadresp{$\repLog_j$} from $\rep_j$} \label{line:receive-log}         
+    \On{receive \msgreadresp{$\repLog_j$} from $\rep_j$} \label{line:receive-log}          
         \For{$(\tx, \tsp) \in \repLog_j$ in increasing timestamp order}
             \State{\opOnReceiveVote{$(\tx, \tsp),  \rep_j$}}
         \EndFor
+    \EndOn
+    
+    \Statex
+
+    \On{\oa{timer expiration}}          
+        \return \Pod
     \EndOn
     %     \Statex
     %     \Function{\opwrite{\tx}}{}
@@ -168,7 +183,7 @@ To keep things cleaner, I define these two additional properties, the notion of 
         \Let{\rmin}{\opMinPossibleTs{\tx}}\label{line:upd-rmin-begin}
         \If{$\transactions[\tx].\rmin < \rmin$}
             \Let{\transactions[\tx].\rmin}{\rmin}
-            \State{\textbf{output event} RANGE-UPDATE \tx}
+            % \State{\textbf{output event} RANGE-UPDATE \tx}
         \EndIf\label{line:upd-rmin-end}
         
         \Statex
@@ -176,20 +191,20 @@ To keep things cleaner, I define these two additional properties, the notion of 
         \Let{\rmax}{\opMaxPossibleTs{\tx}}\label{line:upd-rmax-begin}
         \If{$\transactions[\tx].\rmax > \rmax$}
             \Let{\transactions[\tx].\rmax}{\rmax}
-            \State{\textbf{output event} RANGE-UPDATE \tx}
+            % \State{\textbf{output event} RANGE-UPDATE \tx}
         \EndIf\label{line:upd-rmax-end}
 
         \Statex
 
         \If{$| \transactions[\tx].votes | \geq \alpha$}\label{line:confirm-tx-begin}
-            \Let{prev}{\transactions[\tx].\rconf}
+            % \Let{prev}{\transactions[\tx].\rconf}
             \Let{\transactions[\tx].\rconf}{\opMed{\transactions[\tx]}}
-            \If{$prev = \bot$}
-                \State{\textbf{output event} TX-CONFIRMED \tx}
-            \EndIf
-            \If{$prev \neq \transactions[\tx].\rconf$}
-                \State{\textbf{output event} RECORDED-ROUND-UPDATE \tx}
-            \EndIf
+            % \If{$prev = \bot$}
+            %     \State{\textbf{output event} TX-CONFIRMED \tx}
+            % \EndIf
+            % \If{$prev \neq \transactions[\tx].\rconf$}
+            %     \State{\textbf{output event} RECORDED-ROUND-UPDATE \tx}
+            % \EndIf
         \EndIf\label{line:confirm-tx-end}
         
         \Statex
@@ -197,7 +212,7 @@ To keep things cleaner, I define these two additional properties, the notion of 
         \Let{\rperf'}{\opMinPossibleTsForNewTx{}}\label{line:upd-rperf-begin}
         \If{$\rperf < \rperf' $}
             \Let{\rperf}{\rperf'}
-            \State{\textbf{output event} PERFECT-ROUND-UPDATE \rperf}
+            % \State{\textbf{output event} PERFECT-ROUND-UPDATE \rperf}
         \EndIf\label{line:upd-rperf-end}
         \State{\oa{Return \txcert for writing user. Return \ppcert for reading client.}}
     \EndFunction
@@ -257,9 +272,11 @@ Upon receiving a \msgread{} message, a validator returns its log \repLog in  a \
 A client handles a \msgwriteresp{\tx, \tsp} message by calling \opOnReceiveVote{},
 and a \msgreadresp{$\repLog$} by calling \opOnReceiveVote{} for each transaction in \repLog.
 
-\bd{For this construction to work, all \msgwriteresp{\tx, \tsp} messages must be accompanied by a signature on (\tx,\tsp) generated under the replica's signing key. We need to explicit keep all the signatures received from different replicates in order to create transaction certificates as well as the $\Pi$ certificate for the POD. It would be clearer to explicitly right these signatures on these messages, so we can clearly show that not only are the messages  authenticated but also that clients collect signatures related to specific transactions.}
+\bd{For this construction to work, all \msgwriteresp{\tx, \tsp} messages must be accompanied by a signature on (\tx,\tsp) generated under the replica's signing key. We need to explicitly keep all the signatures received from different replicates in order to create transaction certificates as well as the $\Pi$ certificate for the POD. It would be clearer to explicitly write these signatures on these messages, so we can clearly show that not only are the messages  authenticated but also that clients collect signatures related to specific transactions.}
+\oa{Agree, TODO.}
 
 \bd{When signing messages in the protocol, the replicas must also include a unique session identifier nonce specific to the protocol execution they are participating in. If all that is signed is a pair $(\tx,\tsp)$, it becomes trivial to forge certificates across different executions of the protocol in settings where multiple instances of the protocol are executed concurrently.}
+\oa{Sure, but do you think we have to explicitly write the sid everywhere? Or can we say something like `here we focus on a single instance and we assume all messages are accompanied by session ids'?}
 
 
 % Upon receiving a write request, a validator assigns it its local round number \rloc and returns it to the client.
@@ -408,6 +425,7 @@ We now prove, through the following theorems, that \Cref{const:pod-core} satisfi
 \end{proof}
 
 \bd{Theorem 4 (above) does not necessarily need streaming to hold. It still holds if clients call \opreadall{} sequentially.}
+\oa{Does it? The attack I mentioned in \Cref{sec:pod-model} applies. The second time the client calls \opread{} some replicas decide not to respond. But now I think it would be better to restrict this property to honest transactions, then indeed we do not need a streaming construction.}
 
 \begin{theorem}[Correctness of \rconf, \rmin, \rmax with parameter \parTemp]
 \end{theorem}
@@ -461,8 +479,6 @@ We now prove, through the following theorems, that \Cref{const:pod-core} satisfi
 \end{proof}
 
 
-\bd{As before, this should also hold when parties make many sequential calls to \opreadall{} regardless of using a streaming algorithm or not.}
-
 \begin{theorem}[Past-perfection monotonicity]
     \Cref{const:pod-core} satisfies the \emph{past-perfection monotonicity} property.
 \end{theorem}
@@ -470,17 +486,20 @@ We now prove, through the following theorems, that \Cref{const:pod-core} satisfi
     It follows from the fact that \Cref{const:pod-core} uses a streaming connection between a client and the replicas,
     and the fact that the most-recent timestamps can only increase.
 \end{proof}
-
-\bd{Let's adjust this according to the updated accountability for equivocation encompassing both cases. In the proof we can argue two cases: 1. equivocating towards a single party where we have  $\podView{\client_1}{\round_1},\podView{\client_1}{\round_2}=\Pod'$  output by \opreadall{}; 2. equivocating towards two or more parties, where the $\podView{\client_1}{\round_1}$ view is obtained by $\client_1$ and $\podView{\client_2}{\round_2}$ view is obtained by $\client_1$ with $\client_1\neq \client_2$.}
+\bd{As before, this should also hold when parties make many sequential calls to \opreadall{} regardless of using a streaming algorithm or not.}
+\oa{Good point, I will check whether we can prove it. TODO.}
 
 \begin{theorem}[Accountability]
     The accountability properties are satisfied using
-    \opidentify{$\pod, \tilde{\Pod}$}, for the \emph{accountability from the  view of a single party} property,
+    \opidentify{$\Pod, \tilde{\Pod}$}, for the \emph{accountability from the  view of a single party} property,
     and \opidentify{$\podView{\client_1}{\round_1}$, $\podView{\client_2}{\round_2}$}, for the \emph{accountability from the  view of two parties} properties.
 \end{theorem}
 \begin{proof}
     \oa{TODO. For the past-perfection property, add \txcert to \Pod.}
 \end{proof}
+
+\bd{Let's adjust this according to the updated accountability for equivocation encompassing both cases. In the proof we can argue two cases: 1. equivocating towards a single party where we have  $\podView{\client_1}{\round_1},\podView{\client_1}{\round_2}=\Pod'$  output by \opreadall{}; 2. equivocating towards two or more parties, where the $\podView{\client_1}{\round_1}$ view is obtained by $\client_1$ and $\podView{\client_2}{\round_2}$ view is obtained by $\client_1$ with $\client_1\neq \client_2$.}
+\oa{TODO}
 
 % \begin{proof}
 %     Since $\rperf \geq \txcert.\rconf$, pod \Pod must contain votes with timestamp greater than or equal to \txcert.\rconf from at least \alpha validators (otherwise \rperf is invalid), hence from at least $\alpha - \beta$ honest validators.
@@ -513,19 +532,22 @@ In this section we introduce two additional properties and describe a constructi
 
 We require the following two safety properties from a pod primitive, in addition to the ones presented in \Cref{sec:pod-model}.
 \begin{description}[left=0pt,itemindent=0pt]
-    \item[Agreement after \parAgr:]
-    If an honest client observes transaction \tx as \confirmed,
-    then every honest client will observe \tx as \confirmed after at most \parAgr rounds.
+    \item[Confirmation agreement after \parAgr:]
+    % If an honest client observes transaction \tx as \confirmed,
+    % then every honest client will observe \tx as \confirmed after at most \parAgr rounds.
+    If $\tx \in \podView{\client_1}{\round_1}$ and $\tx.\rconf \neq \bot$, then $\tx \in \podView{\client_2}{\round_2}$ and $\tx.\rconf \neq \bot$, for any honest clients $\client_1$, $\client_2$, and rounds $\round_1, \round_2 \geq \round_1 + \parAgr$.
     
     \item[Pending-confirmation soundness:]
     If an honest client observes transaction \tx as \pend, then eventually it will observe it as \confirmed.
 \end{description}
 
+Observe that the \emph{confirmation agreement after \parAgr} property generalizes the \emph{confirmation monotonicity} property of \emph{pod core} (\Cref{sec:pod-model}) for views of two honest clients $\client_1$, $\client_2$.
+
 \begin{construction}[Pod with transaction propagation]
 
 \end{construction}
 
-\begin{remark}[Transaction propagation]
+\begin{remark}[Transac tion propagation]
     In order to satisfy the \emph{agreement} and \emph{\pend soundness} properties,
     the construction requires a transaction propagation mechanism, that ensures that all honest validators see the same set of transactions,
     even for transactions sent by malicious parties.
