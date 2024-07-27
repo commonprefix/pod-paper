@@ -4,20 +4,27 @@ Recent literature has recognized the redundancy of consensus for implementing as
 Such schemes have been described in theory~\cite{DBLP:journals/corr/abs-1909-10926, DBLP:conf/dsn/CollinsGKKMPPST20} and deployed in the real world~\cite{DBLP:conf/aft/BaudetDS20}.
 
 The insight that is total order is not required in the case that each account is controlled by one client.
-Instead, it is sufficient to guarantee that a cheating clients cannot equivocate, that is, send different transactions to different validators.
-This property is guaranteed by broadcast protocols.
-These protocols have a similar architecture: the broadcast of transactions is initiated by clients, who either drive the whole broadcast instance~\cite{DBLP:conf/aft/BaudetDS20} or outsource it to trusted validators~\cite{DBLP:conf/dsn/CollinsGKKMPPST20}.
-Therefore, a cheating client might lose liveness~\cite{DBLP:conf/aft/BaudetDS20,DBLP:journals/corr/abs-1909-10926}, but equivocating is not possible.
+Instead, a partial order is sufficient, ensuring that, if transactions $\tx_1$ and $\tx_2$ are created by the same client, then every party reads  them in the same order.
+This requirement was first formalized by Guerraoui~\etal~\cite{DBLP:journals/dc/GuerraouiKMPS22}, called the \emph{source-order property} (it is weaker than the FIFO property, as it allows the delivered order to be different than the order in which the sender sent the transactions).
 
-FastPay~\cite{DBLP:conf/aft/BaudetDS20} reaches throughput of $140K$ tps with a latency of approx. 200 ms in a WAN deployment with four validators.
-ABC~\cite{DBLP:journals/corr/abs-1909-10926} supports proof-of-stake, but provides no implementation or benchmarks.
-Astro~\cite{DBLP:conf/dsn/CollinsGKKMPPST20}, similarly, is based on reliable broadcast~\cite{DBLP:journals/iandc/Bracha87}.
-All these protocols are tailor-made for payment systems or for specific blockchains and cannot be used for general distributed applications.
+These protocols have a similar architecture: transactions are created and broadcast by clients, who either drive the whole broadcast instance~\cite{DBLP:conf/aft/BaudetDS20} or outsource it to trusted validators~\cite{DBLP:conf/dsn/CollinsGKKMPPST20}.
+The consensus number~\cite{DBLP:journals/dc/GuerraouiKMPS22} and FastPay~\cite{DBLP:conf/aft/BaudetDS20} constructions satisfy the source-order property by having clients use sequence numbers for their transactions, and by having validators sign at most one transaction from a client with a given sequence number.
+ABC~\cite{DBLP:journals/corr/abs-1909-10926} satisfies the source-order property by having clients reference all precious transaction in a DAG (including its own last transaction), and, in case of transactions spending the same output, by having validators sign only one of them.
+Hence, a cheating client might lose liveness~\cite{DBLP:conf/aft/BaudetDS20,DBLP:journals/dc/GuerraouiKMPS22,DBLP:journals/corr/abs-1909-10926}, but equivocating is not possible.
 
+% FastPay~\cite{DBLP:conf/aft/BaudetDS20} reaches throughput of $140K$ tps with a latency of approx. 200 ms in a WAN deployment with four validators.
+% ABC~\cite{DBLP:journals/corr/abs-1909-10926} supports proof-of-stake, but provides no implementation or benchmarks.
+% Astro~\cite{DBLP:conf/dsn/CollinsGKKMPPST20}, similarly, is based on reliable broadcast~\cite{DBLP:journals/iandc/Bracha87}.
+% All these protocols are tailor-made for payment systems or for specific blockchains and cannot be used for general distributed applications.
 
-\oa{It's quite well-known that we do not need consensus for payments (for some types of payments, where accounts have unique owners). But what we need is "same-sender total order", which means "if tx1, tx2 are sent by the same process then everyone delivers them in the same order". This was formalized in the Consensus number paper. (It is almost as "FIFO broadcast",  but FIFO additionally requires that the order they are delivered in is the same as the order in which the sender sent them. This is not required for payment safety.)
-In order to achieve this  "same-sender total order", the Cons. Number, FastPay, ABC relies on broadcast (either consistent or reliable, small difference) and either sequence numbers (Cons. Number, FastPay) or having each transaction spend a unique transaction output (ABC). The benefit of this: "same-sender total order", so they can do payments. The drawback: there is no notion of time, neither actual not logical (like block height), we cannot know when a transaction was submitted, so we cannot directly do auctions. Plus, each account can broadcast only one transaction at a time, they proceed sequentially with the sequence numbers (in theory they could broadcast multiple sequence numbers in parallel, but none of the existing works allows this).
-In pod we do not achieve the "same-sender total order" property, hence it's a very different primitive. But we couple transactions with timestamps.
-So is what we do: FastPay - sequence numbers + timestamps? I think so, at least on a high level. }
+Pod does not offer the source-order property.
+It is possible that a \opread{} operation returns $\tx_1$ before $\tx_2$,
+while another returns $\tx_2$ before $\tx_1$, even for $\tx_1$, $\tx_2$ written by the same honest client, as the \confirmed round of a transaction is allowed to wiggle.
+Hence, pod cannot be directly used for payments.
+However, payments can be implemented on top of pod by including a client sequence number in the user transaction, similar to what previous work does, and by allowing no gaps in the sequence number of each client returned by the \opread{} operation. \oa{Should we describe this in a separate section?}
 
-\oa{Compare to other constructions: leader based would have to  send it (f+1) worst-case time  before. Also permissionless need  more  time  for guaranteed inclusion.}
+On the other hand, pod offers a \emph{past-perfection} property:
+a \opread{} operation outputs a timestamp \rperf, and it is \emph{guaranteed}
+that the output of \opread{} contains all transactions that can ever be confirmed with a timestamp smaller than \rperf, regardless of the network conditions.
+This implies that reading clients (such as an auctioneer) cannot claim not having received a transaction \tx, when another client has observed \tx as confirmed with $\rconf < \rperf$.
+Previous work does not guarantee this property. \oa{TODO: show counter example.}
