@@ -1,4 +1,5 @@
-\section{Pod core construction}\label{sec:pod-core-const}
+\section{Pod construction in the synchronous model}\label{sec:pod-core-const}
+In this section we assume a \emph{synchronous} netwrok, where all messages are delivered within a finite \emph{known} delay $\Delta$.
 
 \oa{REMARK: In this section I describe ``pod core'', that is, pod without a transaction propagation mechanism (client gossip, replica gossip, or relayers). This achieves all properties mentioned in the previous section, but not the additional ``totality'' property (if an honest client sees \tx as confirmed, then every honest will). Moreover, in the auction protocol we need an additional attribute for a transaction, what I call ``\pend''. A \tx is \pend when it has received more than \beta but less than \alpha votes. We also need the property that ``\pend transactions eventually become \confirmed.'' To satisfy this, we need the transaction propagation mechanism. (See the auction section on why this is needed, but, in short, we will have the auctioneer output a bag \textbf{without} \pend transactions.)
 To keep things cleaner, I define these two additional properties, the notion of \pend, and the propagation mechanism in \Cref{sec:pod-with-propagation}}

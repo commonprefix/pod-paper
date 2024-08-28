@@ -30,9 +30,12 @@ A \emph{timestamp} is defined as a round number.
 
 \dotparagraph{Modeling network}
 % In the synchronous model, we assume that every message is delivered within a \emph{known} finite delay of $\Delta$ rounds. In the partially synchronous model, we assume that messages are delivered within a known finite delay of $\Delta$ rounds only \emph{after} an unknown but finite period of time called the Global Stabilization Time (GST). Messages sent before the GST may be delivered only $\Delta$ rounds after the GST.
-In this work we assume an \emph{asynchronous} network, where messages are delivered within an \emph{unknown} but finite delay $\Delta$.
 % We define $\delta \in [1, \Delta]$ as the number of rounds it actually takes to deliver a message between honest parties.
 %We use the notion of a \emph{round}: each transaction gets associated with a specific round. We say the transaction becomes \emph{\confirmed} at that round. \bd{There's a confusion between the definition of a round as a unit of time during which communication takes place and the use of rounds as  timestamps for specific transactions. We also lack a definition of synchronous/semi-synchronous communication.}
+We will present protocols in the \emph{synchronous} and in the \emph{asynchronous} network models. 
+In the former we assume that all messages are delivered within a finite delay $\Delta$, \emph{known} to all processes.
+In the later we assume that $\Delta$ is \emph{unknown} but still finite, i.e., all messages are eventually delivered.
+In both cases, the delivery order of messages may be chosen adversarially.
 
 \dotparagraph{Modeling communication}
 We assume reliable and authenticated point-to-point links between parties, implemented by a low-level primitive independent to our protocols.
