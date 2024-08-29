@@ -1,8 +1,6 @@
 \section{Pod construction in the synchronous model}\label{sec:pod-core-const}
 In this section we assume a \emph{synchronous} netwrok, where all messages are delivered within a finite \emph{known} delay $\Delta$.
 
-\oa{REMARK: In this section I describe ``pod core'', that is, pod without a transaction propagation mechanism (client gossip, replica gossip, or relayers). This achieves all properties mentioned in the previous section, but not the additional ``totality'' property (if an honest client sees \tx as confirmed, then every honest will). Moreover, in the auction protocol we need an additional attribute for a transaction, what I call ``\pend''. A \tx is \pend when it has received more than \beta but less than \alpha votes. We also need the property that ``\pend transactions eventually become \confirmed.'' To satisfy this, we need the transaction propagation mechanism. (See the auction section on why this is needed, but, in short, we will have the auctioneer output a bag \textbf{without} \pend transactions.)
-To keep things cleaner, I define these two additional properties, the notion of \pend, and the propagation mechanism in \Cref{sec:pod-with-propagation}}
 % The construction employs the \emph{client gossip} technique. It could be the case that
 % clients perform read operations on the validators and observe that some of them miss some data, such as client transactions.
 % Client gossip consists in having clients re-broadcast these missing transactions.
@@ -16,7 +14,7 @@ To keep things cleaner, I define these two additional properties, the notion of 
 \bd{Missing a clear definition of $\beta$, and $\alpha$ only appears in the definition of confirmation. Some discussion of  the meaning of $\alpha,\beta$ would be helpful.}
 \oa{They are in \Cref{sec:system}. Is that not enough?}
 
-\begin{definition}[Vote]
+\begin{definition}[Vote] 
     We call a \emph{vote} a transaction-timestamp pair $(\tx, \round)$ signed by a validator.
 \end{definition}
 
@@ -264,7 +262,9 @@ To keep things cleaner, I define these two additional properties, the notion of 
 \end{algorithm}
 
 
-\begin{construction}[Pod]\label{const:pod-core}
+\begin{construction}[Synchronous pod]\label{const:pod-core}
+The client protocol is \emph{statefull}, that is, clients that read the pod or write transactions to it maintain a local state across all invocations.
+
 As shown in \Cref{alg:client-1},
 in order to write a transaction \tx, a client sends a \msgwrite{\tx} message,
 and to read all transactions, it sends a \msgread{} message to all validators.

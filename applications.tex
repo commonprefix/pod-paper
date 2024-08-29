@@ -1,83 +1,81 @@
-\section{Auctions on pod}
-\oa{About synchrony  assumptions: Only in this section we need to assume  synchrony, and only to say that $\ttwo \geq  \tone +  \Delta$. If  this does  not hold, then the censorship-resistance property is not satisfied. However, the fair-punishment property does not rely on synchrony. 
-Maybe we can still prove the construction secure in  the asynchronous setting: we get rid of the  `starting time' \tone, we let the client send the transactin whenever it considers early enough (clients choose their own \tone), and censorship resistance is  satisfied for clients that send the bid  early  enough.}
+\section{Auctions on pod}\label{sec:auctions}
+% \begin{definition}[Auction protocol]
+%     An \emph{auction protocol} exposes the following interface.
+%     \begin{itemize}
+%         \item function $\opBid{} \returns \bid$: It is called by a bidder and outputs a bid \bid.
+%         \item event $\opResult{}$: The auctioneer runs the auction on a set of bids and outputs this event.
+%     \end{itemize}
+% \end{definition}
 
-\begin{definition}[Auction protocol]
-    An \emph{auction protocol} exposes the following interface.
-    \begin{itemize}
-        \item function $\opBid{} \returns \bid$: It is called by a bidder and outputs a bid \bid.
-        \item event $\opResult{}$: The auctioneer runs the auction on a set of bids and outputs this event.
-    \end{itemize}
-\end{definition}
-
-The following definition describes a generic transformation from an auction protocol with a trusted auctioneer
-to a protocol that allows verifying whether the auctioneer has censored bids of honest clients in an accountable fashion.
-It treats the auction protocol as black box.
+% The following definition describes a generic transformation from an auction protocol with a trusted auctioneer
+% to a protocol that allows verifying whether the auctioneer has censored bids of honest clients in an accountable fashion.
+% It treats the auction protocol as black box.
 % The auctioneer does \emph{not} have to be trusted. Its output will consist of the winning bid, as well as a signed message on the collection of bids that were considered for the auction.
 % Any client can run the auction by reading the pod, but we assume w.l.o.g. that a client \auc is pre-appointed to be the auctioneer.
 
-\begin{definition}[Censorship-resistant auction framework]\label{def:auction-framework}
-    A \emph{censorship-resistant auction framework} defines how clients and the auctioneer interact with an auction protocol and imposes additional security properties on it. 
-    It uses two predefined parameters, the \emph{starting time} \tone and a \emph{deadline} \ttwo of the auction.
-    
-    \begin{itemize}
-        \item function \opSubmitBid{\bid}:
-        It is called by bidders at time at most \tone to submit their bids.
-        \item function \opRunAuction{}:
-        It is called by the auctioneer at time \ttwo. It creates a \emph{bag} \bag, which is a collection of bids, and runs the auction on input \bag.
-        It outputs \bag and the event $\opResult{}$ of the underlying auction protocol.
-    \end{itemize}
+\begin{definition}[Censorship-resistant auction protocol]\label{def:auction-framework}
+    A \emph{censorship-resistant auction protocol} defines how clients and the auctioneer run an existing auction protocol using pod to write and read bids.
+    It uses three parameters, the \emph{inclusion deadline} \tone, the \emph{auction start} \ttwo, and the \emph{auction end} \tthree.
+    Any client can run the auction by reading the pod, but we assume w.l.o.g. that a client is pre-appointed to be the auctioneer.
+    % \begin{itemize}
+    %     \item function \opSubmitBid{\bid}:
+    %     It is called by bidders at time at most \tone to submit their bids.
+    %     \item function \opRunAuction{}:
+    %     It is called by the auctioneer at time \ttwo. It creates a \emph{bag} \bag, which is a collection of bids, and runs the auction on input \bag.
+    %     It outputs \bag and the event $\opResult{}$ of the underlying auction protocol.
+    % \end{itemize}
+    The protocol must satisfy the following properties.
+    \begin{enumerate}[leftmargin=*, align=left]
+        \item Liveness:
+        \begin{description}
+            \item [Censorship resistance:]
+                If an honest bidder submits bid \bid by time \ttwo, then $\bid \in \bag$. \oa{We will prove this assuming good network conditions.}
+            \item[Termination within \parAuctionTerm:]
+            An honest auctioneer completes the auction by time \tthree.
+        \end{description}
+        
+        \item Safety:
+        \begin{description}
+            \item[Verifiability:]
+            Given the bag \bag, the result of the auction can be verified.
+            \item[Fair punishment:]
+            An honest auctioneer cannot be held accountable for censoring bids. \oa{This holds regardless of network conditions}.
+            \item[Deadline:]
+            No bid submitted after \ttwo can apper in \bag.
+        \end{description}
+
+        \item Accountability:
+        \begin{description}
+            \item [Accountable auctioneer:]
+            If any of the security properties is violated, the auctioneer is accountable.
+        \end{description}
+            
+    \end{enumerate}
 \end{definition}
 
-\dotparagraph{Properties}
-A censorship-resistant auction framework satisfies the following properties.
-\begin{enumerate}[leftmargin=*, align=left]
-    \item Liveness:
-    \begin{description}
-        \item[Termination within \parAuctionTerm:]
-        An honest auctioneer completes the auction by time $\ttwo + \parAuctionTerm$.
-    \end{description}
-    
-    \item Safety:
-    \begin{description}
-    \item [Censorship resistance:]
-        If an honest bidder calls \opSubmitBid{\bid} at time at most \tone, then $\bid \in \bag$.
-        \item[Verifiability:]
-        Given the bag \bag, the correctness of the output \opResult{} can be verified.
-    \end{description}
 
-    \item Accountability:
-    \begin{description}
-        \item [Accountable auctioneer:]
-        If any of the security properties is violated, the auctioneer is accountable.
-        \item[Fair punishment:]
-        An honest auctioneer cannot be blamed.
-    \end{description}
-        
-\end{enumerate}
+\subsection{A synchronous auction protocol using synchronous pod}
+The high-level idea is that bidders use pod to write their bids, and the auctioneer reads the pod, waits until the auction start time becomes past-perfect, and then runs the auction.
 
+\begin{construction}[Censorship-resistant auction over synchronous pod]\label{const:auction-sync}
+A client that wants to participate in the auction submits its bid \bid at time at most \tone by calling \opwrite{\tx} on the pod.
 
-\begin{construction}[Censorship-resistant auction over pod]\label{const:auction}
-Any client can run the auction, but we assume w.l.o.g. that a client \auc is pre-appointed to be the auctioneer.
-The construction requires $\ttwo \geq \tone + \Delta$.
-\begin{itemize}
-    \item function \opSubmitBid{\bid}:
-        At time at most \tone, the bidder creates a transaction \tx that contains \bid and writes it to the pod using \opwrite{\tx}.
-
-    \item function \opRunAuction{}:
-        At time \ttwo, \auc starts reading the pod using \opreadall{}, until it obtains $(\Pod, \rperf, \ppcert)$,
-        such that the following requirements hold:
-        \begin{enumerate}
-            \item $\rperf \geq \ttwo$
-            \item \Pod contains no \pend transactions with $\rmin \leq \ttwo$
-        \end{enumerate}
-        When this happens, \auc creates a bag $\bag = \{ \tx \mid (\tx, \cdot, \cdot, \rconf, \cdot) \in \Pod \land \rconf \leq \ttwo \}$ and runs the auction on input \bag, that is, the auction is run on all bids on the pod that are \confirmed by \ttwo.
-        When the auction is completed with a \opresult{} event, \auc produces a signature \sig on message $\mes = (\bag, \Pod, \rperf, \ppcert)$, and outputs $(\opresult{}, \mes, \sig)$.
-        
-\end{itemize}
-
+The auctioneer does the following. At time \ttwo, it starts reading the pod using \opreadall{}, until it obtains a pod \Pod with $\Pod.\rperf \geq \ttwo$ (the auctioneer calls \opreadall{} until this condition holds).
+When this happens, \auc creates a bag \bag that contains all confirmed transactions \tx in \Pod with $\tx.\rconf < \ttwo$, that is,$\bag = \{ \tx \mid (\tx, \cdot, \cdot, \rconf, \cdot) \in \Pod \land \rconf \leq \ttwo \}$. and runs the auction on input \bag, that The auctioneer runs the auction on the set \bag.        
 \end{construction}
 
+\oa{Note: As seen in the following, this requires the following properties from pod:
+\begin{itemize}
+    \item confirmation within \parConf
+    \item correctness of associated values
+    \item common subset (confirmation monotonicity) in the (cross-client, all-tx) version
+    \item past-perfection liveness
+    \item past-perfection correctness
+\end{itemize}
+But the construction does not satisfy the third.
+}
+
+Assuming $\ttwo \geq \tone + \Delta$ and $\tthree \geq \ttwo + \Delta$, we now prove that \Cref{const:auction-sync} satisfies the properties of a \emph{censorhsip resistant auction protocol}. \oa{TODO: Check these numbers again.}
 % If any party can present a certificate certifying the *maximum* timestamp to be before the deadline, but the auctioneer has not included the bid in question, the auctioneer is slashed by resorting to the parent chain. An equivocating auctioneer is similarly slashed. Honest party bids are guaranteed to have both a confirmation timestamp and a maximum timestamp before the deadline, as long as the bids are submitted at the auction starting time and the network is synchronous. Lastly, the honest bidder has no fear of being censored when following the honest strategy because any transaction that could appear with a certificate of maximality prior to the deadline will necessarily appear with a confirmed timestamp prior to the deadline in any other certificate.
 
 % If the protocol designer wants to also protect against a stalling auctioneer, the contract can choose to slash an auctioneer who delays the choice of bids beyond the expected network latency. Such a system has economic liveness guarantees, but risks slashing honest auctioneers in case of network asynchrony, so the choice remains with the protocol designers.
@@ -85,15 +83,23 @@ The construction requires $\ttwo \geq \tone + \Delta$.
 % The reason why pod can be used to run auctions is that bid order is not important for auctions: As long as we can agree on the bids we are considering, we are good to go.
 
 \begin{lemma}
-    Assuming $\ttwo \geq \tone + \Delta$, a bid submitted by an honest bidder during synchrony will be \confirmed with $\rconf \leq \ttwo$.
+    Assuming good network conditions during the interval $[\tone, \ttwo]$, if an honest client submits a bid by time \tone then
+    (a) the bid will be \confirmed with $\rconf \leq \ttwo$, and (b) the client will obtain a certificate \txcert by time \ttwo.
 \end{lemma}
 \begin{proof}
-    From the \emph{Bounds for \rconf, \rmin, \rmax with parameter \parTemp} property of pod, we know that, if the honest bidder writes a
-    transaction at round \tone, it will be \confirmed with $\rconf \leq \tone + \parTemp$, for $\parTemp = \delta$ during synchrony.
+    (a) It follows from the \emph{correctness of associated values} property of pod for $\parTemp = \Delta$ and from the fact that  $\ttwo \geq \tone + \Delta$.
+    (b) It follows from the \emph{confirmation within \parConf} property and the fact that $\ttwo \geq \tone + \Delta$.
+\end{proof}
+
+\begin{lemma}
+    For any bid \bid that is not included in \bag by an honest auctioneer, no client can ever obtain a certificate \txcert for \bid, such that $\txcert.\rconf \leq \ttwo$.
+\end{lemma}
+\begin{proof}
+    \oa{It does not hold. It is possible that a client obtains a \txcert for \bid, but the auctioneer does not. For this to hold we would need pod to satisfy the \emph{Common subset (confirmation monotonicity)} property in its \emph{cross-client, all-tx} version (see Section 3.1), it only satisfies the \emph{cross-client, honest-tx} version, so a dishonest client can obtain \txcert for \bid but cause the auctioneer to never obtain it.}
 \end{proof}
 
 \begin{theorem}[Censorship resistance]
-    Assuming  $\ttwo \geq \tone + \Delta$, the construction satisfies the \emph{accountable censorship resistance} property during synchronous periods.
+    Assuming good network conditions during the interval $[\tone, \ttwo]$, the construction satisfies the \emph{censorship resistance}.
 \end{theorem}
 \begin{proof}
     % If the auctioneer is honest and reads the pod at time after $\tone + \delta$, from the \emph{availability after \parLive} property we have that it will observe \bid as confirmed.
@@ -138,3 +144,35 @@ The construction requires $\ttwo \geq \tone + \Delta$.
     The construction satisfies the \emph{verifiability} property.
 \end{theorem}
 
+
+\begin{construction}[Censorship-resistant auction over synchronous pod + client gossip]\label{const:auction-sync-gossip}
+    A client that wants to participate in the auction submits its bid \bid at time at most \tone by calling \opwrite{\tx} on the pod.
+    
+    The auctioneer does the following. At time \ttwo, it starts reading the pod using \opreadall{}, until it obtains a pod \Pod with $\Pod.\rperf \geq \ttwo$ (the auctioneer calls \opreadall{} until this condition holds).
+    When this happens, \auc creates a bag \bag that contains all confirmed transactions \tx in \Pod with $\tx.\rconf < \ttwo$, that is,$\bag = \{ \tx \mid (\tx, \cdot, \cdot, \rconf, \cdot) \in \Pod \land \rconf \leq \ttwo \}$. and runs the auction on input \bag, that The auctioneer runs the auction on the set \bag.        
+    \end{construction}
+
+
+
+\subsection{A synchronous auction protocol using synchronous pod and client gossip}
+In this section we offer the auctioneer a way to react against \pend transactions \oa{or ghost transactions, if we want to use that term}.
+
+\begin{construction}[Censorship-resistant auction over synchronous pod]\label{const:auction-sync}
+A client that wants to participate in the auction submits its bid \bid at time at most \tone by calling \opwrite{\tx} on the pod.
+
+The auctioneer does the following. At time \ttwo, it starts reading the pod using \opreadall{}, until it obtains a pod \Pod 
+\oa{
+for which the following conditions hold:
+        \begin{enumerate}
+            \item \Pod contains no \pend transactions with $\rmin \leq \ttwo$
+            \item $\Pod.\rperf \geq \ttwo$
+        \end{enumerate}
+In order to satisfy the first condition, for each \pend transaction \bid, the auctioneer calls $\opwrite{\bid}$ \emph{once}.
+In order to satisfy the second, the auctioneer keeps reading the pod.
+}
+When this happens, \auc creates a bag \bag that contains all confirmed transactions \tx in \Pod with $\tx.\rconf < \ttwo$, that is,$\bag = \{ \tx \mid (\tx, \cdot, \cdot, \rconf, \cdot) \in \Pod \land \rconf \leq \ttwo \}$. and runs the auction on input \bag, that The auctioneer runs the auction on the set \bag.        
+\end{construction}
+
+
+\subsection{An asynchronous auction protocol using asynchronous pod and client gossip}
+\oa{To do this, we get rid of \tone, each bidder can decide their own deadline and send the bid whenever they weant (before \ttwo), and if they are lucky/guess correctly it will make it into the auction. Censorship resistance still holds: If the bidder obtains a certificate \txcert with $\txcert.\rconf < \ttwo$, then the auctioneer cannot ignore it without being accountable.}

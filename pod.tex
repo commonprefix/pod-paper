@@ -93,15 +93,16 @@ A pod satisfies the following properties.
         \item[Correctness of associated values:]
         The numbers $\rmin, \rmax$, and $\rconf$ for a transaction \tx satisfy the following:
         \begin{description}[left=20pt]
-            \item [Temperature:] For any honest clients $\client_1,\client_2$, if $\client_1$ obtains $\rmin$ and $\rmax$ for \tx,
+            \item [Temperature:] For any honest clients $\client_1,\client_2$, if $\client_1$ obtains $\rmin$ and $\rmax$ for \tx
             and $\client_2$ observes \tx as \confirmed with round $\rconf$, then
             $\rmin \leq \rconf \leq \rmax$.
             \item [Temperature freezing:] If an honest client obtains $\rmin$ and $\rmax$ for \tx in round $\round_1$, and later obtains $\rmin'$ and $\rmax'$ for \tx in round $\round_2 > \round_1$, then $\rmin' \geq \rmin$ and $\rmax' \leq \rmax$.
-            \item [Temperature interval with parameter \parTemp:] For a transaction $\tx$ written by an honest client in round $\round$, if $\rconf \neq \bot$, then $\rmin \neq 0$ and $\rmax \neq \infty$.
-            In particular, there exists parameter $\theta$, such that:
+            \item [Temperature interval with parameter \parTemp:]
+            For any \confirmed transaction $\tx$, written by an honest client in round $\round$, it holds that:
             (a) $\rconf \in [\round, \round + \parTemp]$,
             (b) $\rmax \in [\round, \round + \parTemp]$, and
             (c) $\rmax - \rmin \leq \parTemp$.
+            In particular, this implies that $\rmin \neq 0$ and $\rmax \neq \infty$.
         \end{description}
 
         % \item[Bounds with parameter \parTemp for \rconf, \rmin, \rmax:]
@@ -174,3 +175,10 @@ This is for us. It summarizes the aforementioned properties and shows which algo
         Pp monot. (cross cl)  & O &&&& X & X & X & X\\
     \end{tabular}
     \end{center}
+
+Based on this, and given that we want a statefull/streaming protocol, and given that we want to avoid (as much as possible) to describe pod with communication between validators, we can have the following protocols.
+\begin{enumerate}
+    \item \textbf{sync + statefull:} The simplest we can do. The problem is that we cannot use this in an auction protocol, even if we assume synchrony in the auction protocol, because it requires the \emph{Conf. monot. (all tx, cross cl)} property (see \Cref{sec:auctions}).
+    \item \textbf{sync + statefull + gossip:} This would allow to do auctions, at the cost of having the auctioneer use client-gossip.
+    \item \textbf{async + statefull + gossip:} If we have to use client-gossip in the first place, why not avoid the timing assumption altogether?
+\end{enumerate}
