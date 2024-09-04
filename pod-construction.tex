@@ -1,6 +1,4 @@
-\section{Pod construction in the synchronous model}\label{sec:pod-core-const}
-In this section we assume a \emph{synchronous} netwrok, where all messages are delivered within a finite \emph{known} delay $\Delta$.
-
+\section{Pod core}\label{sec:pod-core-const}
 % The construction employs the \emph{client gossip} technique. It could be the case that
 % clients perform read operations on the validators and observe that some of them miss some data, such as client transactions.
 % Client gossip consists in having clients re-broadcast these missing transactions.
@@ -12,10 +10,10 @@ In this section we assume a \emph{synchronous} netwrok, where all messages are d
 
 
 \bd{Missing a clear definition of $\beta$, and $\alpha$ only appears in the definition of confirmation. Some discussion of  the meaning of $\alpha,\beta$ would be helpful.}
-\oa{They are in \Cref{sec:system}. Is that not enough?}
+\oa{They are in \Cref{sec:system}. Should we repeat them?}
 
 \begin{definition}[Vote] 
-    We call a \emph{vote} a transaction-timestamp pair $(\tx, \round)$ signed by a validator.
+    We call a \emph{vote} a transaction-timestamp pair $(\tx, \tsp)$ signed by a validator.
 \end{definition}
 
 \begin{definition}[\Confirmed transaction]\label{def:rec-tx}
@@ -37,145 +35,89 @@ In this section we assume a \emph{synchronous} netwrok, where all messages are d
 \end{definition}
 
 \begin{remark}[Logs without ommissions]
-    In this section we assume that validators respond to each \opread{} by sending their whole log, or a prefix of it, without omitting any transactions within that prefix.
-    We show in \oa{reference} how this can be guaranteed.
+    In this section we assume that the entries of a transaction log are ordered by the timestamp value
+    and validators send the transaction/timestamp pairs in that order to the clients.
+    We show in \wip{reference} how this can be guaranteed.
+\end{remark}
+
+\begin{remark}
+    The client protocol we show in \Cref{const:pod-core} is \emph{streaming}, that is, clients maintain a connection to the validators and persist their state (received transactions, votes, and associated values) across all invocations of \opwrite{} and \opreadall{}.
 \end{remark}
 
 
-\begin{definition}[Client transaction log]\label{def:local-log}
-    Clients maintain a \emph{client log} for each transaction they are aware of,
-    which contains the received votes and the current \rmin, \rmax, and \rconf.
-    The \confirmed round \rconf is undefined (denoted as $\bot$) until the transaction becomes \confirmed.
-\end{definition}
+% \begin{definition}[Client transaction log]\label{def:local-log}
+%     Clients maintain a \emph{client log} for each transaction they are aware of,
+%     which contains the received votes and the current \rmin, \rmax, and \rconf.
+%     Initially, $\rmin=0, \rmax=\infty, \rconf=\bot$.
+% \end{definition}
 
-\begin{algorithm}
+\begin{algorithm}[t]
 \caption{Code for a client, part 1.}
 \label{alg:client-1}
 \begin{algorithmic}[1]
-    \Let{count}{0} \Comment{\oa{TODO: Count votes for each \tx.}}
-
-    \On{event $\opwrite{\tx}$}
-        \Let{count}{0}
-        % \Let{\rexp}{(\text{\wip{now + client's expected network delay}})}
-        % \Let{\sigma}{\opsign{(\tx, \rexp)}}
-        % \State{Send $(\msgwrite, (\tx, \rexp, \sigma))$ to all validators}
-        % \For{$\rep_j \in \allreps$}
-        \State{Send \msgwrite{\tx} to all validators}
-        % \EndFor
-    \EndOn
-    
+    \State{\textbf{State:}}
+    \State{$\allreps = \{ \rep_1, \ldots, \rep_n  \}$ } \Comment{\text{The set of all validators}}\label{line:client-state-begin}
+    \State{$\allLts = \{ \lts_1, \ldots, \lts_n \} $}   \Comment{The most recent timestamp returned by each validator}
+    \State{\rperf}                                      \Comment{The most recent round deemed perfect by the client}
+    \State{\votes: $\tx \rightarrow \{ (\tsp, \rep) \mid \tsp \in \CN, \rep \in \allreps \}$}     \Comment{The votes received for each transaction}
+    \State{\transactions: $\tx \rightarrow (\rmin, \rmax, \rconf, \txcert) $}                      \Comment{The associated values of each transaction}\label{line:client-state-end}
+    %\rmin \in \BN, \rmax \in \BN \cup \{\infty\}, \rconf \in \BN \cup \{\bot\}, \txcert \in \zo^*
     \Statex
 
-    \On{receive \msgwriteresp{\tx, \tsp} from $\rep_j$}
-        \Let{count}{count + 1}
-        \State{\opOnReceiveVote{$(\tx, \tsp),  \rep_j$}}
-        \If{count = \alpha}
-            \return $\Pod[\tx]$
-        \EndIf{}
-    \EndOn
-
-    \Statex
-
-    \On{event \opreadall{}}{}
-        % \Let{\rloc}{(\text{\wip{now}})}
-        % \For{$\rep_j \in \allreps$}
-        \State{\oa{Start a timer with duration $2\Delta$}}
-        \State{Send \msgread{} to all validators} 
-        % \EndFor
-    \EndOn
-
-    \Statex
-
-    \On{receive \msgreadresp{$\repLog_j$} from $\rep_j$} \label{line:receive-log}          
-        \For{$(\tx, \tsp) \in \repLog_j$ in increasing timestamp order}
-            \State{\opOnReceiveVote{$(\tx, \tsp),  \rep_j$}}
+    \On{event \opInit{$\{\rep_1, \ldots, \rep_n\}$}} \label{line:client-init-start}
+        \Let{\allreps}{\{ \rep_1, \ldots, \rep_n  \} } 
+        \Let{ \allLts }{ \{ 0, \ldots, 0 \}}
+        \Let{\rperf}{0}
+        \Let{\votes}{\emptyset}
+        \Let{\transactions}{\emptyset} \label{line:txs-map-init}
+        \For{$\rep_j \in \allreps$}
+            \State{Send \msgconnect{} to $\rep_j$}
         \EndFor
+    \EndOn\label{line:client-init-end}
+    \Statex 
+
+    \On{receive \msgrecord{$(\tx, \tsp)$} from $\rep_j$}
+        \State{\opOnReceiveVote{$(\tx, \tsp),  \rep_j$}}
     \EndOn
-    
     \Statex
 
-    \On{\oa{timer expiration}}          
-        \return \Pod
-    \EndOn
-    %     \Statex
-    %     \Function{\opwrite{\tx}}{}
-    %         \Let{\rexp}{(\text{\wip{now + client's expected network delay}})}
-    %         \Let{\sigma}{\opsign{(\tx, \rexp)}}
-    %         \State{Send $(\msgwrite, (\tx, \rexp, \sigma))$ to all validators}
-    %         \State{Upon receiving $2f+1$ responses $(\sigma'_i, {\round'}_i, (\tx, \sigma))$, for $i \in [2f+1]$:}
-    %         \Statex\oa{How can I indent code?}
-    %         \Let{C}{\{ \sigma'_i \}_{i\in[2f+1]} } 
-    %         \Let{R}{\{ \round'_i \}_{i\in[2f+1]} } 
-    %         \Let{\rconf}{\opmed{$R$}}
-    %         \Let{\rinterval}{[ \opmin{$R$}, \opmax{$R$} ]}
-    %         \return (\rconf, \rmin, \rmax)
-    %     \EndFunction
-    %     \Statex
-    %     \Function{\opreadall{}}{}
-    %         \Let{\rloc}{(\text{\wip{now}})}
-    %         \State{Send \msgread to all validators}\label{line:first_read}
-    %         \State{Upon receiving $2f+1$ responses $R_i = (\sigma_i, \round_i, \POD_i)$, for $i \in [2f+1]$, \textbf{such that} valid($R_i$) \andl$ \rloc < \round_i < \rloc + \Delta$:} \Comment{valid($R_i$) iff $\round_i \geq r', \forall r'\in\POD_i$, $\land$ valid($\sigma$), etc }
-    %         \State{parse $(tx_j, r_j) \gets \POD_i$}
-    %         \State{\oa{The following can be simplified.}}
-    %         \Let{\txmiss}{\emptyset}
-    %         \Let{\txset_1}{ \{\tx | \tx \in \POD_i \text{, for } i \in [2f+1] \} } \label{line:all-txs-first-read}
-    %         \For{$\tx \in \txset_1$}
-    %             \If{$|\{ \POD_i | \tx \in \POD_i \}| < 2/3 $}
-    %                 \Let{\txmiss}{\txmiss \cup {\{\tx\}}}
-    %             \EndIf
-    %         \EndFor
-    %         \For{$\tx \in \txmiss$}
-    %             \State{\opwrite{\tx}}
-    %         \EndFor
-    %         \State{\wip{wait $\Delta$}}
-    %         \Let{\rloc}{(\text{\wip{now}})}
-    %         \State{Send \msgread to all validators}\label{line:second_read}
-    %         \State{Upon receiving $2f+1$ responses $R^2_i = (\sigma^2_i, \round^2_i, \Pod^2_i)$, for $i \in [2f+1]$, \textbf{such that} valid($R^2_i$) \andl$ \rloc < \round^2_i < \rloc + \Delta$:}
-    %         \Let{\txfinal}{\emptyset}
-    %         \Let{\txset_2}{ \{\tx | \tx \in \POD_i \text{, for } i \in [2f+1] \} }
-    %         \For{$\tx \in \txset_2$}
-    %             \If{$|\{ \POD_i | \tx \in \POD_i \}| = X $} \wip{$X = f+1$}
-    %                 \State{let $\round'_i$ be the round of \tx in each $\POD_i$, for $i\in[2f+1]$}
-    %                 \Let{R}{\{ \round'_i \}_{i\in[2f+1]} } 
-    %                 \Let{\rconf}{\opmed{$R$}}
-    %                 \Let{\rinterval}{[ \opmin{$R$}, \opmax{$R$} ]}
-    %                 \Let{\txfinal}{\txfinal \cup {\{(\tx, \rconf, \rmin, \rmax)\}}}
-    %             \EndIf
-    %         \EndFor
-    %         \Let{\rperf}{\opmin{$\{ \round_i \}_{i\in[2f+1]}$}}
-    %         \return (\rperf,\txfinal, \oa{\Cert})
-    %     \EndFunction
+    \Function{$\opwrite{\tx}$}{} \label{line:write-tx-begin}
+        \For{$\rep_j \in \allreps$}
+            \State{Send \msgwrite{\tx} to $\rep_j$} 
+        \EndFor
+        \State{\wip{Should we output something?}}
+    \EndFunction\label{line:write-tx-end}
+    \Statex
+
+    \Function{$\opreadall{\tx}$}{} \label{line:read-begin}
+        \Let{\ppcert}{\bigcup_{\tx \in \votes} \votes[\tx]}
+        \Let{\Pod}{(\transactions, \rperf, \ppcert)}
+        \return{ \Pod}
+    \EndFunction\label{line:read-end}
 \end{algorithmic}
 \end{algorithm}
     
-\begin{algorithm}
+\begin{algorithm}[t]
 \caption{Code for a client, part 2.}
 \label{alg:client-2}
 \begin{algorithmic}[1]
-    \Let{\allreps}{\{ \rep_1, \ldots, \rep_n  \} } \Comment{\text{The set of all validators}}
-    \Let{ \allLts = \{ \lts_1, \ldots, \lts_n \} }{ \{ 0, \ldots, 0 \}} \Comment{The most recent timestamp returned by each validator}
-    \Let{\rperf}{0} \Comment{The most recent round deemed perfect by the client}
-    \Let{\transactions}{\emptyset} \label{line:txs-map-init}
-    
-    \Statex
-    
     \Function{\opOnReceiveVote{$(\tx, \tsp),  \rep_j$}}{}
         \If{$\tsp < \lts_j$}\label{line:check-old-ts}
             \return \Comment{accountable fault, $\rep_j$ assigned old timestamp to \tx}\label{line:old-tsp}
-            \State{\oa{Create and output \Pod,\Pod' here.}}
+            \State{\wip{Create and output \Pod,\Pod' here.}}
         \EndIf
-        \If{$\transactions[\tx] = \bot$}
-            \Let{\transactions[\tx]}{(\votes: \emptyset, \rmin: 0, \rmax: \infty, \rconf: \bot)}
-        \EndIf
-        \If{$\transactions[\tx].\votes[\rep_j] \neq \bot$ \andl $\transactions[\tx].\votes[\rep_j] \neq \tsp$}
+        \Let{\lts_j}{ts}
+        \If{$\votes[\tx]$ contains entry $(\tsp', \rep_j)$ such that $\tsp \neq \tsp'$}
             \return \Comment{accountable fault, $\rep_j$ has sent different timestamp}\label{line:dup-tsp}
-             \State{\oa{Create and output \Pod,\Pod' here.}}
+             \State{\wip{Create and output \Pod,\Pod' here.}}
         \EndIf    
         % \If{$\transactions[\tx].\votes[\rep_j] = \emptyset$}
         %     \Let{\transactions[\tx].\votes[\rep_j]}{}
         % \EndIf
-        \Let{\transactions[\tx].\votes[\rep_j]}{\tsp} \label{line:rec-tsp}
-        \Let{\lts_j}{ts}
+        \Let{\votes[\tx]}{\votes[\tx] \cup \{(\tsp, \rep_j)\} } \label{line:rec-tsp}
+        % \If{$\transactions[\tx] = \bot$}
+        %     \Let{\transactions[\tx]}{(\votes: \emptyset, \rmin: 0, \rmax: \infty, \rconf: \bot)}
+        % \EndIf
         
         \Statex
 
@@ -195,9 +137,10 @@ In this section we assume a \emph{synchronous} netwrok, where all messages are d
 
         \Statex
 
-        \If{$| \transactions[\tx].votes | \geq \alpha$}\label{line:confirm-tx-begin}
+        \If{$| \votes[\tx] | \geq \alpha$}\label{line:confirm-tx-begin}
             % \Let{prev}{\transactions[\tx].\rconf}
-            \Let{\transactions[\tx].\rconf}{\opMed{\transactions[\tx]}}
+            \Let{\transactions[\tx].\rconf}{\opMed{$\votes[\tx]$}}
+            \Let{\transactions[\tx].\txcert}{\votes[\tx]}
             % \If{$prev = \bot$}
             %     \State{\textbf{output event} TX-CONFIRMED \tx}
             % \EndIf
@@ -213,65 +156,115 @@ In this section we assume a \emph{synchronous} netwrok, where all messages are d
             \Let{\rperf}{\rperf'}
             % \State{\textbf{output event} PERFECT-ROUND-UPDATE \rperf}
         \EndIf\label{line:upd-rperf-end}
-        \State{\oa{Return \txcert for writing user. Return \ppcert for reading client.}}
     \EndFunction
 \end{algorithmic}
 \end{algorithm}
 
 \begin{algorithm}[t]
-    \caption{Code for a client, part 3. Computing worst-case \rmin and \rmax for existing and new transactions, allowing \beta equivocations. \oa{TODO: make line number not reset}}
+    \caption{Code for a client, part 3. Computing worst-case \rmin and \rmax for existing and new transactions, allowing \beta equivocations.}
     \label{alg:client-statistics}
     \begin{algorithmic}[1]
     \Function{\opMinPossibleTs{\tx}}{}
         % \Let{\votedReplicas}{\{\rep_j \in \allreps \mid \rep_j \in \transactions[\tx].\votes \}}
-        \Let{\txVotesMin}{\text{all timestamps in } \transactions[\tx].\votes}
+        \Let{\txVotesMin}{\text{all timestamps in } \votes[\tx]}
         % \Let{\missingReplicas}{ \{ \rep_j \in \allreps \mid \rep_j \not \in \transactions[\tx].\votes \} }
-        \For{$\rep_j$ \st $\rep_j \not \in \transactions[\tx].\votes$}\label{linee:assing-missing-min-begin}
-            \Let{\txVotesMin}{\txVotesMin \| \lts_j}\label{line:fill-vote-lts}
+        \For{$\rep_j$ \st $(\cdot, \rep_j) \not \in \votes[\tx]$}\label{linee:assing-missing-min-begin}
+            \State{\txVotesMin.\opAppend{$\lts_j$}}\label{line:fill-vote-lts}
         \EndFor\label{linee:assing-missing-min-end}
-        \Let{\txVotesMin}{\text{sort \txVotesMin in increasing order}}
-        \Let{\txVotesMin}{\{ 0, \stackrel{\beta \text{ times}}{\ldots}, 0 \} \| \txVotesMin}
-        \return $\opMed{\txVotesMin[1: \alpha]}$
+        \State{\txVotesMin.\opAppend{$\{ 0, \stackrel{\beta \text{ times}}{\ldots}, 0 \} $}}
+        \State{\text{sort \txVotesMin in increasing order}}
+        \return \opMed{$\txVotesMin[1: \alpha]$}
     \EndFunction
     
     \Statex
 
     \Function{\opMaxPossibleTs{\tx}}{}\label{line:fn-compute-max-begin}
-        \Let{\txVotesMax}{\text{all timestamps in } \transactions[\tx].\votes}
-        \For{$\rep_j$ \st $\rep_j \not \in \transactions[\tx].\votes$}\label{linee:assing-missing-max-begin}
-            \Let{\txVotesMax}{\txVotesMax \| \infty}\label{line:fill-vote-inf}
+        \Let{\txVotesMax}{\text{all timestamps in } \votes[\tx]}
+        \For{$\rep_j$ \st $(\cdot, \rep_j) \not \in \votes[\tx]$}\label{linee:assing-missing-max-begin}
+            \State{\txVotesMax.\opAppend{$\infty$}}\label{line:fill-vote-inf}
         \EndFor\label{linee:assing-missing-max-end}
-        \Let{\txVotesMax}{\text{sort \txVotesMax in increasing order}}
-        \Let{\txVotesMax}{\txVotesMax \| \{ \infty, \stackrel{\beta \text{ times}}{\ldots}, \infty \} }
-        \return $\opMed{\txVotesMax[(n - \alpha) : n]}$
+        \State{\txVotesMax.\opAppend{$\{ \infty, \stackrel{\beta \text{ times}}{\ldots}, \infty \} $}}
+        \State{\text{sort \txVotesMax in increasing order}}
+        \return \opMed{$\txVotesMax[(n - \alpha) : n]$}
     \EndFunction\label{line:fn-compute-max-end}
 
     \Statex
     \Function{\opMinPossibleTsForNewTx{}}{}\label{line:fn-compute-pp-begin}
-        \Let{\allLts}{\text{sort \allLts in increasing order}}
-        \Let{\allLts}{\{ 0, \stackrel{\beta \text{ times}}{\ldots}, 0 \} \| \allLts}
+        \Let{\txVotesPerf}{\allLts}
+        \State{\txVotesPerf.\opAppend{$\{ 0, \stackrel{\beta \text{ times}}{\ldots}, 0 \}$ }}
+        \State{\text{sort \txVotesPerf in increasing order}}
         \return $\opMed{\allLts[1: \alpha]}$
     \EndFunction\label{line:fn-compute-pp-end}
 
     \Statex
     \Function{\opMed{L}}{}\label{}
         \Let{\ell}{\text{len}(L)}
-        \return $L[\lceil \ell/2   \rceil]$
+        \return $L[\lceil \ell/2 \rceil]$
     \EndFunction
 \end{algorithmic}
 \end{algorithm}
 
+\begin{algorithm}[t]
+\caption{Code for a validator.}
+\label{alg:pod-core-replica}
+\begin{algorithmic}[1]
+    \State{\textbf{State:}}
+    \State{$\allClients$ }      \Comment{\text{The set of all connected clients}}
+    \State{\repLog}             \Comment{\text{The transaction log or the validator}}
+    \State{\opTime{}}           \Comment{\text{A function that returns the wall time of the validator}}
+    \Statex
 
-\begin{construction}[Synchronous pod]\label{const:pod-core}
-The client protocol is \emph{statefull}, that is, clients that read the pod or write transactions to it maintain a local state across all invocations.
+    \On{event \opInit{}}
+        \Let{\allClients}{\emptyset}    \label{line:rep-init-clients}
+        \Let{\repLog}{\emptyset}        \label{line:rep-init-log}
+    \EndOn
+    \Statex
 
-As shown in \Cref{alg:client-1},
-in order to write a transaction \tx, a client sends a \msgwrite{\tx} message,
-and to read all transactions, it sends a \msgread{} message to all validators.
-\oa{Pseudocode for validator is not shown yet, but here is the description:} Upon receiving a \msgwrite{\tx} message, a validator appends $(\tx, \tsp)$ to its log, where \tsp is its current timestamp, and returns a \msgwriteresp{\tx, \tsp} message.
-Upon receiving a \msgread{} message, a validator returns its log \repLog in  a \msgreadresp{$\repLog$} message.
-A client handles a \msgwriteresp{\tx, \tsp} message by calling \opOnReceiveVote{},
-and a \msgreadresp{$\repLog$} by calling \opOnReceiveVote{} for each transaction in \repLog.
+    \On{receive \msgconnect{} from client \client} \label{line:rep-receive-connect-begin}
+        \Let{\allClients}{\allClients \cup \{\client\}}
+        \For{$(\tx,\tsp) \in \repLog$}
+            \State{Send \msgrecord{$(\tx,\tsp)$} to \client}
+        \EndFor
+    \EndOn\label{line:rep-receive-connect-end}
+    \Statex
+
+    \On{receive \msgwrite{\tx} from client \client} \label{line:rep-receive-write-begin}
+        \Let{\tsp}{\opTime{}}
+        \State{$\repLog.\opAppend{(\tx, \tsp)}$}
+        \For{$\client \in \allClients$}
+            \State{Send \msgrecord{$(\tx,\tsp)$} to \client}
+        \EndFor
+    \EndOn\label{line:rep-receive-write-end}
+    
+\end{algorithmic}
+\end{algorithm}
+
+
+\begin{construction}[Pod core]\label{const:pod-core}
+We present \emph{pod core} in Algorithms~\ref{alg:client-1}--\ref{alg:pod-core-replica}.
+In the following we describe its main points.
+\end{construction}
+
+\dotparagraph{Initialization}
+The initialization of a client instance is shown in \Cref{alg:client-1} (lines~\ref{line:client-init-start}--\ref{line:client-init-end}).
+The client keeps received votes in a structure \votes, which is a map from transactions \tx to a set of tuples $(\tsp_j, \rep_j)$.
+The client keeps all associated values for received transactions in \transactions,
+which is a map from transactions \tx to $(\rmin, \rmax, \rconf, \txcert)$,
+such that $\rmin \in \BN, \rmax \in \BN \cup \{\infty\}, \rconf \in \BN \cup \{\bot\}, \txcert \in \zo^*$,
+initialized to $(0, \infty, \bot, \bot)$ for each \tx.
+At the initialization phase the client also sends a \msgconnect{} message to each validator, which initiates a streaming connection from the validator to the client.
+
+The initialization of a validator is shown in \Cref{alg:pod-core-replica}. The validator maintains the set of all 
+connected clients (\cref{line:rep-init-clients}) and the transaction log \repLog (\cref{line:rep-init-log}), both initially empty.
+When the validator receives a \msgconnect{} message from a client \client, it appends \client to its set of connected clients and sends to \client its \repLog (lines \ref{line:rep-receive-connect-begin}--\ref{line:rep-receive-connect-end}).
+
+\dotparagraph{Writing to pod}
+In order to write a transaction \tx, a client sends a \msgwrite{\tx} message to each validator (lines \ref{line:write-tx-begin}--\ref{line:write-tx-end}).
+When the validator receives the \msgwrite{\tx} message, it assigns \tx its local time \tsp as the timestamp, appends the tuple $(\tx, \tsp)$ to \repLog, and sends it via a \msgrecord{$(\tx, \tsp)$} message to all connected clients (lines \ref{line:rep-receive-write-begin}--\ref{line:rep-receive-write-end}).
+% Upon receiving a \msgwrite{\tx} message, a validator appends $(\tx, \tsp)$ to its log, where \tsp is its current timestamp, and returns a \msgwriteresp{\tx, \tsp} message.
+% Upon receiving a \msgread{} message, a validator returns its log \repLog in  a \msgreadresp{$\repLog$} message.
+% A client handles a \msgwriteresp{\tx, \tsp} message by calling \opOnReceiveVote{},
+% and a \msgreadresp{$\repLog$} by calling \opOnReceiveVote{} for each transaction in \repLog.
 
 \bd{For this construction to work, all \msgwriteresp{\tx, \tsp} messages must be accompanied by a signature on (\tx,\tsp) generated under the replica's signing key. We need to explicitly keep all the signatures received from different replicates in order to create transaction certificates as well as the $\Pi$ certificate for the POD. It would be clearer to explicitly write these signatures on these messages, so we can clearly show that not only are the messages  authenticated but also that clients collect signatures related to specific transactions.}
 \oa{Agree, TODO.}
@@ -279,32 +272,20 @@ and a \msgreadresp{$\repLog$} by calling \opOnReceiveVote{} for each transaction
 \bd{When signing messages in the protocol, the replicas must also include a unique session identifier nonce specific to the protocol execution they are participating in. If all that is signed is a pair $(\tx,\tsp)$, it becomes trivial to forge certificates across different executions of the protocol in settings where multiple instances of the protocol are executed concurrently.}
 \oa{Sure, but do you think we have to explicitly write the sid everywhere? Or can we say something like `here we focus on a single instance and we assume all messages are accompanied by session ids'?}
 
+\dotparagraph{Reading the pod}
+A client receives votes through \msgrecord{$(\tx, \tsp)$} messages from each validator $\rep_j$.
+The vote is handled by the \opOnReceiveVote{} function, which we show in \Cref{alg:client-2}.
+We remark that \opOnReceiveVote{} updates the global state held by the client (in lines \ref{line:client-state-begin}--\ref{line:client-state-end} in \Cref{alg:client-1}).
 
-% Upon receiving a write request, a validator assigns it its local round number \rloc and returns it to the client.
-% Upon receiving $n-f$ write responses, a client considers the request \emph{\confirmed}.
-% It $R$ is the set with the $n-f$ local rounds received by the client,
-% then the \emph{recorded round} of the transaction is $\rconf = \opmed{R}$.
+The \opreadall{} function is hence implemented by returning the set of transactions and associated values \transactions that the client has seen so far,
+the current past-perfect round \rperf,
+and all received votes as the past-perfection certificate \ppcert (lines \ref{line:read-begin}--\ref{line:read-end}).
 
-% In order to read the transactions in the system a client sends a \opreadall{} request to all validators.
-% Upon receiving a read request, a validator responds with $(\round, \Pod)$, where \round is its local round
-% and \Pod contains all the pairs $(\tx', \round')$ it possesses~(\cref{line:respond-read}).
-% The client waits for $n-f$ valid \wip{$\opvalid{} = \round' \leq  \round$, for all the $\round' \in \Pod$}
-% read responses and does the following.
-% % in order to infer the current past-perfect round \rperf and the transactions with \confirmed round $\rconf \leq \rperf$.
-% First, it sets $\rperf$ to be the \emph{minimum} of the received \round values.
-% Seconds, it sets $\txfinal$ to be the union of all transactions in the responses.
-% Using the client-gossip technique, the client can make sure that \rperf is a past-perfect round and that \txfinal contains \emph{all} the transactions with \confirmed round $\rconf \leq \rperf$.
-% The client outputs $(\rperf, \txfinal, \Cert)$, where \Cert contains the responses it received from the validators.
-% \oa{TODO. I believe the second read is not necessary. In GST, all \tx from the first read will be written after $\Delta$.}
-% \oa{See \Cref{lem:perfect-round-txs}.}
-
-We show the implementation of \opOnReceiveVote{} in \Cref{alg:client-2}.
-The client log is implemented as a map from transactions \tx to $(\votes, \rmin, \rmax, \rconf)$,
-initialized to $(\emptyset, 0, \infty, \bot)$ for each \tx, and \votes is a map from validators to timestamps (\cref{line:txs-map-init}).
+\dotparagraph{Handling votes}
 Upon receiving a transaction-timestamp pair $(\tx, \tsp)$ from validator $\rep_j$, the client performs some sanity checks.
 First, \tsp must be equal or larger than $\lts_j$, the most recent timestamp returned by $\rep_j$ (\cref{line:old-tsp}).
 Second, the validator must have not previously returned a different timestamp for \tx (\cref{line:dup-tsp}) .
-If any of these is not the case, the client ignores this value and $\rep_j$ can be held accountable (\bd{This should output a $\Pod'$ that serves as a proof of equivocation}).
+If any of these is not the case, the client ignores this value and $\rep_j$ can be held accountable \wip{This should output a $\Pod'$ that serves as a proof of equivocation}.
 If the checks pass, the client records \tsp returned by $\rep_j$ in $\transactions[\tx].\votes$ (\cref{line:rec-tsp})
 and updates $\lts_j$ with \tsp.
 
@@ -321,32 +302,32 @@ Finally, it checks whether \rperf can be updated (lines~\ref{line:upd-rperf-begi
 As shown in \Cref{alg:client-statistics}, \opMinPossibleTs{} and \opMaxPossibleTs{}
 pessimistically fill missing votes and
 allow up to \beta parties to equivocate.
-The former fills a missing vote from validator $\rep_j$ with $\lts_j$ \oa{check again} (\cref{line:fill-vote-lts}), the minimum timestamp that can ever be  accepted from $\rep_j$ (smaller values will not pass the check on \cref{line:check-old-ts} of \Cref{alg:client-2}),
+The former fills a missing vote from validator $\rep_j$ with $\lts_j$ \wip{check again, was there an error in this logic?} (\cref{line:fill-vote-lts}), the minimum timestamp that can ever be  accepted from $\rep_j$ (smaller values will not pass the check on \cref{line:check-old-ts} of \Cref{alg:client-2}),
 while the latter fills a missing vote with $\infty$ (\cref{line:fill-vote-inf}).
 Finally, \opMinPossibleTsForNewTx{} works similarly to \opMinPossibleTs{}, except
 considering timestamps \allLts as the minimum possible for any future transaction.
-\end{construction}
+
 
 
 
 \begin{definition}[Identification function]
     \opidentify{$\pod, \tilde{\Pod}$} \returns $P' \subset P$ 
 \end{definition}
-\oa{Show the following two functions for equivocation: Given \ppcert, $\ppcert'$, identify 1) replicas that  assgign different timestamps to a \tx, 2) replicas that include new transactions with old \tsp. Say these are local, using only \ppcert.}
+\wip{Show the following two functions for equivocation: Given \ppcert, $\ppcert'$, identify 1) replicas that  assgign different timestamps to a \tx, 2) replicas that include new transactions with old \tsp. Say these are local, using only \ppcert.}
 
 \subsection{Security}
 We first prove some useful intermediate results.
 
 \begin{lemma}\label{lem:assign-min-max}
-    \Cref{alg:client-statistics} returns, assuming timestamps in \txVotesMin, \txVotesMax, and \allLts are sorted in increasing order, and starting indexing at 1,
+    \Cref{alg:client-statistics} returns, assuming timestamps in \txVotesMin, \txVotesMax, and \txVotesPerf are sorted in increasing order, and starting indexing at 1,
     \begin{enumerate}
         \item as \rmin the timestamp at index $\lceil \alpha / 2 \rceil - \beta$ of \txVotesMin
         \item as \rmax the timestamp at index $n - \alpha + \lceil \alpha / 2 \rceil + \beta$ of \txVotesMax
-        \item as \rperf the timestamp at index $\lceil \alpha / 2 \rceil - \beta$ of \allLts
+        \item as \rperf the timestamp at index $\lceil \alpha / 2 \rceil - \beta$ of \txVotesPerf
     \end{enumerate}
 \end{lemma}
 \begin{proof}
-    Functions \opMinPossibleTs{} and \opMinPossibleTsForNewTx{} append \beta times the $0$ value in the beginning of the list and return the median of the first \alpha values. Hence \rmin and \rperf are the elements at index $\lceil \alpha / 2 \rceil - \beta$ of \txVotesMin and \allLts, respectively.
+    Functions \opMinPossibleTs{} and \opMinPossibleTsForNewTx{} append \beta times the $0$ value in the beginning of the list and return the median of the first \alpha values. Hence \rmin and \rperf are the elements at index $\lceil \alpha / 2 \rceil - \beta$ of \txVotesMin and \txVotesPerf, respectively.
     Function \opMaxPossibleTs{} (lines~\ref{line:fn-compute-max-begin}--\ref{line:fn-compute-max-end}) appends \beta times the $\infty$ value at the end of the list with all received timestamps, and looks at the last \alpha elements of that list, hence ignores the first $n - \alpha  + \beta$ elements.
     It returns the median of the last \alpha elements, so all together \rmax is the element at position
     $n - \alpha  + \beta + \lceil \alpha / 2 \rceil$.

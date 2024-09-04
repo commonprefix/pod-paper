@@ -36,13 +36,15 @@
 \newcommand{\oa}[1]{{\color{blue}{ #1 }}}
 \newcommand{\bd}[1]{{\color{olive}{ #1 }}}
 \newcommand{\hue}[1]{\textcolor{brown}{#1}}
-\newcommand{\wip}[1]{{\hue{WIP: #1}}}
+\newcommand{\wip}[1]{{\textcolor{red}{TODO: #1}}}
 
 \newcommand{\BZ}{\ensuremath{\mathbb{Z}}\xspace}
 \newcommand{\CN}{\ensuremath{\mathbb{N}}\xspace}
 \newcommand{\BR}{\ensuremath{\mathbb{R}}\xspace}
 \newcommand{\CR}{\ensuremath{\mathcal{R}}\xspace}
 \newcommand{\CL}{\ensuremath{\mathcal{L}}\xspace}
+\newcommand{\CV}{\ensuremath{\mathcal{V}}\xspace}
+\newcommand{\CC}{\ensuremath{\mathcal{C}}\xspace}
 \newcommand{\BN}{\ensuremath{\mathbb{N}}\xspace}
 
 \newcommand{\ceil}[1]{\lceil #1 \rceil}
@@ -72,6 +74,9 @@
 \newcommand{\opMaxPossibleTs}[1]{\op{maxPossibleTs(#1)}\xspace}
 \newcommand{\opMinPossibleTsForNewTx}[1]{\op{minPossibleTsForNewTx(#1)}\xspace}
 \newcommand{\opMed}[1]{\op{median(#1)}\xspace}
+\newcommand{\opInit}[1]{\op{init(#1)}\xspace}
+\newcommand{\opTime}{\op{time()}\xspace}
+\newcommand{\opAppend}[1]{\op{append(#1)}\xspace}
 
 \newcommand{\operand}[1]{\textsf{#1}}
 \newcommand{\tx}{\operand{tx}\xspace}
@@ -92,14 +97,16 @@
 \newcommand{\txfinal}{\ensuremath{\txset_\text{final}}\xspace}
 \newcommand{\inclist}{\ensuremath{L}\xspace}
 \newcommand{\rep}{\ensuremath{V}\xspace}
-\newcommand{\allreps}{\CR}
+\newcommand{\allreps}{\CV}
 \newcommand{\allLts}{\CL}
+\newcommand{\allClients}{\CC}
 \newcommand{\lts}{\operand{mrt}\xspace}
-\newcommand{\repLog}{\operand{log}\xspace}
-\newcommand{\transactions}{\operand{localLog}\xspace}
+\newcommand{\repLog}{\operand{replicaLog}\xspace}
+\newcommand{\transactions}{\ensuremath{\txSet}\xspace}
 \newcommand{\votes}{\operand{votes}\xspace}
-\newcommand{\txVotesMin}{\operand{txVotesMin}\xspace}
-\newcommand{\txVotesMax}{\operand{txVotesMax}\xspace}
+\newcommand{\txVotesMin}{\operand{timestampsMin}\xspace}
+\newcommand{\txVotesMax}{\operand{timestampsMax}\xspace}
+\newcommand{\txVotesPerf}{\operand{timestampsPerf}\xspace}
 \newcommand{\certSize}{\ensuremath{c}\xspace}
 \newcommand{\tsp}{\operand{ts}\xspace}
 \newcommand{\votedReplicas}{\operand{votedReplicas}\xspace}
@@ -145,11 +152,13 @@
 \newcommand{\return}{\State{\textbf{return}}\xspace}
 \newcommand{\st}{\textbf{such that}\xspace}
 \newcommand{\andl}{\textbf{and}\xspace}
-\newcommand{\msg}[2]{(\textit{\uppercase{#1}}#2)\xspace}
+\newcommand{\msg}[2]{$\langle$\textit{\uppercase{#1}}#2$\rangle$\xspace}
 \newcommand{\msgwrite}[1]{\msg{write}{ #1}}
 \newcommand{\msgwriteresp}[1]{\msg{write-resp}{ (#1)}}
 \newcommand{\msgread}[1]{\msg{read}{#1}}
 \newcommand{\msgreadresp}[1]{\msg{read-resp}{ #1}}
+\newcommand{\msgconnect}{\msg{connect}{}}
+\newcommand{\msgrecord}[1]{\msg{record}{ #1}}
 
 \let\oldalpha\alpha
 \renewcommand{\alpha}{\ensuremath{\oldalpha}\xspace}
