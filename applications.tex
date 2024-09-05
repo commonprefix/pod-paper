@@ -54,14 +54,21 @@
 \end{definition}
 
 
-\subsection{A synchronous auction protocol using synchronous pod}
+\subsection{Auction protocol over pod}
 The high-level idea is that bidders use pod to write their bids, and the auctioneer reads the pod, waits until the auction start time becomes past-perfect, and then runs the auction.
 
 \begin{construction}[Censorship-resistant auction over synchronous pod]\label{const:auction-sync}
 A client that wants to participate in the auction submits its bid \bid at time at most \tone by calling \opwrite{\tx} on the pod.
 
-The auctioneer does the following. At time \ttwo, it starts reading the pod using \opreadall{}, until it obtains a pod \Pod with $\Pod.\rperf \geq \ttwo$ (the auctioneer calls \opreadall{} until this condition holds).
-When this happens, \auc creates a bag \bag that contains all confirmed transactions \tx in \Pod with $\tx.\rconf < \ttwo$, that is,$\bag = \{ \tx \mid (\tx, \cdot, \cdot, \rconf, \cdot) \in \Pod \land \rconf \leq \ttwo \}$. and runs the auction on input \bag, that The auctioneer runs the auction on the set \bag.        
+The auctioneer does the following. At time \ttwo, it starts reading the pod using \opreadall{}, until it obtains a pod \Pod 
+for which the following conditions hold:
+        \begin{enumerate}
+            \item \Pod contains no \pend transactions with $\rmin \leq \ttwo$
+            \item $\Pod.\rperf \geq \ttwo$
+        \end{enumerate}
+In order to satisfy the first condition, for each \pend transaction \bid, the auctioneer calls $\opwrite{\bid}$ \emph{once}.
+In order to satisfy the second, the auctioneer keeps reading the pod.
+When this happens, \auc creates a bag \bag that contains all confirmed transactions \tx in \Pod with $\tx.\rconf < \ttwo$, that is, $\bag = \{ \tx \mid (\tx, \cdot, \cdot, \rconf, \cdot) \in \Pod \land \rconf \leq \ttwo \}$, and runs the auction on input \bag.
 \end{construction}
 
 \oa{Note: As seen in the following, this requires the following properties from pod:
@@ -154,25 +161,5 @@ Assuming $\ttwo \geq \tone + \Delta$ and $\tthree \geq \ttwo + \Delta$, we now p
 
 
 
-\subsection{A synchronous auction protocol using synchronous pod and client gossip}
-In this section we offer the auctioneer a way to react against \pend transactions \oa{or ghost transactions, if we want to use that term}.
-
-\begin{construction}[Censorship-resistant auction over synchronous pod]\label{const:auction-sync}
-A client that wants to participate in the auction submits its bid \bid at time at most \tone by calling \opwrite{\tx} on the pod.
-
-The auctioneer does the following. At time \ttwo, it starts reading the pod using \opreadall{}, until it obtains a pod \Pod 
-\oa{
-for which the following conditions hold:
-        \begin{enumerate}
-            \item \Pod contains no \pend transactions with $\rmin \leq \ttwo$
-            \item $\Pod.\rperf \geq \ttwo$
-        \end{enumerate}
-In order to satisfy the first condition, for each \pend transaction \bid, the auctioneer calls $\opwrite{\bid}$ \emph{once}.
-In order to satisfy the second, the auctioneer keeps reading the pod.
-}
-When this happens, \auc creates a bag \bag that contains all confirmed transactions \tx in \Pod with $\tx.\rconf < \ttwo$, that is,$\bag = \{ \tx \mid (\tx, \cdot, \cdot, \rconf, \cdot) \in \Pod \land \rconf \leq \ttwo \}$. and runs the auction on input \bag, that The auctioneer runs the auction on the set \bag.        
-\end{construction}
-
-
 \subsection{An asynchronous auction protocol using asynchronous pod and client gossip}
-\oa{To do this, we get rid of \tone, each bidder can decide their own deadline and send the bid whenever they weant (before \ttwo), and if they are lucky/guess correctly it will make it into the auction. Censorship resistance still holds: If the bidder obtains a certificate \txcert with $\txcert.\rconf < \ttwo$, then the auctioneer cannot ignore it without being accountable.}
+\oa{To do this, we get rid of \tone, each bidder can decide their own deadline and send the bid whenever they want (before \ttwo), and if they are lucky/guess correctly it will make it into the auction. Censorship resistance still holds: If the bidder obtains a certificate \txcert with $\txcert.\rconf < \ttwo$, then the auctioneer cannot ignore it without being accountable.}

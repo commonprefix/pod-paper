@@ -501,7 +501,7 @@ We now prove, through the following theorems, that \Cref{const:pod-core} satisfi
 % \end{enumerate}    
 
 
-\section{Pod with confirmation agreement on all transactions} \label{sec:pod-with-propagation}
+\section{Pod with transaction gossiping} \label{sec:pod-with-propagation}
 In the construction of \Cref{sec:pod-core-const}, replicas do not communicate with each other.
 As we saw, we were still able to prove all security properties of \Cref{sec:pod-model}.
 In this section we introduce two additional properties and describe a construction that satisfies them.
@@ -530,7 +530,7 @@ Observe that the \emph{confirmation agreement after \parAgr} property generalize
 
 \end{construction}
 
-\begin{remark}[Transac tion propagation]
+\begin{remark}[Transaction propagation]
     In order to satisfy the \emph{agreement} and \emph{\pend soundness} properties,
     the construction requires a transaction propagation mechanism, that ensures that all honest validators see the same set of transactions,
     even for transactions sent by malicious parties.

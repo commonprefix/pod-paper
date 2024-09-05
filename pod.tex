@@ -81,12 +81,11 @@ A pod satisfies the following properties.
     \item{Safety:}
     \begin{description}[left=0pt,itemindent=0pt]
         
-        \item[Common subset (confirmation monotonicity):]
-        For any honest clients $\client_1$, $\client_2$ and rounds $\round_1, \round_2 > \round_1$,
+        \item[Common subset (confirmation monotonicity) after \parAgr:]
+        For any honest clients $\client_1$, $\client_2$ and rounds $\round_1, \round_2 > \round_1 + \parAgr$,
         if $\tx \in \podView{\client_1}{\round_1}$ and $\tx.\rconf \neq \bot$, then $\tx \in \podView{\client_2}{\round_2}$ and $\tx.\rconf \neq \bot$.
         \oa{We want this but we cannot prove it without gossip, the combination of a malicious client who writes to only \alpha replicas and then a malicious replica withholds the transaction from a client.}
-        \wip{In the version with gossip, where this holds, check whether it is $\round_2 > \round_1$ or $\round_2 \geq \round_1$.}
-        \wip{I believe this is $\round_2 > \round_1 + X$, for some parameter $X$.}
+        \wip{Move it to the pod+gossiping section.}
         \item[Confirmation stickiness:]
         For any honest client $\client$ and rounds $\round_1, \round_2 > \round_1$,
         if $\tx \in \podView{\client}{\round_1}$ and $\tx.\rconf \neq \bot$, then $\tx \in \podView{\client}{\round_2}$ and $\tx.\rconf \neq \bot$.
@@ -97,7 +96,7 @@ A pod satisfies the following properties.
         and for any transaction \tx written by an honest client,
         if $\tx \in \podView{\client_1}{\round_1}$ and $\tx.\rconf \neq \bot$, then $\tx \in \podView{\client_2}{\round_2}$ and $\tx.\rconf \neq \bot$.
         \oa{Observe that this is a specific version of the \emph{Common subset} property only for honest transactions.}
-        \wip{I believe this is $\round_2 > \round_1 + X$, for some parameter $X$.}
+        \wip{See if it is $\round_2 > \round_1 + X$, for some parameter $X$.}
 
         \item[Correctness of associated values:]
         The numbers $\rmin, \rmax$, and $\rconf$ for a transaction \tx satisfy the following:
