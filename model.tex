@@ -14,10 +14,13 @@ by $\alpha \in [0,n]$ the \emph{confirmation threshold}.
 The pod construction will impose limits on \alpha and \beta.
 
 \dotparagraph{Modeling time}
-We assume that time proceeds in \emph{rounds} and that parties have \emph{synchronized clocks} allowing them to determine the current round.
-\oa{Mention that if we know an upper bound then we can include this into the properties.}
-Each party keeps a local round counter that is used to assign timestamps to transactions and protocol messages as needed.
-A \emph{timestamp} is defined as a round number.
+We assume that parties have clocks allowing them to determine the \emph{physical time}.
+For any two honest parties, their clocks can be at most time $\phi$ apart.
+For simplicity, our analysis will assume \emph{synchronized clocks}, that is, $\phi = 0$.
+We use the terms \emph{round} and \emph{timestamp}. Both refer to physical time.
+A \emph{round} refers to the physical time observed locally be a party,
+and a \emph{timestamp} is a round number assigned to an event (such as receiving a transaction).
+\oa{@Bernie take a look, I changed this a bit.}
 
 % Without loss of generality, our analysis can be extended to a model with loosely synchronized clocks where two honest parties may have two different round counters $r_1,r_2$ such that $|r_1-r_2|=\delta$ for a finite $\delta$.
 
@@ -36,6 +39,15 @@ We will present protocols in the \emph{synchronous} and in the \emph{asynchronou
 In the former we assume that all messages are delivered within a finite delay $\Delta$, \emph{known} to all processes.
 In the later we assume that $\Delta$ is \emph{unknown} but still finite, i.e., all messages are eventually delivered.
 In both cases, the delivery order of messages may be chosen adversarially.
+
+\dotparagraph{Modeling network}
+We denote by $\delta \in \CN$ the actual delay (measured in units of physical time) it takes to deliver a message between two honest parties,
+a number which is \emph{finite} but \emph{unknown} to all parties.
+We denote by $\Delta$ an upper bound on this delay, i.e., $\delta \in (0, \Delta]$, which is also \emph{finite}.
+In the \emph{synchronous} model, $\Delta$ is \emph{known} to all processes.
+In the \emph{asynchronous} model, $\Delta$ is \emph{unknown} but still finite, i.e., all messages are eventually delivered.
+In both cases, the delivery order of messages may be chosen adversarially.
+\oa{Alternative, using $\delta$ and $\Delta$. I suggest we keep this and formulate all pod proofs using $\delta$.}
 
 \dotparagraph{Modeling communication}
 We assume reliable and authenticated point-to-point links between parties, implemented by a low-level primitive independent to our protocols.

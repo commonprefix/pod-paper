@@ -88,17 +88,18 @@ A pod satisfies the following properties.
         if $\tx \in \podView{\client_1}{\round_1}$ and $\tx.\rconf \neq \bot$, then $\tx \in \podView{\client_2}{\round_2}$ and $\tx.\rconf \neq \bot$.
         \oa{We want this but we cannot prove it without gossip, the combination of a malicious client who writes to only \alpha replicas and then a malicious replica withholds the transaction from a client.}
         \wip{In the version with gossip, where this holds, check whether it is $\round_2 > \round_1$ or $\round_2 \geq \round_1$.}
-        
+        \wip{I believe this is $\round_2 > \round_1 + X$, for some parameter $X$.}
         \item[Confirmation stickiness:]
         For any honest client $\client$ and rounds $\round_1, \round_2 > \round_1$,
         if $\tx \in \podView{\client}{\round_1}$ and $\tx.\rconf \neq \bot$, then $\tx \in \podView{\client}{\round_2}$ and $\tx.\rconf \neq \bot$.
-        \oa{Observe that this is a specific version of the \emph{Common subset} property for $\client_1 = \client_2$. We can prove it in the construction withou gossip.}
+        \oa{Observe that this is a specific version of the \emph{Common subset} property for $\client_1 = \client_2$. We can prove it in the construction without gossip.}
 
         \item[Common subset (confirmation monotonicity) for honest transactions:]
         For any honest clients $\client_1$, $\client_2$ and rounds $\round_1, \round_2 > \round_1$,
         and for any transaction \tx written by an honest client,
         if $\tx \in \podView{\client_1}{\round_1}$ and $\tx.\rconf \neq \bot$, then $\tx \in \podView{\client_2}{\round_2}$ and $\tx.\rconf \neq \bot$.
         \oa{Observe that this is a specific version of the \emph{Common subset} property only for honest transactions.}
+        \wip{I believe this is $\round_2 > \round_1 + X$, for some parameter $X$.}
 
         \item[Correctness of associated values:]
         The numbers $\rmin, \rmax$, and $\rconf$ for a transaction \tx satisfy the following:
@@ -131,12 +132,10 @@ A pod satisfies the following properties.
         For any honest client \client and round $\round$,
         it holds that, if $\tx \not \in \podView{\client}{\round}$, then no honest client will ever observe \tx as confirmed with $\rconf < \podView{\client}{\round}.\rperf$.
 
-        \item[Common perfection (past-perfection monotonicity):]
-        \oa{This is the single-client version.We cannot prove the cross-client version of this, i.e., ``For any honest clients $\client_1$, $\client_2$...''.}
+        \item[Past-perfection stickiness:]
         % If an honest client calls \opreadall{} at round $\round_1$ to obtain $\Pod^1, \rperf^1$, and at round $\round_2$ to obtain $\Pod^2, \rperf^2$, then $\rperf^2 \geq \rperf^1$.
         For any honest client \client and rounds $\round_1, \round_2 \geq \round_1$,
         it holds that $\podView{\client}{\round_2}.\rperf \geq \podView{\client}{\round_1}.\rperf$.
-        
     \end{description}
     
     \item{Accountability:}
@@ -155,7 +154,7 @@ A pod satisfies the following properties.
         views $\podView{\client_1}{\round_1}$ and $\podView{\client_2}{\round_2}$, for some clients $\client_1$, $\client_2$ and rounds $\round_1, \round_2$ such that $\identify{\podView{\client_1}{\round_1},\podView{\client_2}{\round_2}} \rightarrow \cheaters$ outputs a non-empty set $\cheaters$ containing at least $\beta+1$ replicas who have caused the violation.
         
         \bd{Accountability for safety failures is implied by accountability for equivocation for single or two clients.}
-        \oa{I will merge them. TODO.}
+        \wip{Merge them.}
         
         \item [Unforgeability:] For any PODs $\Pod_1,\Pod_2$ and $\identify{\Pod_1,\Pod_2} \rightarrow \cheaters$, the set $\cheaters$ does not contain any honest replicas.
 
@@ -170,25 +169,19 @@ A pod satisfies the following properties.
 \subsection {Properties recap}
 This is for us. It summarizes the aforementioned properties and shows which algorithms satisfy them.
 \begin{center}
-    \begin{tabular}{ |l|c|>{\columncolor[gray]{0.8}}c|c|c||c|c|c|>{\columncolor[gray]{0.8}}c| }
-        & sync  &+state  &+gossip &+state+gos & async  & +state  & +gos & +state+gos \\
-        Confirmation (honest tx)    & O &&&& O &&&\\
-        Availability (honest tx)    & O &&&& X & X & O &\\
-        Pp liveness                 & O &&&& O &&&\\
-        Conf. monot. (honest tx, single cl)       & O &&&& X & O & O &\\
-        \textcolor{blue}{Conf. monot. (honest tx, cross cl)}     & O &&&& X & X & O&\\
-        Conf. monot. (all tx, single cl)       & X & O & O && X & O & O &\\
-        \textcolor{blue}{Conf. monot. (all tx, cross cl)}        & X & X & O && X & X & O &\\
-        Correctness of assoc. values    & O &&&& O &&&\\
-        Pp correctness     & O &&&& O &&&\\
-        \textcolor{blue}{Pp monot. (single cl)} & O &&&& X & O & X & O\\
-        Pp monot. (cross cl)  & O &&&& X & X & X & X\\
+    \begin{tabular}{ |l|c|c||c|c|c| }
+        \hline
+                                                               & \multicolumn{2}{c||}{streaming} & \multicolumn{2}{c|}{streaming+gossip}\\
+        \hline
+                                                               & sync  & async  &sync & async \\
+        Confirmation                                           & O& O& O& O\\
+        Pp liveness                                            & O& O& O& O\\
+        Common subset                                          & X& X& O& O\\
+        Common subset for honest tx                            & O& O& O& O\\
+        Conf. stickiness                                       & O& O& O& O\\
+        Correctness of assoc. values                           & O& O& O& O\\
+        Pp correctness                                         & O& O& O& O\\
+        Pp stickiness                                          & O& O& O& O\\
+        \hline
     \end{tabular}
     \end{center}
-
-Based on this, and given that we want a statefull/streaming protocol, and given that we want to avoid (as much as possible) to describe pod with communication between validators, we can have the following protocols.
-\begin{enumerate}
-    \item \textbf{sync + statefull:} The simplest we can do. The problem is that we cannot use this in an auction protocol, even if we assume synchrony in the auction protocol, because it requires the \emph{Conf. monot. (all tx, cross cl)} property (see \Cref{sec:auctions}).
-    \item \textbf{sync + statefull + gossip:} This would allow to do auctions, at the cost of having the auctioneer use client-gossip.
-    \item \textbf{async + statefull + gossip:} If we have to use client-gossip in the first place, why not avoid the timing assumption altogether?
-\end{enumerate}

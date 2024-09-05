@@ -319,11 +319,13 @@ considering timestamps \allLts as the minimum possible for any future transactio
 We first prove some useful intermediate results.
 
 \begin{lemma}\label{lem:assign-min-max}
-    \Cref{alg:client-statistics} returns, assuming timestamps in \txVotesMin, \txVotesMax, and \txVotesPerf are sorted in increasing order, and starting indexing at 1,
+    Regarding \Cref{alg:client-statistics}, we have the following.
+    Assume we keep all received timestamps for a transaction \tx in a structure \txVotes, filling in a special  value ($0$  or $\infty$) for missing votes (that is, $n$ values in total), sorted in increasing order.
+    Assume \allLts is sorted in increasing order of timestamps.
     \begin{enumerate}
-        \item as \rmin the timestamp at index $\lceil \alpha / 2 \rceil - \beta$ of \txVotesMin
-        \item as \rmax the timestamp at index $n - \alpha + \lceil \alpha / 2 \rceil + \beta$ of \txVotesMax
-        \item as \rperf the timestamp at index $\lceil \alpha / 2 \rceil - \beta$ of \txVotesPerf
+        \item \rmin is the timestamp at index $\lceil \alpha / 2 \rceil - \beta$ of \txVotes.
+        \item \rmax is the timestamp at index $n - \alpha + \lceil \alpha / 2 \rceil + \beta$ of \txVotes.
+        \item \rperf is the timestamp at index $\lceil \alpha / 2 \rceil - \beta$ of \allLts.
     \end{enumerate}
 \end{lemma}
 \begin{proof}
@@ -356,7 +358,7 @@ We first prove some useful intermediate results.
 
 We now prove, through the following theorems, that \Cref{const:pod-core} satisfies the security definition of pod.
 
-\bd{Shouldn't theorems 1 and 2 also be conditioned of certain relationships between $\alpha$ and $\beta$ and a corruption threshold? If not sufficiently honest replicas exist, a transaction will never be confirmed. We need to explicit phrase the theorems to state that we assume $\alpha$ parties are honest.}
+\bd{Shouldn't theorems 1 and 2 also be conditioned of certain relationships between $\alpha$ and $\beta$ and a corruption threshold? If not sufficiently honest replicas exist, a transaction will never be confirmed. We need to explicitly phrase the theorems to state that we assume $\alpha$ parties are honest.}
 
 \begin{theorem}[Confirmation within $\parConf$]
   \Cref{const:pod-core} satisfies the \emph{confirmation within $\parConf$} property for $\parConf = 2 \Delta$.
