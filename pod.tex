@@ -19,7 +19,7 @@ A pod protocol allows a set of \emph{clients} to obtain a partially ordered list
     A \emph{pod} $\Pod$ is a triple $(\txSet, \rperf, \ppcert)$, where \txSet is a finite sequence of entries $(\tx, \rmin, \rmax, \rconf, \txcert)$, that is, transactions and associated values, \rperf is a round number, called the \emph{past-perfect round},
     and $\ppcert \in \zo^*$ is a \emph{past-perfection certificate} \ppcert that proves the correctness of the \Pod.
 \end{definition}
-We remark that a transaction \tx in \txSet, with corresponding entry $(\tx, \rmin, \rmax, \rconf, \txcert)$, may be \emph{\confirmed}, in which case we have $\rconf \neq \bot$, or unconfirmed, with $\rconf = \bot$.
+We remark that a transaction \tx in \txSet, with corresponding entry $(\tx, \rmin, \rmax, \rconf, \txcert)$, may be \emph{\confirmed}, in which case we have $\rconf \neq \bot$, or unconfirmed, with $\rconf = \bot$. Looking forward, our construction will allow for deriving $\ppcert$ from $\txcert \in \txSet$, but we define $\ppcert$ explicitly for clarity and generality.
 
 \begin{definition}[Past-perfect round]
     Given a set of transactions \txSet, a round \rperf is \emph{past-perfect} if,
@@ -44,7 +44,7 @@ For any $(\tx, \rmin, \rmax, \rconf, \txcert) \in \txSet$ we say that the client
 
 \begin{definition}[Cheater Identification Function]
 A cheater identification function $\identify{\Pod_1,\Pod_2} \rightarrow \cheaters$  
-takes as input two PODs $\Pod_1,\Pod_2$ and outputs a set of parties $\cheaters$ such that $\cheaters \subset \replicas$.
+takes as input two PODs $\Pod_1,\Pod_2$ and outputs a set of parties $\cheaters$ such that $\cheaters \subset \replicas$ such that all parties in $\cheaters$ are equivocating.
 \end{definition}
 
 \begin{definition}[View]
@@ -56,8 +56,6 @@ takes as input two PODs $\Pod_1,\Pod_2$ and outputs a set of parties $\cheaters$
     We remark that \round denotes the round in which \opread{} gives output -- the client may have invoked it at an earlier round.
 \end{definition}
     
-\bd{We can't say in general that \opreadall{} takes only 1 round. Maybe we can rephrase the view definition as  \podView{\client}{\round} being the output of the last \opreadall{} that terminated before round \round? Or if we want to keep the streaming style definition, it is important to clearly define that \opreadall{} is constantly executing and that at every round \round there is necessarily a view \podView{\client}{\round} derived from the messages received by \client at that round.}
-\oa{Check the last sentence I added.}
 
 
 \dotparagraph{Security properties}
@@ -103,6 +101,9 @@ A pod satisfies the following properties.
 
         \item[Correctness of associated values:]
         The numbers $\rmin, \rmax$, and $\rconf$ for a transaction \tx satisfy the following:
+        	\bd{Do we really want to call this temperature? Isn't it clearer if we call this something like timestamp slack or timestamp gap?}
+
+
         \begin{description}[left=20pt]
             \item [Temperature:] For any honest clients $\client_1,\client_2$, if $\client_1$ obtains $\rmin$ and $\rmax$ for \tx
             and $\client_2$ observes \tx as \confirmed with round $\rconf$, then
@@ -142,19 +143,18 @@ A pod satisfies the following properties.
     \begin{description}
         %\item [Accountable equivocation for a single client:]
         %For an honest client \client calling $\opreadall{} \returns (\Pod, \tilde{\Pod})$, if $\tilde\Pod \neq \bot$, then $\identify{\Pod,\tilde\Pod} \rightarrow \cheaters$  outputs a non-empty set $\cheaters$ of replicas who have equivocated.
+       
         
-        \bd{"Accountable equivocation for a single client" is a special case of the two clients case, and is rather a property of the \opreadall{} call, which returns a $\Pod'$ that will be non-empty in case of equivocation against that single client. I'm trying to unify those below.}
-        
-        \item [Accountability for equivocation:]
+        \item [Accountability:]
         If one or more replicas equivocate, then there exist
-        views $\podView{\client_1}{\round_1}$ and $\podView{\client_2}{\round_2}$, for some clients $\client_1,\client_2$ and rounds $\round_1, \round_2$ such that $\identify{\podView{\client_1}{\round_1},\podView{\client_2}{\round_2}} \rightarrow \cheaters$ outputs a non-empty set $\cheaters$ of equivocating replicas.
+        views $\podView{\client_1}{\round_1}$ and $\podView{\client_2}{\round_2}$, for some clients $\client_1,\client_2$ and rounds $\round_1, \round_2$ such that $\identify{\podView{\client_1}{\round_1},\podView{\client_2}{\round_2}} \rightarrow \cheaters$ outputs a non-empty set $\cheaters$ of equivocating replicas. If a safety property is violated, $\cheaters$ contains at least $\beta+1$ replicas who have caused the violation.
         
-        \item [Accountability for safety failures:]
-        If a safety property is violated, then there exist
-        views $\podView{\client_1}{\round_1}$ and $\podView{\client_2}{\round_2}$, for some clients $\client_1$, $\client_2$ and rounds $\round_1, \round_2$ such that $\identify{\podView{\client_1}{\round_1},\podView{\client_2}{\round_2}} \rightarrow \cheaters$ outputs a non-empty set $\cheaters$ containing at least $\beta+1$ replicas who have caused the violation.
-        
-        \bd{Accountability for safety failures is implied by accountability for equivocation for single or two clients.}
-        \wip{Merge them.}
+%        \item [Accountability for safety failures:]
+%        If a safety property is violated, then there exist
+%        views $\podView{\client_1}{\round_1}$ and $\podView{\client_2}{\round_2}$, for some clients $\client_1$, $\client_2$ and rounds $\round_1, \round_2$ such that $\identify{\podView{\client_1}{\round_1},\podView{\client_2}{\round_2}} \rightarrow \cheaters$ outputs a non-empty set $\cheaters$ containing at least $\beta+1$ replicas who have caused the violation.
+%        
+%        \bd{Accountability for safety failures is implied by accountability for equivocation for single or two clients.}
+%        \wip{Merge them.}
         
         \item [Unforgeability:] For any PODs $\Pod_1,\Pod_2$ and $\identify{\Pod_1,\Pod_2} \rightarrow \cheaters$, the set $\cheaters$ does not contain any honest replicas.
 
