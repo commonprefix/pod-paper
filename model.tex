@@ -20,7 +20,7 @@ For simplicity, our analysis will assume \emph{synchronized clocks}, that is, $\
 We use the terms \emph{round} and \emph{timestamp}. Both refer to physical time.
 A \emph{round} refers to the physical time observed locally be a party,
 and a \emph{timestamp} is a round number assigned to an event (such as receiving a transaction).
-\oa{@Bernie take a look, I changed this a bit.}
+
 
 % Without loss of generality, our analysis can be extended to a model with loosely synchronized clocks where two honest parties may have two different round counters $r_1,r_2$ such that $|r_1-r_2|=\delta$ for a finite $\delta$.
 
@@ -46,8 +46,8 @@ a number which is \emph{finite} but \emph{unknown} to all parties.
 We denote by $\Delta$ an upper bound on this delay, i.e., $\delta \in (0, \Delta]$, which is also \emph{finite}.
 In the \emph{synchronous} model, $\Delta$ is \emph{known} to all processes.
 In the \emph{asynchronous} model, $\Delta$ is \emph{unknown} but still finite, i.e., all messages are eventually delivered.
-In both cases, the delivery order of messages may be chosen adversarially.
-\oa{Alternative, using $\delta$ and $\Delta$. I suggest we keep this and formulate all pod proofs using $\delta$.}
+In both cases, the delivery order of messages may be chosen adversarially. Notice that our protocol is \emph{responsive}, meaning that its security guarantees only depend on the actual network delay $\delta$ (for which the upper bound $\Delta$ is known in the synchronous case) and that the protocols do not rely on any knowledge of $\Delta$.
+\oa{Alternative, using $\delta$ and $\Delta$. I suggest we keep this and formulate all pod proofs using $\delta$.} \bd{I think this is a good approach. The protocol is responsive, so its execution will only depend on the current network delay, but it's still interesting to explicitly define an upper bound for that delay. In the synchronous model, this implies a concrete upper bound that can be used by other protocols. In the asynchronous model, we don't know this upper bound but other protocols can parameterize their pod-based protocols in terms of  it.}
 
 \dotparagraph{Modeling communication}
 We assume reliable and authenticated point-to-point links between parties, implemented by a low-level primitive independent to our protocols.
