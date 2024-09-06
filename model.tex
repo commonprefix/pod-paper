@@ -9,7 +9,7 @@ We distinguish two types of parties, $n$ \emph{replicas} $\replicas=\{\replicas_
 Validators run the protocol and clients interact with it using its interface.
 We call a party -- validator or client -- \emph{honest}, if it follows the protocol, and \emph{malicious} otherwise.
 Malicious parties can be Byzantine, that is, deviate arbitrarily from the protocol.
-We denote by $\beta \in [0,n]$ the fraction of malicious validators and
+We denote by $\beta \in [0,n]$ the number of malicious validators and
 by $\alpha \in [0,n]$ the \emph{confirmation threshold}.
 The pod construction will impose limits on \alpha and \beta.
 
@@ -70,6 +70,4 @@ For point-to-point communication, we say that parties \emph{send} and \emph{deli
     \opnext(\state_{\ell}, \req_{\ell}) \returns (\state_{\ell+1}, \nextmsg')$,
 \end{definition}
 
-\oa{Bernie, here is what we discussed in Athens. I will use the definition of \emph{equivocation} in  the  accountability properties of pod.}
 
-\bd{So far it looks good. It seems that we can prove in general that we can detect any equivocation as defined above and keep the parties involved in them accountable. Then we can show that violating safety properties (or at least some of them) necessarily requires equivocation, which implies that breaking those properties is an accountable fault. We can also define accountable safety faults as a separate property, which is implied by our stronger accountable equivocation but could also be realized in a different way by another protocol that doesn't necessarily have accountable equivocation.}

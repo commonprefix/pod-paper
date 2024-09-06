@@ -9,19 +9,18 @@
 % in synchrony for a transaction to reach all validators. For example, $u = 2 \Delta$ using client gossip or relayers.}
 
 
-\bd{Missing a clear definition of $\beta$, and $\alpha$ only appears in the definition of confirmation. Some discussion of  the meaning of $\alpha,\beta$ would be helpful.}
-\oa{They are in \Cref{sec:system}. Should we repeat them?}
+\bd{We are using both validator and replica for the same thing. We need to decide which one to use and stick to that.}
 
 \begin{definition}[Vote] 
-    We call a \emph{vote} a transaction-timestamp pair $(\tx, \tsp)$ signed by a validator.
+    We call a \emph{vote} a transaction-timestamp pair $(\tx, \tsp)$ signed by a replica.
 \end{definition}
 
 \begin{definition}[\Confirmed transaction]\label{def:rec-tx}
-    A transaction becomes \emph{\confirmed} for a client when that client obtains at least $\alpha$ votes on it.
+    A transaction $\tx$ becomes \emph{\confirmed} for a client when that client obtains at least $\alpha$ votes from different replicas on $\tx$, where $\alpha$ is the confirmation threshold.
 \end{definition}
 
 \begin{definition}[Transaction certificate]
-    A \emph{transaction certificate} \txcert is a collection of votes $(\tx, \round_j)$, for $j \in |\txcert|$,
+    A \emph{transaction certificate} \txcert is a collection of votes $(\tx, \round_j)$ from different replicas, for $j \in |\txcert|$,
     from which the values $\rmin, \rmax, \rconf$ associated with \tx can be verified.
     Given a certificate \txcert for \tx, we use $\txcert.\tx$, $\txcert.\rmin$, $\txcert.\rmax$, and $\txcert.\rconf$ to refer to \tx and the rounds associated with it.
     According to \Cref{def:rec-tx}, \tx is \confirmed if and only if $|\txcert| \geq  \alpha$.
@@ -30,18 +29,18 @@
     For example, an $\alpha$-certificate corresponds to a confirmed transaction.
 \end{definition}
 
-\begin{definition}[Validator transaction log]\label{def:rep-log}
-    Validators maintain a \emph{transaction log}, which is a collection of transaction/timestamp pairs.
+\begin{definition}[Replica transaction log]\label{def:rep-log}
+    Replicas maintain a \emph{transaction log}, which is a collection of transaction/timestamp pairs.
 \end{definition}
 
 \begin{remark}[Logs without ommissions]
     In this section we assume that the entries of a transaction log are ordered by the timestamp value
-    and validators send the transaction/timestamp pairs in that order to the clients.
+    and replicas send the transaction/timestamp pairs in that order to the clients.
     We show in \wip{reference} how this can be guaranteed.
 \end{remark}
 
 \begin{remark}
-    The client protocol we show in \Cref{const:pod-core} is \emph{streaming}, that is, clients maintain a connection to the validators and persist their state (received transactions, votes, and associated values) across all invocations of \opwrite{} and \opreadall{}.
+    The client protocol we show in \Cref{const:pod-core} is \emph{streaming}, that is, clients maintain a connection to the replicas and persist their state (received transactions, votes, and associated values) across all invocations of \opwrite{} and \opreadall{}.
 \end{remark}
 
 
