@@ -14,6 +14,9 @@
 % Any client can run the auction by reading the pod, but we assume w.l.o.g. that a client \auc is pre-appointed to be the auctioneer.
 
 \begin{definition}[Censorship-resistant auction protocol]\label{def:auction-framework}
+\oa{We are not providing an auction protocol. Rather, a mechanism for defining the set of bids, on which the auction will be run, with accountable fairness, a publically verifiable set of bids. On top of that you can define an auction mechanism.
+It's a type of common subset: An honest and timely party's contribution gets added to the bag.}
+
     A \emph{censorship-resistant auction protocol} defines how clients and the auctioneer run an existing auction protocol using pod to write and read bids.
     It uses three parameters, the \emph{inclusion deadline} \tone, the \emph{auction start} \ttwo, and the \emph{auction end} \tthree.
     Any client can run the auction by reading the pod, but we assume w.l.o.g. that a client is pre-appointed to be the auctioneer.
@@ -49,9 +52,9 @@
             \item [Accountable auctioneer:]
             If any of the security properties is violated, the auctioneer is accountable.
         \end{description}
-            
     \end{enumerate}
 \end{definition}
+\oa{Plus a front-running protection property?}
 
 
 \subsection{Auction protocol over pod}
