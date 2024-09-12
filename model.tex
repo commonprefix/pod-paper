@@ -1,8 +1,20 @@
-\section{Model}\label{sec:system}
+\section{Notation and model}\label{sec:system}
 
 \dotparagraph{Notation}
 We denote \BN the set of natural numbers including $0$.
-For a list $L$ of length $\ell$ we denote by $L[i]$ the element of $L$ at index $i$, where $i \in \{1, \ldots, \ell\}$.
+Given a sequence $L$, we address it using $L[i]$ to mean the $i^\text{th}$ element (starting from $0$).
+We use $|L|$ to denote the length of $Y$.
+Negative indices address elements from the end, so $L[-i]$ is the $i^\text{th}$ element from
+the end, and $L[-1]$ in particular is the last. We use $L[i{:}j]$ to denote the subarray of $L$
+consisting of the elements indexed from $i$ (inclusive) to $j$ (exclusive). The notation $L[i{:}]$ means the
+subarray of $L$ from $i$ onwards, while $L[{:}j]$ means the subsequence of $L$ up to (but not including) $j$.
+With $[\,]$ we denote an empty sequence.
+The notation $L_1 \concat L_2$ denotes the concatenation of sequences $L_1$ and $L_2$.
+
+% \dotparagraph{Pseudocode notation}
+In pseudocode, notation $x: a \in A \rightarrow b \in B$ denotes that variable $x$ is a map from elements of type $A$ to elements of type $B$, for some types $A$ and $B$. When obvious from the context, we do not explicitly write the types $A$ or $B$.
+For a map $x$, the operations $x.\opKeys$ and $x.\opValues$ return all keys and all values in $x$, respectively.
+With $\emptyset$ we denote an empty map.
 
 \dotparagraph{Parties and failure model}
 We distinguish two types of parties, $n$ \emph{replicas} $\replicas=\{\replicas_1,\ldots,\replicas_n\}$ and an unlimited number of \emph{clients}.
@@ -13,41 +25,23 @@ We denote by $\beta \in [0,n]$ the number of malicious validators and
 by $\alpha \in [0,n]$ the \emph{confirmation threshold}.
 The pod construction will impose limits on \alpha and \beta.
 
+\oa{@BERNIE, @DIO, I changed (once again) the modelling of time and network (because now I need to send a heart-beat on every round, and this is simpler to describe using not-physical time bit rounds)}
 \dotparagraph{Modeling time}
-We assume that parties have clocks allowing them to determine the \emph{physical time}.
+We assume that parties have clocks allowing them to determine the physical time.
 For any two honest parties, their clocks can be at most time $\phi$ apart.
 For simplicity, our analysis will assume \emph{synchronized clocks}, that is, $\phi = 0$.
-We use the terms \emph{round} and \emph{timestamp}. Both refer to physical time.
-A \emph{round} refers to the physical time observed locally be a party,
-and a \emph{timestamp} is a round number assigned to an event (such as receiving a transaction).
-
-
-% Without loss of generality, our analysis can be extended to a model with loosely synchronized clocks where two honest parties may have two different round counters $r_1,r_2$ such that $|r_1-r_2|=\delta$ for a finite $\delta$.
-
-% \dotparagraph{Modeling Time \oa{Version 2}}
-% By \emph{time} and \emph{timestamp} we refer to actual time.
-% Each party keeps a local clock that is used to assign timestamps to transactions and protocol messages as needed.
-% We assume loosely synchronized clocks, such that the local time observed by two honest parties, $t_1,t_2$ satisfies $|r_1-r_2| \leq \delta$ for a finite $\delta$.
-% We remark that this also holds in periods of asynchrony.
-% \oa{Is this a valid assumption? If we keep it, we can get it of all `round' references and use `time' or `timestamp'. It would make our description less likely to get confused with the notion of `round' in other protocols.}
+By \emph{round} we refer to the time unit we use in our analysis for communication delay;
+a round has a certain duration in physical time,
+and parties use their clocks to determine the current round number.
+A \emph{timestamp} is a round number assigned to an event (such as receiving a transaction or sending a protocol message).
 
 \dotparagraph{Modeling network}
-% In the synchronous model, we assume that every message is delivered within a \emph{known} finite delay of $\Delta$ rounds. In the partially synchronous model, we assume that messages are delivered within a known finite delay of $\Delta$ rounds only \emph{after} an unknown but finite period of time called the Global Stabilization Time (GST). Messages sent before the GST may be delivered only $\Delta$ rounds after the GST.
-% We define $\delta \in [1, \Delta]$ as the number of rounds it actually takes to deliver a message between honest parties.
-%We use the notion of a \emph{round}: each transaction gets associated with a specific round. We say the transaction becomes \emph{\confirmed} at that round. \bd{There's a confusion between the definition of a round as a unit of time during which communication takes place and the use of rounds as  timestamps for specific transactions. We also lack a definition of synchronous/semi-synchronous communication.}
-We will present protocols in the \emph{synchronous} and in the \emph{asynchronous} network models. 
-In the former we assume that all messages are delivered within a finite delay $\Delta$, \emph{known} to all processes.
-In the later we assume that $\Delta$ is \emph{unknown} but still finite, i.e., all messages are eventually delivered.
-In both cases, the delivery order of messages may be chosen adversarially.
-
-\dotparagraph{Modeling network}
-We denote by $\delta \in \CN$ the actual delay (measured in units of physical time) it takes to deliver a message between two honest parties,
+We denote by $\delta \in \CN$ the actual delay (measured in number of rounds) it takes to deliver a message between two honest parties,
 a number which is \emph{finite} but \emph{unknown} to all parties.
-We denote by $\Delta$ an upper bound on this delay, i.e., $\delta \in (0, \Delta]$, which is also \emph{finite}.
+We denote by $\Delta$ an upper bound on this delay, i.e., $\delta \in [1, \Delta]$, which is also \emph{finite}.
 In the \emph{synchronous} model, $\Delta$ is \emph{known} to all processes.
 In the \emph{asynchronous} model, $\Delta$ is \emph{unknown} but still finite, i.e., all messages are eventually delivered.
 In both cases, the delivery order of messages may be chosen adversarially. Notice that our protocol is \emph{responsive}, meaning that its security guarantees only depend on the actual network delay $\delta$ (for which the upper bound $\Delta$ is known in the synchronous case) and that the protocols do not rely on any knowledge of $\Delta$.
-\oa{Alternative, using $\delta$ and $\Delta$. I suggest we keep this and formulate all pod proofs using $\delta$.} \bd{I think this is a good approach. The protocol is responsive, so its execution will only depend on the current network delay, but it's still interesting to explicitly define an upper bound for that delay. In the synchronous model, this implies a concrete upper bound that can be used by other protocols. In the asynchronous model, we don't know this upper bound but other protocols can parameterize their pod-based protocols in terms of  it.}
 
 \dotparagraph{Modeling communication}
 We assume reliable and authenticated point-to-point links between parties, implemented by a low-level primitive independent to our protocols.
@@ -55,7 +49,7 @@ For point-to-point communication, we say that parties \emph{send} and \emph{deli
 
 
 \begin{definition}[Next-message function]
-    We define a function $\opnext(\state, \req) \returns (\state', \nextmsg)$. It gets as input \state, the current state  of a validator, and \req, which can be either a client request or a messagee from another validator, and returns $\state'$, the new state of the validator, and \nextmsg, a message to be sent over point-to-poin channel to one or more clients or validators.
+    We define a function $\opnext(\state, \req) \returns (\state', \nextmsg)$. It gets as input \state, the current state  of a validator, and \req, which can be either a client request or a message from another validator, and returns $\state'$, the new state of the validator, and \nextmsg, a message to be sent over point-to-point channel to one or more clients or validators.
 \end{definition}
 
 \begin{definition}[Distributed protocol execution]
