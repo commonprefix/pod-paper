@@ -2,7 +2,7 @@
 Censorship resistance~\cite{DBLP:conf/ccs/KelkarDLJK23,DBLP:conf/nsdi/YangPAKT22,DBLP:journals/corr/abs-2307-10185} is an important feature of decentralized systems,
 missing from many state-of-the-art and even deployed consensus protocols.
 In leader-based protocols the leader arbitrarily selects the transactions to be included in the new block,
-% In a model where at most $f$ of the $n$ validators can be malicious, the adversary can delay honest transactions by $f$ blocks.
+% In a model where at most $f$ of the $n$ replicas can be malicious, the adversary can delay honest transactions by $f$ blocks.
 and so does a block builder in permissionless protocols, such as Bitcoin and Ethereum.
 Multiple solutions have been proposed.
 One approach employs multiple parallel leaders~\cite{DBLP:journals/corr/abs-1906-05552,DBLP:conf/sirocco/AvarikiotiHSVWW23, DBLP:conf/nsdi/YangPAKT22,DBLP:journals/corr/abs-2307-10185,DBLP:conf/ccs/MillerXCSS16,DBLP:conf/eurosys/DanezisKSS22}, which inevitably leads to duplication of transactions in the output of the protocol.
@@ -55,20 +55,20 @@ This is illustrated in \Cref{fig:pod-if}, where the output of the protocol conta
 a `finalized' part and an evolving part. 
 
 Currently, the construction works as follows.
-Clients write a transaction  by sending it to all validators in the system.
+Clients write a transaction  by sending it to all replicas in the system.
 Validators can run the code for Certificate Transparency\footnote{\url{https://certificate.transparency.dev/}} to record transactions with timestamps,
 with the addition of a Merkle Mountain Range (MMR) data structure, which allows light clients to bloom-filter for inclusion efficiently.
-When reading from the system, clients use the mean among the responses from 2/3 of the validators.
+When reading from the system, clients use the mean among the responses from 2/3 of the replicas.
 The past-perfection guarantees can be obtained either by separately running an agreement protocol (with timestamps as input, completely decoupled from the observed transactions),
-or by having the reading client engage in a two-round protocol with the validators.
+or by having the reading client engage in a two-round protocol with the replicas.
 
 \dotparagraph{Scope}
 This proposal includes, but is not limited to, the following items.
 \begin{itemize}[left=0pt,itemindent=0pt]
     \item Make pod work in a semi-permissioned model (proof-of-stake–capable, akin to Tendermint~\cite{DBLP:journals/corr/abs-1807-04938}).
     % Our current design works in a permissioned model (akin to HotStuff, Streamlet, and others).
-    \item Explore ways to introduce rational arguments to the validators.
-    % We provide resilience and some guarantees in the full Byzantine model, assuming an adversary that controls $f < n/3$ validators,
+    \item Explore ways to introduce rational arguments to the replicas.
+    % We provide resilience and some guarantees in the full Byzantine model, assuming an adversary that controls $f < n/3$ replicas,
     \item Explore the idea of providing `flexible', per-client ordering guarantees, based on local beliefs. Similar techniques have been used to resolve the dilemma between dynamically available and safe-under-asynchrony blockchains~\cite{DBLP:conf/sp/NeuTT21}.
     \item Explore mechanisms to bring the rate of timestamp fluctuation down with time,  so that the system converges to full consensus.
     \item Implement and evaluate pod based on an existing codebase, such as Google's Certificate Transparency implementation\footnote{\url{https://github.com/google/certificate-transparency-go}} or FastPay~\cite{DBLP:conf/aft/BaudetDS20}.

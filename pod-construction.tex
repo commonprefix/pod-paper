@@ -1,15 +1,12 @@
 \section{Pod core}\label{sec:pod-core-const}
 % The construction employs the \emph{client gossip} technique. It could be the case that
-% clients perform read operations on the validators and observe that some of them miss some data, such as client transactions.
+% clients perform read operations on the replicas and observe that some of them miss some data, such as client transactions.
 % Client gossip consists in having clients re-broadcast these missing transactions.
 % This technique ensures the client that a round becomes past perfect,
 % hence the client has a finalized view of the system: a transaction that was re-broadcast will
-% eventually reach all honest validators, hence it cannot get removed from the system in the future.
+% eventually reach all honest replicas, hence it cannot get removed from the system in the future.
 % \oa{TODO: Mention that we can use client gossip, gossiping, or relayers to achieve totality. We denote by $u$ the (average) time it takes
-% in synchrony for a transaction to reach all validators. For example, $u = 2 \Delta$ using client gossip or relayers.}
-
-
-\bd{We are using both validator and replica for the same thing. We need to decide which one to use and stick to that.}
+% in synchrony for a transaction to reach all replicas. For example, $u = 2 \Delta$ using client gossip or relayers.}
 
 \begin{definition}[Vote] 
     A \emph{vote} is a tuple $(\tx, \tsp, \sig, \rep)$, where \tx is a transaction, \tsp is a timestamp, \sig is a signature, and  \rep is a replica.
@@ -49,12 +46,12 @@ We assume that all messages between clients and replicas carry a session identif
 \label{alg:client-1}
 \begin{algorithmic}[1]
     \State{\textbf{State:}}
-    \State{$\allreps = \{ \rep_1, \ldots, \rep_n \}$ }       \Comment{\text{The set of all validators}}\label{line:client-state-begin}
+    \State{$\allreps = \{ \rep_1, \ldots, \rep_n \}$ }       \Comment{\text{The set of all replicas}}\label{line:client-state-begin}
     \State{$\pk_1, \ldots, \pk_n$ }       \Comment{\text{The public keys of the replicas}}
-    \State{$\allLts = [ \lts_1, \ldots, \lts_n ] $}   \Comment{The most recent timestamp returned by each validator}
+    \State{$\allLts = [ \lts_1, \ldots, \lts_n ] $}   \Comment{The most recent timestamp returned by each replica}
     \State{\rperf}                                      \Comment{The most recent round deemed perfect by the client}
-    \State{$\tsps: \tx \rightarrow ( \rep \rightarrow \tsp)$}     \Comment{The timestamp received for each transaction from each validator}
-    \State{$\sigs: \tx \rightarrow ( \rep \rightarrow \sig)$}     \Comment{The signature received for each transaction from each validator}
+    \State{$\tsps: \tx \rightarrow ( \rep \rightarrow \tsp)$}     \Comment{The timestamp received for each transaction from each replica}
+    \State{$\sigs: \tx \rightarrow ( \rep \rightarrow \sig)$}     \Comment{The signature received for each transaction from each replica}
     \State{$\transactions: \tx \rightarrow (\rmin, \rmax, \rconf, \txcert) $}                      \Comment{The associated values of each transaction}\label{line:client-state-end}
     %\rmin \in \BN, \rmax \in \BN \cup \{\infty\}, \rconf \in \BN \cup \{\bot\}, \txcert \in \zo^*
     \Statex
@@ -218,15 +215,15 @@ We assume that all messages between clients and replicas carry a session identif
 \end{algorithmic}
 \end{algorithm}
 
-\begin{algorithm}[t]
-\caption{Code for a validator.}
+\begin{algorithm}
+\caption{Code for a replica.}
 \label{alg:pod-core-replica}
 \begin{algorithmic}[1]
     \State{\textbf{State:}}
     \State{\sk}                 \Comment{The secret key of the replica, used for signing}
     \State{$\allClients$ }      \Comment{\text{The set of all connected clients}}
-    \State{$\repLog : \tx \rightarrow (\tsp, \sig)$}             \Comment{\text{The transaction log or the validator}}
-    \State{\opTime{}}           \Comment{\text{A function that returns the wall time of the validator}}
+    \State{$\repLog : \tx \rightarrow (\tsp, \sig)$}             \Comment{\text{The transaction log or the replica}}
+    \State{\opTime{}}           \Comment{\text{A function that returns the wall time of the replica}}
     \State{\sendHeartBeat}      \Comment{Indicates whether to send heartbeat message to clients}
     \Statex
 
@@ -284,7 +281,6 @@ We assume that all messages between clients and replicas carry a session identif
 We present \emph{pod core} in Algorithms~\ref{alg:client-1}--\ref{alg:pod-core-replica}.
 In the following we describe its main points, first of the client construction and then the replica construction.
 \end{construction}
-\wip{Make part of the construction that at least one transaction is sent per round. A heartbeat protocol.}
 
 \dotparagraph{Initialization}
 The state of a client is shown in \Cref{alg:client-1} in lines~\ref{line:client-state-begin}--\ref{line:client-state-end}.
@@ -295,7 +291,7 @@ which is a map from transactions \tx to $(\rmin, \rmax, \rconf, \txcert)$,
 such that $\rmin \in \BN, \rmax \in \BN \cup \{\infty\}, \rconf \in \BN \cup \{\bot\}$, and $\txcert \in \zo^*$,
 initialized to $(0, \infty, \bot, \bot)$ for each \tx.
 The state gets initialized in lines~\ref{line:client-init-start}--\ref{line:client-init-end}.
-At initialization the client also sends a \msgconnect{} message to each validator, which initiates a streaming connection from the validator to the client.
+At initialization the client also sends a \msgconnect{} message to each replica, which initiates a streaming connection from the replica to the client.
 
 \dotparagraph{Receiving votes}
 A client maintains a connection to each replica and receives votes through \msgrecord{$(\tx, \tsp, \sig)$} messages (lines~\ref{line:receive-vote-begin}--\ref{line:receive-vote-end}).
@@ -304,7 +300,7 @@ If valid, the vote is processed by the \opOnReceiveVote{} function, which we sho
 We remark that \opOnReceiveVote{} updates the global state held by the client (in lines \ref{line:client-state-begin}--\ref{line:client-state-end} in \Cref{alg:client-1}).
 
 \dotparagraph{Writing to and reading from pod}
-In order to write a transaction \tx, a client sends a \msgwrite{\tx} message to each validator (lines \ref{line:write-tx-begin}--\ref{line:write-tx-end}).
+In order to write a transaction \tx, a client sends a \msgwrite{\tx} message to each replica (lines \ref{line:write-tx-begin}--\ref{line:write-tx-end}).
 
 As the construction is stateful and streaming, the client state contains at all times the latest view the client has of the pod.
 Hence, the \opreadall{} function (lines~\ref{line:read-begin}--\ref{line:read-end}) only needs to operate on the local state (and not contact the replicas).
@@ -316,7 +312,7 @@ and all received votes as the past-perfection certificate \ppcert.
 We now describe how each received vote $(\tx, \tsp, \sig, \rep_j)$ updates the client's local state (function \opOnReceiveVote{} in \Cref{alg:client-2}).
 The client performs some sanity checks.
 First, \tsp must be equal or larger than $\lts_j$, the most recent timestamp returned by replica $\rep_j$ (\cref{line:old-tsp}).
-Second, the validator must have not previously sent a different timestamp for \tx (\cref{line:dup-tsp}) .
+Second, the replica must have not previously sent a different timestamp for \tx (\cref{line:dup-tsp}) .
 If any of these is not the case, the client ignores this value and $\rep_j$ can be held accountable \wip{This should output a $\Pod'$ that serves as a proof of equivocation}.
 If the checks pass, the client stores \tsp and \sig (lines~\ref{line:rec-tsp}--\ref{line:rec-sig})
 and updates $\lts_j$ with \tsp (\cref{line:upd-mrt}).
@@ -330,7 +326,7 @@ The client finally checks whether \tx can be \confirmed and updates $\rconf$ (li
 of all received votes.
 
 Functions \opMinPossibleTs{} and \opMaxPossibleTs{} are shown in \Cref{alg:client-statistics}.
-The former fills a missing vote from validator $\rep_j$ with $\lts_j$ (\cref{line:fill-vote-lts}),
+The former fills a missing vote from replica $\rep_j$ with $\lts_j$ (\cref{line:fill-vote-lts}),
 the minimum timestamp that can ever be  accepted from $\rep_j$ (smaller values will not pass the check in \cref{line:check-old-ts} of \Cref{alg:client-2}),
 and prepends \beta times the $0$ value (\cref{line:prepend-zero}), pessimistically assuming that up to $\beta$ replicas will try to bias \tx by sending $0$ to other clients as its timestamp.
 The latter fills a missing vote with $\infty$ (\cref{line:fill-vote-inf})
@@ -339,12 +335,12 @@ Finally, \opMinPossibleTsForNewTx{} works similarly to \opMinPossibleTs{}, excep
 considering timestamps \allLts as the minimum possible for any future transaction.
 
 \dotparagraph{Replica code}
-The code for a replica is shown in \Cref{alg:pod-core-replica}. The validator maintains the set of all 
+The code for a replica is shown in \Cref{alg:pod-core-replica}. The replica maintains the set of all 
 connected clients (\cref{line:rep-init-clients}) and the transaction log \repLog (\cref{line:rep-init-log}),
 which is implemented as a map from transactions \tx to tuples $(\tsp, \sig)$, where \tsp is the timestamp assigned by the replica to \tx and \sig is its signature.
 Both are initially empty.
 A functionality \opTime{} allows the replica to determine the current round number from its clock.
-When the validator receives a \msgconnect{} message from a client \client, it appends \client to its set of connected clients and sends to \client all entries in \repLog (lines \ref{line:rep-receive-connect-begin}--\ref{line:rep-receive-connect-end}).
+When the replica receives a \msgconnect{} message from a client \client, it appends \client to its set of connected clients and sends to \client all entries in \repLog (lines \ref{line:rep-receive-connect-begin}--\ref{line:rep-receive-connect-end}).
 
 The replica handles \msgwrite{\tx} messages as follows. It first checks whether it has already seen \tx, in which case the message is ignored. Otherwise, it assigns it a timestamp \tsp using its local round number (\cref{line:rep-assign-tsp}), it signs the pair $(\tx, \tsp)$ (\cref{line:rep-sign}),
 adds it to \repLog, and sends it via a \msgrecord{$(\tx, \tsp, \sig)$} message to all connected clients (\cref{line:send-vote}).
@@ -385,9 +381,9 @@ We first prove some useful intermediate results.
 %     \begin{enumerate}
 %         \item
 %         \item If some transaction $\tx \in \Pod$ is assigned $\rmax \neq \infty$ as the maximum round,
-%         then \Pod contains votes on \tx from at least $n - \lfloor \alpha / 2 \rfloor - 1$ honest validators with a timestamp $\tsp \leq \rmax$.
-%         \item There are at most $\lceil \alpha / 2 \rceil - \beta - 1$ validators for which the most-recent timestamp satisfies  $\lts < \rperf$,
-%         and at least $n - \lceil \alpha / 2 \rceil + \beta + 1$ validators from which a vote with timestamp $\tsp \geq \Pod.\rperf$ is included in \Pod.
+%         then \Pod contains votes on \tx from at least $n - \lfloor \alpha / 2 \rfloor - 1$ honest replicas with a timestamp $\tsp \leq \rmax$.
+%         \item There are at most $\lceil \alpha / 2 \rceil - \beta - 1$ replicas for which the most-recent timestamp satisfies  $\lts < \rperf$,
+%         and at least $n - \lceil \alpha / 2 \rceil + \beta + 1$ replicas from which a vote with timestamp $\tsp \geq \Pod.\rperf$ is included in \Pod.
 %     \end{enumerate}
 % \end{lemma}
 % \begin{proof}
@@ -409,28 +405,28 @@ We now prove, through the following theorems, that \Cref{const:pod-core} satisfi
   \Cref{const:pod-core} satisfies the \emph{confirmation within $\parConf$} property for $\parConf = 2 \Delta$.
 \end{theorem}
 \begin{proof}
-    The honest client will send a message \msgwrite{\tx} to all validators at round \round, hence all honest validators will receive \tx by round $\round + \Delta$.
+    The honest client will send a message \msgwrite{\tx} to all replicas at round \round, hence all honest replicas will receive \tx by round $\round + \Delta$.
     They will send a message \msgwriteresp{\tx, \tsp} back to the client, who will receive it by round $\round + 2\Delta$.
-    There are at least \alpha honest validators, hence the client will be able to create a certificate \txcert and compute a \confirmed round $\rconf \neq \bot$ for \tx.
+    There are at least \alpha honest replicas, hence the client will be able to create a certificate \txcert and compute a \confirmed round $\rconf \neq \bot$ for \tx.
 \end{proof}
 
 \begin{theorem}[Availability after $\parLive$]
     \Cref{const:pod-core} satisfies the \emph{availability after $\parLive$} property for $\parConf = \Delta$.
 \end{theorem}
 \begin{proof}
-    The honest client will send a message \msgwrite{\tx} to all validators at round \round, hence all honest validators will receive \tx by round $\round + \Delta$.
-    When the reading client sends \msgread{} to the validators at any round $\round' \geq \round + \Delta$, the honest validators will respond
+    The honest client will send a message \msgwrite{\tx} to all replicas at round \round, hence all honest replicas will receive \tx by round $\round + \Delta$.
+    When the reading client sends \msgread{} to the replicas at any round $\round' \geq \round + \Delta$, the honest replicas will respond
     with a log that contains \tx, and the reading client will observe \tx as \confirmed.
 \end{proof}
 
 \begin{lemma}\label{lem:rperf-value-of-honest}
     For $\alpha \geq 4 \beta + 1$, if \Cref{const:pod-core} returns \rperf as the past-perfect round,
-    then there exists some honest validator $\rep_j$ wtih most-recent timestamp (MRT) $\lts_j$, such that $\rperf \geq \lts_j$.
+    then there exists some honest replica $\rep_j$ wtih most-recent timestamp (MRT) $\lts_j$, such that $\rperf \geq \lts_j$.
 \end{lemma}
 \begin{proof}
     From \Cref{lem:assign-min-max} we have that \rperf is the ($\lceil \alpha / 2 \rceil - \beta$)-th smallest value in \allLts.
-    If the number of malicious validators is smaller than this, i.e., $\beta < \lceil \alpha / 2 \rceil - \beta$, or, equivalently, $\alpha \geq 4\beta + 1$, then \rperf will be either the MRT of an honest validator,
-    or there will an MRT of an honest validator that is smaller or equal to \rperf.
+    If the number of malicious replicas is smaller than this, i.e., $\beta < \lceil \alpha / 2 \rceil - \beta$, or, equivalently, $\alpha \geq 4\beta + 1$, then \rperf will be either the MRT of an honest replica,
+    or there will an MRT of an honest replica that is smaller or equal to \rperf.
 \end{proof}
 
 \begin{theorem}[Past-perfection within $\parPerf$]
@@ -439,8 +435,8 @@ We now prove, through the following theorems, that \Cref{const:pod-core} satisfi
 \end{theorem}
 \begin{proof}
     Assume client \client has view $\podView{c}{\round}$.
-    From \Cref{lem:rperf-value-of-honest}, we have that $\podView{c}{\round}.\rperf \geq \lts_j$, for some honest validator $\rep_j$,
-    and, since messages from honest validators arrive within at most $\Delta$ rounds, we have that $\lts_j \geq \round - \Delta$.
+    From \Cref{lem:rperf-value-of-honest}, we have that $\podView{c}{\round}.\rperf \geq \lts_j$, for some honest replica $\rep_j$,
+    and, since messages from honest replicas arrive within at most $\Delta$ rounds, we have that $\lts_j \geq \round - \Delta$.
     All together, $\podView{c}{\round}.\rperf \geq \round - \Delta$.
 \end{proof}
 
@@ -461,23 +457,23 @@ We now prove, through the following theorems, that \Cref{const:pod-core} satisfi
 \begin{proof}
     \begin{enumerate}[label=(\arabic*)]
         \item Assume client $\client_1$ computes \rmin and client $\client_2$ computes $\rconf < \rmin$ for \tx.
-        From \Cref{lem:assign-min-max}, the number of validators that have sent to $\client_1$ a timestamp for \tx smaller than \rmin can  be  at most $\lceil \alpha / 2 \rceil - \beta - 1$.
-        Allowing up to \beta validators to equivocate, there can be at most $\lceil \alpha / 2 \rceil - 1$ validators that send $\client_2$  a timestamp smaller than \rmin.
-        However, in order to assign $\rconf < \rmin$ to \tx, client $\client_2$ must have received timestamps smaller than \rmin from at least $\lceil \alpha / 2 \rceil$ validators, a contradiction.
+        From \Cref{lem:assign-min-max}, the number of replicas that have sent to $\client_1$ a timestamp for \tx smaller than \rmin can  be  at most $\lceil \alpha / 2 \rceil - \beta - 1$.
+        Allowing up to \beta replicas to equivocate, there can be at most $\lceil \alpha / 2 \rceil - 1$ replicas that send $\client_2$  a timestamp smaller than \rmin.
+        However, in order to assign $\rconf < \rmin$ to \tx, client $\client_2$ must have received timestamps smaller than \rmin from at least $\lceil \alpha / 2 \rceil$ replicas, a contradiction.
         For \rmax, assume $\client_1$ computes \rmax and $\client_2$ computes $\rconf > \rmax$.
-        From \Cref{lem:assign-min-max}, the number of validators that have sent to  $\client_1$ a timestamp larger than \rmax can be at most $\alpha - \lceil \alpha / 2 \rceil - \beta$,
-        hence at most $\alpha - \lceil \alpha / 2 \rceil$ validators will send such a timestamp to $\client_2$.
+        From \Cref{lem:assign-min-max}, the number of replicas that have sent to  $\client_1$ a timestamp larger than \rmax can be at most $\alpha - \lceil \alpha / 2 \rceil - \beta$,
+        hence at most $\alpha - \lceil \alpha / 2 \rceil$ replicas will send such a timestamp to $\client_2$.
         If \alpha is odd, the $\alpha - \lceil \alpha / 2 \rceil = \lceil \alpha / 2 \rceil - 1$, while $\client_2$ would need at least
         $\ceil{\alpha / 2}$ votes larger that \rmax,
         and if \alpha is even, then $\alpha - \lceil \alpha / 2 \rceil = \lceil \alpha / 2 \rceil$, while $\client_2$ would need at least
         $\ceil{\alpha / 2} + 1$ votes larger that \rmax in order to  
         compute a median larger than \rmax (we remind that \cref{alg:client-statistics}) returns as median the value at position $\ceil{\alpha /  2}$).
 
-        \item From \Cref{lem:assign-min-max}, \rmin is the element at index $\lceil \alpha / 2 \rceil - \beta$ of \txVotesMin. This value can only grow, because, for a missing vote from validator $\rep_j$, it is assigned $\lts_j$ (lines~\ref{line:assing-missing-min-begin}--\ref{line:assing-missing-min-end}),
+        \item From \Cref{lem:assign-min-max}, \rmin is the element at index $\lceil \alpha / 2 \rceil - \beta$ of \txVotesMin. This value can only grow, because, for a missing vote from replica $\rep_j$, it is assigned $\lts_j$ (lines~\ref{line:assing-missing-min-begin}--\ref{line:assing-missing-min-end}),
         and the construction only accepts a timestamp \tsp from $\rep_j$ if
         $\tsp \geq \lts_j$ (\cref{line:check-old-ts}).
         Similarly for \rmax, as the construction fills missing votes in \txVotesMax with $\infty$ (lines~\ref{line:assing-missing-max-begin}--\ref{line:assing-missing-max-end}), which can only become lower when the vote is received.
-        Also note that the construction only considers the first vote from each validator on \tx (\cref{line:dup-tsp}).
+        Also note that the construction only considers the first vote from each replica on \tx (\cref{line:dup-tsp}).
         
         \item \oa{TODO}
     \end{enumerate}
@@ -490,20 +486,20 @@ We now prove, through the following theorems, that \Cref{const:pod-core} satisfi
 \begin{proof}
     Assume there exists a past-perfection certificate \ppcert for some
     past-perfect round $\ppcert.\rperf$.
-    From \Cref{lem:assign-min-max}, there are at most $\lceil \frac{\alpha}{2} \rceil - \beta - 1$ validators $\rep_j$
+    From \Cref{lem:assign-min-max}, there are at most $\lceil \frac{\alpha}{2} \rceil - \beta - 1$ replicas $\rep_j$
     whose most-recent timestamp $\lts_j$ satisfies $\lts_j < \ppcert.\rperf$.
     Assume now there exists a transaction \tx, such that $\tx \not \in \ppcert.\Pod$ and a transaction certificate \txcert for \tx, such that
     $\txcert.\rconf \neq \bot$ and $\txcert.\rconf < \ppcert.\rperf$.
     This implies that \txcert contains at least $\lceil \frac{\alpha}{2} \rceil$ votes with a timestamp $\tsp_j$ such that $\tsp_j < \ppcert.\rperf$,
     because the timestamp has been computed as the median of at least $\lceil \alpha \rceil$ votes.
-    Out of those votes, at least $\lceil \frac{\alpha}{2} \rceil - \beta$ must be from honest validators.
+    Out of those votes, at least $\lceil \frac{\alpha}{2} \rceil - \beta$ must be from honest replicas.
     A vote from them is not in $\ppcert.\tsps$ (since $\tx \not \in \ppcert.\Pod$),
     hence they cannot have assigned \tx a timestamp smaller than $\lts_j$,
     hence they must have assigned  it a timestamp \tsp, such that $\lts_j \leq \tsp < \ppcert.\rperf$.
-    % But an honest validator $\rep_j$ only assigns timestamps equal to or larger than $\lts_j$, hence for these validators it must hold that $\lts_j < \ppcert.\rperf$
+    % But an honest replica $\rep_j$ only assigns timestamps equal to or larger than $\lts_j$, hence for these replicas it must hold that $\lts_j < \ppcert.\rperf$
     % in $\ppcert$, i.e., $\tsp_j \geq \lts_j$.
-    Summarizing, there must exist at least $\lceil \frac{\alpha}{2} \rceil - \beta$ honest validators for whom $\lts_j < \ppcert.\rperf$.
-    This is impossible, because there are most $\lceil \frac{\alpha}{2} \rceil - \beta - 1$ validators with $\lts_j \leq \ppcert.\rperf$,
+    Summarizing, there must exist at least $\lceil \frac{\alpha}{2} \rceil - \beta$ honest replicas for whom $\lts_j < \ppcert.\rperf$.
+    This is impossible, because there are most $\lceil \frac{\alpha}{2} \rceil - \beta - 1$ replicas with $\lts_j \leq \ppcert.\rperf$,
     hence such a \tx cannot exist.
 \end{proof}
 
@@ -531,8 +527,8 @@ We now prove, through the following theorems, that \Cref{const:pod-core} satisfi
 \oa{TODO}
 
 % \begin{proof}
-%     Since $\rperf \geq \txcert.\rconf$, pod \Pod must contain votes with timestamp greater than or equal to \txcert.\rconf from at least \alpha validators (otherwise \rperf is invalid), hence from at least $\alpha - \beta$ honest validators.
-%     Given that $\ttwo \geq \tone + \Delta$, these honest validators will have received $b$ by time \ttwo, and, since honest validators do not omit transactions, the auctioneer will receive votes on $b$ from them.
+%     Since $\rperf \geq \txcert.\rconf$, pod \Pod must contain votes with timestamp greater than or equal to \txcert.\rconf from at least \alpha replicas (otherwise \rperf is invalid), hence from at least $\alpha - \beta$ honest replicas.
+%     Given that $\ttwo \geq \tone + \Delta$, these honest replicas will have received $b$ by time \ttwo, and, since honest replicas do not omit transactions, the auctioneer will receive votes on $b$ from them.
 %     Hence, \Pod will contain at least $\alpha - \beta$ votes on $b$ (otherwise, see bad case 2 below).
 %     However, a bid in pod that contains $\alpha - \beta$ votes is \pend, and an auctioneer will not output such a pod (otherwise, see bad case 1 below).
 %     Hence, \auc will wait until $b$ becomes \confirmed and will include in \Pod all the corresponding votes,
@@ -542,8 +538,8 @@ We now prove, through the following theorems, that \Cref{const:pod-core} satisfi
 % \subsection{Optimizations}
 % \begin{enumerate}
 %     \item Validators with secondaries to handle read operations.
-%     \item Use committees. We can support a weighted model by having validators lock some stake in a slow-moving chain (such as Ethereum) and rotate the committee every, say, 24 hours.
-%     \item We can use `helper' nodes, that know the addresses of all validators, so that clients can use them, instead of having to contact all validators.
+%     \item Use committees. We can support a weighted model by having replicas lock some stake in a slow-moving chain (such as Ethereum) and rotate the committee every, say, 24 hours.
+%     \item We can use `helper' nodes, that know the addresses of all replicas, so that clients can use them, instead of having to contact all replicas.
 % \end{enumerate}    
 
 
@@ -578,7 +574,7 @@ Observe that the \emph{confirmation agreement after \parAgr} property generalize
 
 \begin{remark}[Transaction propagation]
     In order to satisfy the \emph{agreement} and \emph{\pend soundness} properties,
-    the construction requires a transaction propagation mechanism, that ensures that all honest validators see the same set of transactions,
+    the construction requires a transaction propagation mechanism, that ensures that all honest replicas see the same set of transactions,
     even for transactions sent by malicious parties.
     We denote by \tProp the maximum number of rounds it takes for a transaction to be delivered by all replicas.
 \end{remark}
@@ -588,7 +584,7 @@ Observe that the \emph{confirmation agreement after \parAgr} property generalize
     Construction \oa{TODO} satisfies the \emph{agreement after \parAgr} property for $\parAgr = 0$ for transactions written by honest clients and $\parAgr = \tProp$ for transactions written by malicious clients.
 \end{lemma}
 \begin{proof}
-    \oa{Proof sketch: a malicious validator returns \tx only to the first client, making the difference
+    \oa{Proof sketch: a malicious replica returns \tx only to the first client, making the difference
     between being confirmed and not. Using gossip/relaying, after \tProp all honest will have seen \tx, hence the second client also sees it as confirmed. }
 \end{proof}
 

@@ -117,16 +117,16 @@ Assuming $\ttwo \geq \tone + \Delta$ and $\tthree \geq \ttwo + \Delta$, we now p
     % Assume now the auctioneer is malicious and tries to censor \bid.
     \oa{TODO:  extract accountability stuff from this proof. Use  past-perfection safety  of pod.}
     The auctioneer must output a certificate \ppcert, such that $\ppcert.\rperf \geq \ttwo$ (if this not the case, see accountability case 1 below).
-    For this to be the case, the pod \Pod that is output by the auctioneer must contain votes with timestamp greater than or equal to \ttwo from at least \alpha validators (otherwise, bad case 1 below), hence from at least $\alpha - \beta$ honest validators.
-    Given that $\ttwo \geq \tone + \delta$, these honest validators will have received \bid by time \ttwo, and, since honest validators do not omit transactions, the auctioneer will receive votes on \bid from them.
+    For this to be the case, the pod \Pod that is output by the auctioneer must contain votes with timestamp greater than or equal to \ttwo from at least \alpha replicas (otherwise, bad case 1 below), hence from at least $\alpha - \beta$ honest replicas.
+    Given that $\ttwo \geq \tone + \delta$, these honest replicas will have received \bid by time \ttwo, and, since honest replicas do not omit transactions, the auctioneer will receive votes on \bid from them.
     Hence, \Pod will contain at least $\alpha - \beta$ votes on \bid (otherwise, see bad case 2 below).
     However, a bid in pod that contains $\alpha - \beta$ votes is \pend, and an auctioneer will not output such a pod (otherwise, see bad case 1 below).
     Hence, \auc will wait until \bid becomes \confirmed and will include in \Pod all the corresponding votes,
     which means \bid will not be censored.
     
     Bad case 1: if this event happens, then \auc has output a \Pod that does not satisfy the requirements of the construction and \auc is accountable.
-    Bad case 2: if this event happens, then \auc has output a pod \Pod that contains less that $\alpha - \beta$ votes on \bid, i.e., at least $\beta + 1$ signed validator logs, such that each of them contains a vote with timestamp greater or equal than \ttwo, but no vote on \bid. \oa{This cannot happen because there are not that many malicious, but how do we make it accountable?}
-    At least one of those validators is accountable,
+    Bad case 2: if this event happens, then \auc has output a pod \Pod that contains less that $\alpha - \beta$ votes on \bid, i.e., at least $\beta + 1$ signed replica logs, such that each of them contains a vote with timestamp greater or equal than \ttwo, but no vote on \bid. \oa{This cannot happen because there are not that many malicious, but how do we make it accountable?}
+    At least one of those replicas is accountable,
     because the client that submitted \bid possesses a certificate \txcert for \bid with at least $\alpha - \beta$ votes with timestamp less that $\ttwo$. \oa{and so?}
 \end{proof}
 

@@ -1,5 +1,5 @@
 \section{Modelling pod} \label{sec:pod-model}
-A pod protocol allows a set of \emph{clients} to obtain a partially ordered list of transactions from a set of \emph{validators} with censorship-freedom guarantees and accountability for safety violations. 
+A pod protocol allows a set of \emph{clients} to obtain a partially ordered list of transactions from a set of \emph{replicas} with censorship-freedom guarantees and accountability for safety violations. 
 
 \begin{definition}[Transaction and associated values]
     We associate with each transaction $\tx \in \zo^*$ values $(\tx, \rmin, \rmax, \rconf, \txcert)$.
@@ -159,7 +159,7 @@ A pod satisfies the following properties.
 
     \end{description}
         % \item[Fair punishment]
-    % No honest validator gets punished as a result of malicious operation. If $\opidentify{\txcert, \ppcert} \returns P'$, where \txcert is a record certificate for transaction \tx
+    % No honest replica gets punished as a result of malicious operation. If $\opidentify{\txcert, \ppcert} \returns P'$, where \txcert is a record certificate for transaction \tx
     % and $\ppcert$ is a past-perfect certificate for a pod \Pod,
     % can only be created if all parties in $P'$ sign \tx and \Pod. 
 \end{enumerate}

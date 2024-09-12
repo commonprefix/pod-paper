@@ -19,9 +19,9 @@ With $\emptyset$ we denote an empty map.
 \dotparagraph{Parties and failure model}
 We distinguish two types of parties, $n$ \emph{replicas} $\replicas=\{\replicas_1,\ldots,\replicas_n\}$ and an unlimited number of \emph{clients}.
 Validators run the protocol and clients interact with it using its interface.
-We call a party -- validator or client -- \emph{honest}, if it follows the protocol, and \emph{malicious} otherwise.
+We call a party -- replica or client -- \emph{honest}, if it follows the protocol, and \emph{malicious} otherwise.
 Malicious parties can be Byzantine, that is, deviate arbitrarily from the protocol.
-We denote by $\beta \in [0,n]$ the number of malicious validators and
+We denote by $\beta \in [0,n]$ the number of malicious replicas and
 by $\alpha \in [0,n]$ the \emph{confirmation threshold}.
 The pod construction will impose limits on \alpha and \beta.
 
@@ -49,11 +49,11 @@ For point-to-point communication, we say that parties \emph{send} and \emph{deli
 
 
 \begin{definition}[Next-message function]
-    We define a function $\opnext(\state, \req) \returns (\state', \nextmsg)$. It gets as input \state, the current state  of a validator, and \req, which can be either a client request or a message from another validator, and returns $\state'$, the new state of the validator, and \nextmsg, a message to be sent over point-to-point channel to one or more clients or validators.
+    We define a function $\opnext(\state, \req) \returns (\state', \nextmsg)$. It gets as input \state, the current state  of a replica, and \req, which can be either a client request or a message from another replica, and returns $\state'$, the new state of the replica, and \nextmsg, a message to be sent over point-to-point channel to one or more clients or replicas.
 \end{definition}
 
 \begin{definition}[Distributed protocol execution]
-    A validator starts executing a distributed protocol from an initial state $\state_0$, defined by the protocol.
+    A replica starts executing a distributed protocol from an initial state $\state_0$, defined by the protocol.
     The execution proceeds by running the \opnext{} function on every received request.
 \end{definition}
 
