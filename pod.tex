@@ -43,11 +43,6 @@ We say that a client \emph{writes a transaction} \tx when it calls \opwrite{\tx}
 We say that a client \emph{reads the pod} when it calls \opread{}.
 For any $(\tx, \rmin, \rmax, \rconf, \txcert) \in \txSet$ we say that the client \emph{observes} \tx and, if $\rconf \neq \bot$, we say that the client \emph{observes \tx as \confirmed}.
 
-\begin{definition}[Cheater Identification Function]
-A cheater identification function $\identify{\Pod_1,\Pod_2} \rightarrow \cheaters$  
-takes as input two PODs $\Pod_1,\Pod_2$ and outputs a set of parties $\cheaters$ such that $\cheaters \subset \replicas$ such that all parties in $\cheaters$ are equivocating.
-\end{definition}
-
 \begin{definition}[View]
     We call \emph{view of the pod} the pod \Pod in the output of \opreadall{} to client \client at the end of round \round,
     and denote it as \podView{\client}{\round}.

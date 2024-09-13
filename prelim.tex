@@ -23,3 +23,28 @@ For all possible keypairs $(\sk, \pk)$ returned by the key-generation algorithm,
 \emph{correctness} demands that $\opVerify{\pk, m, \opSign{\sk, m}} = 1$, \ewnp.
 \emph{Unforgeability} demands that an adversary, who is given access to an oracle that signs messages of the adversary's choice using \sk,
 cannot, \ewnp, produce a tuple $(m, \sig)$, such that \sig is a valid signature on $m$ with respect to \pk, without calling the oracle on message $m$.
+
+\subsection{Accountable safety}
+
+Inspired by the work of Neu, Tas, and Tse~\cite[Def. 4]{DBLP:conf/fc/NeuTT22}, we define \emph{accountable safety} through an \emph{identification function}.
+
+We define as \emph{transcript} the set of all network messages, related to an execution of a protocol, that have been sent by some party.
+We call a \emph{partial subscript} any subset of a transcript.
+
+\begin{definition}[Cheater identification function]
+    A cheater identification function $\identify{\tran} \rightarrow \cheaters$  
+    takes as input a partial transcript, $\tran$, and outputs a set of parties $\cheaters \subset \replicas$, such that the following conditions hold.
+    \begin{description}
+        \item[Correctness:] If safety is violated, then there exists a partial transcript \tran, such that $\identify{\tran} \rightarrow \cheaters$ and $|\cheaters| > \beta$ and all parties in \cheaters have violated the protocol rules. \oa{This is what we discussed with Dio.}
+        \item[Correctness:] If a set of parties \cheaters violate the protocol rules in an execution, then there exists a partial transcript \tran, such that $\identify{\tran} \rightarrow \cheaters$. \oa{I think we can make it more general, closer to what Bernie suggested.}
+        \item[No-framing:] For all partial transcripts \tran, the output of $\identify{\tran}$ does not contain parties that have followed the protocol rules during the execution.
+    \end{description}
+\end{definition}
+
+\begin{definition}[\beta-Accountable safety]
+    A protocol satisfies \emph{accountable safety} with \emph{resilience} \beta if a cheater identification function exists for that protocol. \oa{I think this should be enough if we keep the \identify{} of Dio.}
+\end{definition}
+
+\begin{definition}[\beta-Accountable safety]
+    A protocol satisfies \emph{accountable safety} with \emph{resilience} \beta if, whenever a safety violation happens, \identify{} outputs a set \cheaters such that $|\cheaters| > \beta$. \oa{This if we use an \identify{} that catches all misbehaviors.}
+\end{definition}

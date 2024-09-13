@@ -38,32 +38,36 @@ We assume that all messages between clients and replicas carry a session identif
 \end{remark}
 
 \begin{remark}
-    The client protocol we show in \Cref{const:pod-core} is \emph{streaming}, that is, clients maintain a connection to the replicas and persist their state (received transactions, votes, and associated values) across all invocations of \opwrite{} and \opreadall{}.
+    The client protocol we show in \Cref{const:pod-core} is \emph{streaming}, that is, clients maintain a connection to the replicas and persist their state (received transactions, votes, and associated values) across all invocations of \opwrite{} an\opreadall{}.
 \end{remark}
 
-\begin{algorithm}[bp]
+\begin{algorithm}[tp]
 \caption{Code for a client, part 1.}
 \label{alg:client-1}
 \begin{algorithmic}[1]
     \State{\textbf{State:}}
     \State{$\allreps = \{ \rep_1, \ldots, \rep_n \}$ }       \Comment{\text{The set of all replicas}}\label{line:client-state-begin}
     \State{$\pk_1, \ldots, \pk_n$ }       \Comment{\text{The public keys of the replicas}}
-    \State{$\allLts = [ \lts_1, \ldots, \lts_n ] $}   \Comment{The most recent timestamp returned by each replica}
-    \State{\rperf}                                      \Comment{The most recent round deemed perfect by the client}
+    % \State{$\allLts = [ \mrt_1, \ldots, \mrt_n ] $}   \Comment{The most recent timestamp returned by each replica}
+    \State{$\mrt : \rep \rightarrow (\tsp, \sig)$}   \Comment{The most recent timestamp returned by each replica}
     \State{$\tsps: \tx \rightarrow ( \rep \rightarrow \tsp)$}     \Comment{The timestamp received for each transaction from each replica}
     \State{$\sigs: \tx \rightarrow ( \rep \rightarrow \sig)$}     \Comment{The signature received for each transaction from each replica}
     \State{$\transactions: \tx \rightarrow (\rmin, \rmax, \rconf, \txcert) $}                      \Comment{The associated values of each transaction}\label{line:client-state-end}
     %\rmin \in \BN, \rmax \in \BN \cup \{\infty\}, \rconf \in \BN \cup \{\bot\}, \txcert \in \zo^*
+    \State{\rperf}                                      \Comment{The most recent round deemed perfect by the client}
     \Statex
 
     \On{event \opInit{$\rep_1, k_1, \ldots, \rep_n, k_n$}} \label{line:client-init-start}
         \Let{\allreps}{\{ \rep_1, \ldots, \rep_n  \} } 
-        \Let{\pk_1, \ldots, \pk_n}{k_1, \ldots, k_n}
-        \Let{ \allLts }{ [ 0, \ldots, 0 ]}
-        \Let{\rperf}{0}
-        \Let{\tsps}{\emptyset}
-        \Let{\sigs}{\emptyset}
-        \Let{\transactions}{\emptyset} \label{line:txs-map-init}
+        \Let{(\pk_1, \ldots, \pk_n)}{(k_1, \ldots, k_n)}
+        % \Let{ \allLts }{ [ 0, \ldots, 0 ]}
+        % \Let{\rperf}{0}
+        \State{\textbf{for all} $\rep \in \allreps: \mrt[\rep_j] \leftarrow 0 $}
+        \State{$\tsps\leftarrow\emptyset ;\; \sigs \leftarrow \emptyset ;\; \transactions\leftarrow\emptyset$} \label{line:txs-map-init}
+        \State{$\rperf\leftarrow 0$}
+        % \Let{\tsps}{\emptyset}
+        % \Let{\sigs}{\emptyset}
+        % \Let{\transactions}{\emptyset}
         \For{$\rep_j \in \allreps$}
             \State{Send \msgconnect{} to $\rep_j$}
         \EndFor
@@ -85,18 +89,21 @@ We assume that all messages between clients and replicas carry a session identif
         \For{$\rep_j \in \allreps$}
             \State{Send \msgwrite{\tx} to $\rep_j$} 
         \EndFor
-        \State{\wip{Should we output something?}}
+        \wip{Should we output something?}
     \EndFunction\label{line:write-tx-end}
     \Statex
 
     \Function{$\opreadall{\tx}$}{} \label{line:read-begin}
         % \Let{\ppcert}{\bigcup_{\tx \in \tsps.\opKeys, \rep \in \tsps[\tx].\opKeys} \tsps[\tx][\rep]}
         \Let{\ppcert}{[ \, ]}
-        \For{$\tx \in \tsps.\opKeys$}
-            \For{$\rep \in \tsps[\tx].\opKeys$}
-                \Let{\operand{vote}}{(\tx, \tsps[\tx][\rep], \sigs[\tx][\rep], \rep)}
-                \Let{\ppcert}{\ppcert \concat [\operand{vote}]}
-            \EndFor
+        % \For{$\tx \in \tsps.\opKeys$}
+        %     \For{$\rep \in \tsps[\tx].\opKeys$}
+        %         \Let{\operand{vote}}{(\tx, \tsps[\tx][\rep], \sigs[\tx][\rep], \rep)}
+        %     \EndFor
+        %         \Let{\ppcert}{\ppcert \concat [\operand{vote}]}
+        % \EndFor
+        \For{$\rep_j \in \allreps$}
+            \Let{\ppcert}{\ppcert \concat \mrt[\rep_j].\sig}
         \EndFor
         \Let{\Pod}{(\transactions, \rperf, \ppcert)}
         \return{ \Pod}
@@ -109,11 +116,11 @@ We assume that all messages between clients and replicas carry a session identif
 \label{alg:client-2}
 \begin{algorithmic}[1]
     \Function{\opOnReceiveVote{$\tx, \tsp, \sigma, \rep_j$}}{}
-        \If{$\tsp < \lts_j$}\label{line:check-old-ts}
+        \If{$\tsp < \mrt[j].\tsp$}\label{line:check-old-ts}
             \return \Comment{accountable fault, $\rep_j$ assigned old timestamp to \tx}\label{line:old-tsp}
             \State{\wip{Create and output \Pod,\Pod' here.}}
         \EndIf
-        \Let{\lts_j}{ts} \label{line:upd-mrt}
+        \Let{\mrt[j]}{(ts, \sig)} \label{line:upd-mrt}
         \Statex
 
         \If{$\tsps[\tx][\rep_j] \neq \bot$ \andl $\tsps[\tx][\rep_j] \neq \tsp$}
@@ -153,11 +160,11 @@ We assume that all messages between clients and replicas carry a session identif
     \Statex
 
     \Function{\opOnReceiveHeartBeat{$\tsp, \sigma, \rep_j$}}{}
-        \If{$\tsp < \lts_j$}
+        \If{$\tsp < \mrt[j].\tsp$}
             \return \Comment{accountable fault, $\rep_j$ sent an old timestamp}
             \State{\wip{Create and output \Pod,\Pod' here.}}
         \EndIf
-        \Let{\lts_j}{ts}
+        \Let{\mrt[j]}{(\tsp, \sig)}
         \Let{\tsps[\heartBeat][\rep_j]}{\tsp}
         \Let{\sigs[\heartBeat][\rep_j]}{\sig}
     \EndFunction
@@ -175,7 +182,7 @@ We assume that all messages between clients and replicas carry a session identif
             \If{$\tsps[\tx][\rep_j] \neq \bot$}
                 \Let{\txVotesMin}{\txVotesMin \concat [\tsps[\tx][\rep_j]]}
             \Else
-                \Let{\txVotesMin}{\txVotesMin \concat [\lts_j]} \label{line:fill-vote-lts}
+                \Let{\txVotesMin}{\txVotesMin \concat [\mrt_j]} \label{line:fill-vote-lts}
             \EndIf
         \EndFor\label{line:assing-missing-min-end}
         \State{\text{sort \txVotesMin in increasing order}}
@@ -214,7 +221,7 @@ We assume that all messages between clients and replicas carry a session identif
 \end{algorithmic}
 \end{algorithm}
 
-\begin{algorithm}
+\begin{algorithm}[t]
 \caption{Code for a replica.}
 \label{alg:pod-core-replica}
 \begin{algorithmic}[1]
@@ -223,13 +230,11 @@ We assume that all messages between clients and replicas carry a session identif
     \State{$\allClients$ }      \Comment{\text{The set of all connected clients}}
     \State{$\repLog : \tx \rightarrow (\tsp, \sig)$}             \Comment{\text{The transaction log or the replica}}
     \State{\opTime{}}           \Comment{\text{A function that returns the wall time of the replica}}
-    \State{\sendHeartBeat}      \Comment{Indicates whether to send heartbeat message to clients}
     \Statex
 
     \On{event \opInit{}}
         \Let{\allClients}{\emptyset}    \label{line:rep-init-clients}
         \Let{\repLog}{[ \, ]}           \label{line:rep-init-log}
-        \Let{\sendHeartBeat}{\true}
     \EndOn
     \Statex
 
@@ -247,7 +252,6 @@ We assume that all messages between clients and replicas carry a session identif
             \return \Comment{Ignore duplicate transactions}
         \EndIf
         \State{\opSendVote{\tx}}
-        \Let{\sendHeartBeat}{\false}\label{line:rep-hearbeat-false}
     \EndOn\label{line:rep-receive-write-end}
     \Statex
 
@@ -261,17 +265,9 @@ We assume that all messages between clients and replicas carry a session identif
     \EndFunction
     \Statex
 
-    \On{begin round}                    \Comment{Executed at the beginning of each round}
-        \Let{\sendHeartBeat}{\true}\label{line:rep-hearbeat-true}
-    \EndOn
-    \Statex
-
-    \On{end round}                      \Comment{Executed at the end of each round}
-        \If{\sendHeartBeat}
-            \State{\opSendVote{\heartBeat}} \label{line:rep-send-heartbeat}
-        \EndIf
-    \EndOn
-    \Statex
+    \On{end round} \label{line:rep-send-heartbeat-begin}                      \Comment{Executed at the end of each round}
+        \State{\opSendVote{\heartBeat}} 
+    \EndOn\label{line:rep-send-heartbeat-end}
 \end{algorithmic}
 \end{algorithm}
 
@@ -280,6 +276,7 @@ We assume that all messages between clients and replicas carry a session identif
 We present \emph{pod core} in Algorithms~\ref{alg:client-1}--\ref{alg:pod-core-replica}.
 In the following we describe its main points, first of the client construction and then the replica construction.
 \end{construction}
+\wip{Change $\mrt_j$ to $\mrt[j]$. If you keep the $\mrt[j]$ notation, then mention it in the notation and do the same for \tsps and \sigs.}
 
 \dotparagraph{Initialization}
 The state of a client is shown in \Cref{alg:client-1} in lines~\ref{line:client-state-begin}--\ref{line:client-state-end}.
@@ -310,11 +307,11 @@ and all received votes as the past-perfection certificate \ppcert.
 \dotparagraph{Handling votes}
 We now describe how each received vote $(\tx, \tsp, \sig, \rep_j)$ updates the client's local state (function \opOnReceiveVote{} in \Cref{alg:client-2}).
 The client performs some sanity checks.
-First, \tsp must be equal or larger than $\lts_j$, the most recent timestamp returned by replica $\rep_j$ (\cref{line:old-tsp}).
+First, \tsp must be equal or larger than $\mrt_j$, the most recent timestamp returned by replica $\rep_j$ (\cref{line:old-tsp}).
 Second, the replica must have not previously sent a different timestamp for \tx (\cref{line:dup-tsp}) .
 If any of these is not the case, the client ignores this value and $\rep_j$ can be held accountable \wip{This should output a $\Pod'$ that serves as a proof of equivocation}.
 If the checks pass, the client stores \tsp and \sig (lines~\ref{line:rec-tsp}--\ref{line:rec-sig})
-and updates $\lts_j$ with \tsp (\cref{line:upd-mrt}).
+and updates $\mrt_j$ with \tsp (\cref{line:upd-mrt}).
 
 The client then updates the values \rmin (\cref{line:upd-rmin-begin}) and
 \rmax (\cref{line:upd-rmax-begin})
@@ -325,7 +322,7 @@ The client finally checks whether \tx can be \confirmed and updates $\rconf$ (li
 of all received votes.
 
 Functions \opMinPossibleTs{} and \opMaxPossibleTs{} are shown in \Cref{alg:client-statistics}.
-The former fills a missing vote from replica $\rep_j$ with $\lts_j$ (\cref{line:fill-vote-lts}),
+The former fills a missing vote from replica $\rep_j$ with $\mrt_j$ (\cref{line:fill-vote-lts}),
 the minimum timestamp that can ever be  accepted from $\rep_j$ (smaller values will not pass the check in \cref{line:check-old-ts} of \Cref{alg:client-2}),
 and prepends \beta times the $0$ value (\cref{line:prepend-zero}), pessimistically assuming that up to $\beta$ replicas will try to bias \tx by sending $0$ to other clients as its timestamp.
 The latter fills a missing vote with $\infty$ (\cref{line:fill-vote-inf})
@@ -345,9 +342,17 @@ The replica handles \msgwrite{\tx} messages as follows. It first checks whether 
 adds it to \repLog, and sends it via a \msgrecord{$(\tx, \tsp, \sig)$} message to all connected clients (\cref{line:send-vote}).
 
 \dotparagraph{Heartbeat messages}
-In this construction, the client updates the most-recent timestamp it has received from a replica every time it receives a vote from that replica. 
-The heartbeat is a dummy transaction sent by a replica on rounds for which it sent no real transaction was sent to the client,
-with the purpose of keepintg$\lts_j$ up-to-date.\wip{Fill}
+Clients updates their most-recent timestamp $ \mrt_j$ every time they receive a vote from replica $\rep_j$.
+In case $\rep_j$ has not written any transaction in round \round (simply because no client called \opwrite{} in round \round),
+$\rep_j$ will advance its round number, but clients will not advance $\mrt_j$.
+We use \heartBeat as a dummy transaction, on which replicas send a vote at the end of each round (lines~\ref{line:rep-send-heartbeat-begin}--\ref{line:rep-send-heartbeat-end}),
+with the sole purpose of keeping $\mrt_j$ up-to-date.
+An obvious practical implementation is to send \heartBeat only for rounds when no other transactions were sent.
+
+When a client receives a \heartBeat vote from $\rep_j$ (\cref{line:receive-vote-begin}), it verifies the signature from $\rep_j$ and calls
+\opOnReceiveHeartBeat{}, shown in \Cref{alg:client-2}.
+This function is similar to \opOnReceiveVote{}, except that it does not check for duplicate votes and does not update any associated values for the heartbeat transaction.
+
 
 \begin{definition}[Identification function]
     \opidentify{$\pod, \tilde{\Pod}$} \returns $P' \subset P$ 
@@ -381,7 +386,7 @@ We first prove some useful intermediate results.
 %         \item
 %         \item If some transaction $\tx \in \Pod$ is assigned $\rmax \neq \infty$ as the maximum round,
 %         then \Pod contains votes on \tx from at least $n - \lfloor \alpha / 2 \rfloor - 1$ honest replicas with a timestamp $\tsp \leq \rmax$.
-%         \item There are at most $\lceil \alpha / 2 \rceil - \beta - 1$ replicas for which the most-recent timestamp satisfies  $\lts < \rperf$,
+%         \item There are at most $\lceil \alpha / 2 \rceil - \beta - 1$ replicas for which the most-recent timestamp satisfies  $\mrt < \rperf$,
 %         and at least $n - \lceil \alpha / 2 \rceil + \beta + 1$ replicas from which a vote with timestamp $\tsp \geq \Pod.\rperf$ is included in \Pod.
 %     \end{enumerate}
 % \end{lemma}
@@ -420,7 +425,7 @@ We now prove, through the following theorems, that \Cref{const:pod-core} satisfi
 
 \begin{lemma}\label{lem:rperf-value-of-honest}
     For $\alpha \geq 4 \beta + 1$, if \Cref{const:pod-core} returns \rperf as the past-perfect round,
-    then there exists some honest replica $\rep_j$ wtih most-recent timestamp (MRT) $\lts_j$, such that $\rperf \geq \lts_j$.
+    then there exists some honest replica $\rep_j$ wtih most-recent timestamp (MRT) $\mrt_j$, such that $\rperf \geq \mrt_j$.
 \end{lemma}
 \begin{proof}
     From \Cref{lem:assign-min-max} we have that \rperf is the ($\lceil \alpha / 2 \rceil - \beta$)-th smallest value in \allLts.
@@ -434,8 +439,8 @@ We now prove, through the following theorems, that \Cref{const:pod-core} satisfi
 \end{theorem}
 \begin{proof}
     Assume client \client has view $\podView{c}{\round}$.
-    From \Cref{lem:rperf-value-of-honest}, we have that $\podView{c}{\round}.\rperf \geq \lts_j$, for some honest replica $\rep_j$,
-    and, since messages from honest replicas arrive within at most $\Delta$ rounds, we have that $\lts_j \geq \round - \Delta$.
+    From \Cref{lem:rperf-value-of-honest}, we have that $\podView{c}{\round}.\rperf \geq \mrt_j$, for some honest replica $\rep_j$,
+    and, since messages from honest replicas arrive within at most $\Delta$ rounds, we have that $\mrt_j \geq \round - \Delta$.
     All together, $\podView{c}{\round}.\rperf \geq \round - \Delta$.
 \end{proof}
 
@@ -468,9 +473,9 @@ We now prove, through the following theorems, that \Cref{const:pod-core} satisfi
         $\ceil{\alpha / 2} + 1$ votes larger that \rmax in order to  
         compute a median larger than \rmax (we remind that \cref{alg:client-statistics}) returns as median the value at position $\ceil{\alpha /  2}$).
 
-        \item From \Cref{lem:assign-min-max}, \rmin is the element at index $\lceil \alpha / 2 \rceil - \beta$ of \txVotesMin. This value can only grow, because, for a missing vote from replica $\rep_j$, it is assigned $\lts_j$ (lines~\ref{line:assing-missing-min-begin}--\ref{line:assing-missing-min-end}),
+        \item From \Cref{lem:assign-min-max}, \rmin is the element at index $\lceil \alpha / 2 \rceil - \beta$ of \txVotesMin. This value can only grow, because, for a missing vote from replica $\rep_j$, it is assigned $\mrt_j$ (lines~\ref{line:assing-missing-min-begin}--\ref{line:assing-missing-min-end}),
         and the construction only accepts a timestamp \tsp from $\rep_j$ if
-        $\tsp \geq \lts_j$ (\cref{line:check-old-ts}).
+        $\tsp \geq \mrt_j$ (\cref{line:check-old-ts}).
         Similarly for \rmax, as the construction fills missing votes in \txVotesMax with $\infty$ (lines~\ref{line:assing-missing-max-begin}--\ref{line:assing-missing-max-end}), which can only become lower when the vote is received.
         Also note that the construction only considers the first vote from each replica on \tx (\cref{line:dup-tsp}).
         
@@ -486,19 +491,19 @@ We now prove, through the following theorems, that \Cref{const:pod-core} satisfi
     Assume there exists a past-perfection certificate \ppcert for some
     past-perfect round $\ppcert.\rperf$.
     From \Cref{lem:assign-min-max}, there are at most $\lceil \frac{\alpha}{2} \rceil - \beta - 1$ replicas $\rep_j$
-    whose most-recent timestamp $\lts_j$ satisfies $\lts_j < \ppcert.\rperf$.
+    whose most-recent timestamp $\mrt_j$ satisfies $\mrt_j < \ppcert.\rperf$.
     Assume now there exists a transaction \tx, such that $\tx \not \in \ppcert.\Pod$ and a transaction certificate \txcert for \tx, such that
     $\txcert.\rconf \neq \bot$ and $\txcert.\rconf < \ppcert.\rperf$.
     This implies that \txcert contains at least $\lceil \frac{\alpha}{2} \rceil$ votes with a timestamp $\tsp_j$ such that $\tsp_j < \ppcert.\rperf$,
     because the timestamp has been computed as the median of at least $\lceil \alpha \rceil$ votes.
     Out of those votes, at least $\lceil \frac{\alpha}{2} \rceil - \beta$ must be from honest replicas.
     A vote from them is not in $\ppcert.\tsps$ (since $\tx \not \in \ppcert.\Pod$),
-    hence they cannot have assigned \tx a timestamp smaller than $\lts_j$,
-    hence they must have assigned  it a timestamp \tsp, such that $\lts_j \leq \tsp < \ppcert.\rperf$.
-    % But an honest replica $\rep_j$ only assigns timestamps equal to or larger than $\lts_j$, hence for these replicas it must hold that $\lts_j < \ppcert.\rperf$
-    % in $\ppcert$, i.e., $\tsp_j \geq \lts_j$.
-    Summarizing, there must exist at least $\lceil \frac{\alpha}{2} \rceil - \beta$ honest replicas for whom $\lts_j < \ppcert.\rperf$.
-    This is impossible, because there are most $\lceil \frac{\alpha}{2} \rceil - \beta - 1$ replicas with $\lts_j \leq \ppcert.\rperf$,
+    hence they cannot have assigned \tx a timestamp smaller than $\mrt_j$,
+    hence they must have assigned  it a timestamp \tsp, such that $\mrt_j \leq \tsp < \ppcert.\rperf$.
+    % But an honest replica $\rep_j$ only assigns timestamps equal to or larger than $\mrt_j$, hence for these replicas it must hold that $\mrt_j < \ppcert.\rperf$
+    % in $\ppcert$, i.e., $\tsp_j \geq \mrt_j$.
+    Summarizing, there must exist at least $\lceil \frac{\alpha}{2} \rceil - \beta$ honest replicas for whom $\mrt_j < \ppcert.\rperf$.
+    This is impossible, because there are most $\lceil \frac{\alpha}{2} \rceil - \beta - 1$ replicas with $\mrt_j \leq \ppcert.\rperf$,
     hence such a \tx cannot exist.
 \end{proof}
 

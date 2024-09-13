@@ -72,7 +72,7 @@
 \newcommand{\opretrieve}[1]{\op{retrieve(#1)}\xspace}
 \newcommand{\opOnReceiveVote}[1]{\op{handleVote(#1)}\xspace}
 \newcommand{\opOnReceiveHeartBeat}[1]{\op{handleHeartBeat(#1)}\xspace}
-\newcommand{\opSendVote}[1]{\op{createAndSendVote(#1)}\xspace}
+\newcommand{\opSendVote}[1]{\op{doVote(#1)}\xspace}
 \newcommand{\opMinPossibleTs}[1]{\op{minPossibleTs(#1)}\xspace}
 \newcommand{\opMaxPossibleTs}[1]{\op{maxPossibleTs(#1)}\xspace}
 \newcommand{\opMinPossibleTsForNewTx}[1]{\op{minPossibleTsForNewTx(#1)}\xspace}
@@ -110,7 +110,7 @@
 \newcommand{\allreps}{\CR}
 \newcommand{\allLts}{\ensuremath{L}\xspace}
 \newcommand{\allClients}{\CC}
-\newcommand{\lts}{\operand{mrt}\xspace}
+\newcommand{\mrt}{\operand{mrt}\xspace}
 \newcommand{\repLog}{\operand{replicaLog}\xspace}
 \newcommand{\sendHeartBeat}{\operand{sendHeartBeat}\xspace}
 \newcommand{\transactions}{\operand{txs}\xspace}
@@ -132,7 +132,7 @@
 
 \newcommand{\replicas}{\ensuremath{R}\xspace}
 \newcommand{\cheaters}{\ensuremath{\tilde{\replicas}}\xspace}
-\newcommand{\identify}[1]{\ensuremath{\mathsf{Identify}[#1]}\xspace}
+\newcommand{\identify}[1]{\ensuremath{\mathsf{Identify}(#1)}\xspace}
 
 
 \newcommand{\user}{\operand{user}\xspace}
@@ -151,6 +151,7 @@
 \newcommand{\Pod}{\ensuremath{D}\xspace}
 \newcommand{\limbo}{\ensuremath{L}\xspace}
 \newcommand{\podView}[2]{\ensuremath{\Pod_{#2}^{#1}}\xspace}
+\newcommand{\tran}{\ensuremath{T}\xspace}
 
 \newcommand{\returns}{\ensuremath{\rightarrow}\xspace}
 \newcommand{\dotparagraph}[1]{\paragraph*{#1.}}
