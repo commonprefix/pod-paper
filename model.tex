@@ -23,25 +23,25 @@ We call a party -- replica or client -- \emph{honest}, if it follows the protoco
 Malicious parties can be Byzantine, that is, deviate arbitrarily from the protocol.
 We denote by $\beta \in [0,n]$ the number of malicious replicas and
 by $\alpha \in [0,n]$ the \emph{confirmation threshold}.
-The pod construction will impose limits on \alpha and \beta.
+% The pod construction will impose limits on \alpha and \beta.
 
-\oa{@BERNIE, @DIO, I changed (once again) the modelling of time and network (because now I need to send a heart-beat on every round, and this is simpler to describe using not-physical time bit rounds)}
+
 \dotparagraph{Modeling time}
-We assume that parties have clocks allowing them to determine the physical time.
-For any two honest parties, their clocks can be at most time $\phi$ apart.
-For simplicity, our analysis will assume \emph{synchronized clocks}, that is, $\phi = 0$.
-By \emph{round} we refer to the time unit we use in our analysis for communication delay;
-a round has a certain duration in physical time,
-and parties use their clocks to determine the current round number.
+% We assume that parties have clocks allowing them to determine the physical time.
+% For any two honest parties, their clocks can be at most time $\phi$ apart.
+% For simplicity, our analysis will assume \emph{synchronized clocks}, that is, $\phi = 0$.
+Time proceeds in discrete \emph{rounds}.
+We assume that parties have clocks allowing them to determine the current round.
 A \emph{timestamp} is a round number assigned to an event (such as receiving a transaction or sending a protocol message).
 
 \dotparagraph{Modeling network}
 We denote by $\delta \in \CN$ the actual delay (measured in number of rounds) it takes to deliver a message between two honest parties,
 a number which is \emph{finite} but \emph{unknown} to all parties.
-We denote by $\Delta$ an upper bound on this delay, i.e., $\delta \in [1, \Delta]$, which is also \emph{finite}.
+We denote by $\Delta \in \CN$ an upper bound on this delay, i.e., $\delta \leq \Delta$, which is also \emph{finite}.
+In this work we present a general protocol, which we then analyze in the \emph{synchronous} and in the \emph{asynchronous} models, providing different guarantees in each world.
 In the \emph{synchronous} model, $\Delta$ is \emph{known} to all processes.
 In the \emph{asynchronous} model, $\Delta$ is \emph{unknown} but still finite, i.e., all messages are eventually delivered.
-In both cases, the delivery order of messages may be chosen adversarially. Notice that our protocol is \emph{responsive}, meaning that its security guarantees only depend on the actual network delay $\delta$ (for which the upper bound $\Delta$ is known in the synchronous case) and that the protocols do not rely on any knowledge of $\Delta$.
+In both cases, the delivery order of messages may be chosen adversarially. Notice that our protocol is \emph{responsive}, meaning that its liveness guarantees only depend on the actual network delay $\delta$ and the protocols do not rely on knowledge of $\Delta$.
 
 \dotparagraph{Modeling communication}
 We assume reliable and authenticated point-to-point links between parties, implemented by a low-level primitive independent to our protocols.
@@ -50,6 +50,7 @@ For point-to-point communication, we say that parties \emph{send} and \emph{deli
 
 \begin{definition}[Next-message function]
     We define a function $\opnext(\state, \req) \returns (\state', \nextmsg)$. It gets as input \state, the current state  of a replica, and \req, which can be either a client request or a message from another replica, and returns $\state'$, the new state of the replica, and \nextmsg, a message to be sent over point-to-point channel to one or more clients or replicas.
+    \oa{Problems we discovered with Dio: We need to give random tape as input to \opnext. We need to handle cases where missbehaviour is not identifiable by this function (because it is computationally hard to prove that no such sequence exists).}
 \end{definition}
 
 \begin{definition}[Distributed protocol execution]
@@ -58,7 +59,7 @@ For point-to-point communication, we say that parties \emph{send} and \emph{deli
 \end{definition}
 
 \begin{definition}[Equivocation]\sloppy
-    A party is \emph{equivocating} when it sends two messages \nextmsg, $\nextmsg'$, for which there exists no sequence of $\ell \geq 2$ states $\state_1, \ldots, \state_\ell$ and $\ell$ client requests $\req_1, \ldots, \req_{\ell}$, such that
+    A party is \emph{equivocating} when it sends two messages \nextmsg, $\nextmsg'$, for which there exists no sequence of $\ell \geq 2$ states $\state_0, \ldots, \state_{\ell - 1}$ and $\ell$ client requests $\req_1, \ldots, \req_{\ell}$, such that
     $\opnext(\state_1, \req_1) \returns (\state_2, \nextmsg),
     \ldots,
     \opnext(\state_{\ell}, \req_{\ell}) \returns (\state_{\ell+1}, \nextmsg')$,

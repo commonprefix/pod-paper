@@ -77,7 +77,6 @@ We assume that all messages between clients and replicas carry a session identif
             \Else
                 \State{\opOnReceiveVote{$\tx, \tsp, \sig, \rep_j$}}
             \EndIf
-            \Statex
         \EndIf
     \EndOn\label{line:receive-vote-end}
     \Statex
@@ -117,7 +116,7 @@ We assume that all messages between clients and replicas carry a session identif
         \Let{\lts_j}{ts} \label{line:upd-mrt}
         \Statex
 
-        \If{$\tsps[\tx][\rep_j] \neq \bot$ \andl $\tsps[\tx][\rep_j] = \tsp'$ \andl $\tsp \neq \tsp'$}
+        \If{$\tsps[\tx][\rep_j] \neq \bot$ \andl $\tsps[\tx][\rep_j] \neq \tsp$}
         \return \Comment{accountable fault, $\rep_j$ has sent different timestamp}\label{line:dup-tsp}
         \State{\wip{Create and output \Pod,\Pod' here.}}
         \EndIf

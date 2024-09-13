@@ -19,7 +19,8 @@ A pod protocol allows a set of \emph{clients} to obtain a partially ordered list
     A \emph{pod} $\Pod$ is a triple $(\txSet, \rperf, \ppcert)$, where \txSet is a finite sequence of entries $(\tx, \rmin, \rmax, \rconf, \txcert)$, that is, transactions and associated values, \rperf is a round number, called the \emph{past-perfect round},
     and $\ppcert \in \zo^*$ is a \emph{past-perfection certificate} \ppcert that proves the correctness of the \Pod.
 \end{definition}
-We remark that a transaction \tx in \txSet, with corresponding entry $(\tx, \rmin, \rmax, \rconf, \txcert)$, may be \emph{\confirmed}, in which case we have $\rconf \neq \bot$, or unconfirmed, with $\rconf = \bot$. Looking forward, our construction will allow for deriving $\ppcert$ from $\txcert \in \txSet$, but we define $\ppcert$ explicitly for clarity and generality.
+We remark that a transaction \tx in \txSet, with corresponding entry $(\tx, \rmin, \rmax, \rconf, \txcert)$, may be \emph{\confirmed}, in which case we have $\rconf \neq \bot$, or unconfirmed, with $\rconf = \bot$.
+Looking ahead, our construction will allow for deriving $\ppcert$ from the certificates $\txcert$ in $\txSet$, but we define $\ppcert$ explicitly for clarity and generality.
 
 \begin{definition}[Past-perfect round]
     Given a set of transactions \txSet, a round \rperf is \emph{past-perfect} if,
