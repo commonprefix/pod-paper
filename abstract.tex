@@ -1,3 +1,16 @@
-% \begin{abstract}
-%   In this paper we propose a theory of everything...
-% \end{abstract}
+\begin{abstract}
+    The fact that payments can be done in a distributed system without consensus has been recognized in the last years, and it has affected the design of several new blockchain networks.
+    The core idea is that the so-called double-spending problem can be solved without agreeing in a total order for all transactions in the system. Instead, it is enough if the transactions of each user are totally-ordered.
+
+    In this paper we observe that for some applications not even that property is required.
+    The most common example is running auctions on top of a distributed system: at a prespecified \emph{deadline}, an auctioneer reads the bids from the system, runs the auction protocol, and announces the auction winner.
+    Indeed, the bids of each user need not be ordered.
+    What is instead required is that the auctioneer can not censor bids that have been written to the system.
+    More specifically, honest bidders must be able to publicly prove that their bid was written in the system \emph{before} the deadline.
+
+    We present \emph{pod}, a distributed protocol that achieves \emph{partial ordering} among transactions and \emph{past-perfection} guarantees.
+    Partial ordering means stems from the fact that each transaction written to the system is assigned a non-fixed \emph{timestamp} and an interval in which this timestamp may wiggle. Hence, transactions written sufficiently far from each other are ordered, while some transactions may appear forever as concurrent.
+    Perfect view means that a party that reads the system is guaranteed to see all transactions written to the system by a specific time, called the \emph{past-perfect round}. What is more, the reading party cannot deny having seen all transactions up to the past-perfect round.
+
+    \oa{Mention efficiency and that replicas do not  communicate with each other.}
+\end{abstract}
