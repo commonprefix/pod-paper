@@ -12,5 +12,5 @@
     Partial ordering means stems from the fact that each transaction written to the system is assigned a non-fixed \emph{timestamp} and an interval in which this timestamp may wiggle. Hence, transactions written sufficiently far from each other are ordered, while some transactions may appear forever as concurrent.
     Perfect view means that a party that reads the system is guaranteed to see all transactions written to the system by a specific time, called the \emph{past-perfect round}. What is more, the reading party cannot deny having seen all transactions up to the past-perfect round.
 
-    \oa{Mention efficiency and that replicas do not  communicate with each other.}
+    The efficiency gain that results from this simple observation is tremendous. Replicas in pod.
 \end{abstract}

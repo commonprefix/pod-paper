@@ -41,6 +41,12 @@ We assume that all messages between clients and replicas carry a session identif
     The client protocol we show in \Cref{const:pod-core} is \emph{streaming}, that is, clients maintain a connection to the replicas and persist their state (received transactions, votes, and associated values) across all invocations of \opwrite{} an\opreadall{}.
 \end{remark}
 
+\dotparagraph{Pseudocode notation}
+For a timestamp \tsp, notation $\tsp.\vote$ denotes the vote message from some replica through which a client obtained timestamp \ts. We abstract away the logic of how $\vote$ is implemented.
+Notation $x: a \in A \rightarrow b \in B$ denotes that variable $x$ is a map from elements of type $A$ to elements of type $B$, for some types $A$ and $B$. When obvious from the context, we do not explicitly write the types $A$ or $B$.
+For a map $x$, the operations $x.\opKeys$ and $x.\opValues$ return all keys and all values in $x$, respectively.
+With $\emptyset$ we denote an empty map.
+
 \begin{algorithm}[tp]
 \caption{Code for a client, part 1.}
 \label{alg:client-1}
@@ -49,9 +55,9 @@ We assume that all messages between clients and replicas carry a session identif
     \State{$\allreps = \{ \rep_1, \ldots, \rep_n \}$ }       \Comment{\text{The set of all replicas}}\label{line:client-state-begin}
     \State{$\pk_1, \ldots, \pk_n$ }       \Comment{\text{The public keys of the replicas}}
     % \State{$\allLts = [ \mrt_1, \ldots, \mrt_n ] $}   \Comment{The most recent timestamp returned by each replica}
-    \State{$\mrt : \rep \rightarrow (\tsp, \sig)$}   \Comment{The most recent timestamp returned by each replica}
+    \State{$\mrt : \rep \rightarrow \tsp$}   \Comment{The most recent timestamp returned by each replica}
     \State{$\tsps: \tx \rightarrow ( \rep \rightarrow \tsp)$}     \Comment{The timestamp received for each transaction from each replica}
-    \State{$\sigs: \tx \rightarrow ( \rep \rightarrow \sig)$}     \Comment{The signature received for each transaction from each replica}
+    % \State{$\sigs: \tx \rightarrow ( \rep \rightarrow \sig)$}     \Comment{The signature received for each transaction from each replica}
     \State{$\transactions: \tx \rightarrow (\rmin, \rmax, \rconf, \txcert) $}                      \Comment{The associated values of each transaction}\label{line:client-state-end}
     %\rmin \in \BN, \rmax \in \BN \cup \{\infty\}, \rconf \in \BN \cup \{\bot\}, \txcert \in \zo^*
     \State{\rperf}                                      \Comment{The most recent round deemed perfect by the client}
@@ -63,7 +69,8 @@ We assume that all messages between clients and replicas carry a session identif
         % \Let{ \allLts }{ [ 0, \ldots, 0 ]}
         % \Let{\rperf}{0}
         \State{\textbf{for all} $\rep \in \allreps: \mrt[\rep_j] \leftarrow 0 $}
-        \State{$\tsps\leftarrow\emptyset ;\; \sigs \leftarrow \emptyset ;\; \transactions\leftarrow\emptyset$} \label{line:txs-map-init}
+        \State{$\tsps\leftarrow\emptyset ;\; \transactions\leftarrow\emptyset$} \label{line:txs-map-init}
+        % \State{$\sigs \leftarrow \emptyset$}
         \State{$\rperf\leftarrow 0$}
         % \Let{\tsps}{\emptyset}
         % \Let{\sigs}{\emptyset}
@@ -103,7 +110,7 @@ We assume that all messages between clients and replicas carry a session identif
         %         \Let{\ppcert}{\ppcert \concat [\operand{vote}]}
         % \EndFor
         \For{$\rep_j \in \allreps$}
-            \Let{\ppcert}{\ppcert \concat \mrt[\rep_j].\sig}
+            \Let{\ppcert}{\ppcert \concat \mrt[\rep_j].\vote}
         \EndFor
         \Let{\Pod}{(\transactions, \rperf, \ppcert)}
         \return{ \Pod}
@@ -116,19 +123,21 @@ We assume that all messages between clients and replicas carry a session identif
 \label{alg:client-2}
 \begin{algorithmic}[1]
     \Function{\opOnReceiveVote{$\tx, \tsp, \sigma, \rep_j$}}{}
-        \If{$\tsp < \mrt[j].\tsp$}\label{line:check-old-ts}
-            \return \Comment{accountable fault, $\rep_j$ assigned old timestamp to \tx}\label{line:old-tsp}
-            \State{\wip{Create and output \Pod,\Pod' here.}}
+        \If{$\tsp < \mrt[j]$}\label{line:check-old-ts}
+            \Let{\vote_1}{(\tx, \tsp, \sigma, \rep_j)}
+            \Let{\vote_2}{\mrt[j].\vote}
+            \State{\textbf{raise} \opAccountableFault{$\vote_1, \vote_2$}} \Comment{accountable fault, $\rep_j$ assigned old timestamp to \tx}\label{line:raise-old-tsp}
         \EndIf
-        \Let{\mrt[j]}{(ts, \sig)} \label{line:upd-mrt}
+        \Let{\mrt[j]}{\tsp} \label{line:upd-mrt}
         \Statex
 
-        \If{$\tsps[\tx][\rep_j] \neq \bot$ \andl $\tsps[\tx][\rep_j] \neq \tsp$}
-        \return \Comment{accountable fault, $\rep_j$ has sent different timestamp}\label{line:dup-tsp}
-        \State{\wip{Create and output \Pod,\Pod' here.}}
+        \If{$\tsps[\tx][\rep_j] \neq \bot$ \andl $\tsps[\tx][\rep_j] \neq \tsp$}\label{line:check-dup-tsp}
+            \Let{\vote_1}{(\tx, \tsp, \sigma, \rep_j)}
+            \Let{\vote_2}{\tsps[\tx][\rep_j].\vote}
+            \State{\textbf{raise} \opAccountableFault{$\vote_1, \vote_2$}} \Comment{accountable fault, $\rep_j$ has sent different timestamp} \label{line:raise-dup-tsp}
         \EndIf
         \Let{\tsps[\tx][\rep_j]}{\tsp} \label{line:rec-tsp}
-        \Let{\sigs[\tx][\rep_j]}{\sig} \label{line:rec-sig}
+        % \Let{\sigs[\tx][\rep_j]}{\sig} \label{line:rec-sig}
         \Statex
 
         \Let{\transactions[\tx].\rmin}{\opMinPossibleTs{\tx}}\label{line:upd-rmin-begin}
@@ -152,21 +161,26 @@ We assume that all messages between clients and replicas carry a session identif
         % \EndIf\label{line:upd-rperf-end}
 
         \Statex
-        \If{$| \tsps[\tx] | \geq \alpha$}\label{line:confirm-tx-begin}
-            \Let{\transactions[\tx].\rconf}{\opMed{$\tsps[\tx]$}}
-            \Let{\transactions[\tx].\txcert}{\tsps[\tx]} \oa{Does it make analysis easier to have a fixed cert size?}
+        \If{$| \tsps[\tx].\opValues{} | \geq \alpha$}\label{line:confirm-tx-begin}
+            \State{$\txcert \leftarrow [ \, ] ;\; \txVotes = [ \, ]$}
+            \For{$\rep_j \in \tsps[\tx].\opValues{}$}
+                \Let{\txVotes}{\txVotes \concat \tsps[\tx][\rep_j]}
+                \Let{\txcert}{\txcert \concat \tsps[\tx][\rep_j].\vote}
+            \EndFor
+            \Let{\transactions[\tx].\rconf}{\opMed{$\txVotes$}}
+            \Let{\transactions[\tx].\txcert}{\txcert}
         \EndIf\label{line:confirm-tx-end}
     \EndFunction
     \Statex
 
     \Function{\opOnReceiveHeartBeat{$\tsp, \sigma, \rep_j$}}{}
-        \If{$\tsp < \mrt[j].\tsp$}
-            \return \Comment{accountable fault, $\rep_j$ sent an old timestamp}
-            \State{\wip{Create and output \Pod,\Pod' here.}}
+        \If{$\tsp < \mrt[j]$}
+            \Let{\vote_1}{(\heartBeat, \tsp, \sigma, \rep_j)}
+            \Let{\vote_2}{\mrt[j].\vote}
+            \State{\textbf{raise} \opAccountableFault{$\vote_1, \vote_2$}}  \Comment{accountable fault, $\rep_j$ sent an old timestamp}\label{line:raise-old-heartneat}
         \EndIf
-        \Let{\mrt[j]}{(\tsp, \sig)}
-        \Let{\tsps[\heartBeat][\rep_j]}{\tsp}
-        \Let{\sigs[\heartBeat][\rep_j]}{\sig}
+        \Let{\mrt[j]}{\tsp}
+        % \Let{\sigs[\heartBeat][\rep_j]}{\sig}
     \EndFunction
 
 \end{algorithmic}
@@ -276,12 +290,11 @@ We assume that all messages between clients and replicas carry a session identif
 We present \emph{pod core} in Algorithms~\ref{alg:client-1}--\ref{alg:pod-core-replica}.
 In the following we describe its main points, first of the client construction and then the replica construction.
 \end{construction}
-\wip{Change $\mrt_j$ to $\mrt[j]$. If you keep the $\mrt[j]$ notation, then mention it in the notation and do the same for \tsps and \sigs.}
 
 \dotparagraph{Initialization}
 The state of a client is shown in \Cref{alg:client-1} in lines~\ref{line:client-state-begin}--\ref{line:client-state-end}.
-The client keeps received votes in variable \tsps, which is a map from transactions \tx to a map from replicas \rep to timestamps \tsp,
-and all received signatures in \sigs, which has similar structure to \tsps.
+The client keeps received votes in variable \tsps, which is a map from transactions \tx to a map from replicas \rep to timestamps \tsp.
+% and all received signatures in \sigs, which has similar structure to \tsps.
 The client keeps all associated values for received transactions in \transactions,
 which is a map from transactions \tx to $(\rmin, \rmax, \rconf, \txcert)$,
 such that $\rmin \in \BN, \rmax \in \BN \cup \{\infty\}, \rconf \in \BN \cup \{\bot\}$, and $\txcert \in \zo^*$,
@@ -307,10 +320,10 @@ and all received votes as the past-perfection certificate \ppcert.
 \dotparagraph{Handling votes}
 We now describe how each received vote $(\tx, \tsp, \sig, \rep_j)$ updates the client's local state (function \opOnReceiveVote{} in \Cref{alg:client-2}).
 The client performs some sanity checks.
-First, \tsp must be equal or larger than $\mrt_j$, the most recent timestamp returned by replica $\rep_j$ (\cref{line:old-tsp}).
-Second, the replica must have not previously sent a different timestamp for \tx (\cref{line:dup-tsp}) .
-If any of these is not the case, the client ignores this value and $\rep_j$ can be held accountable \wip{This should output a $\Pod'$ that serves as a proof of equivocation}.
-If the checks pass, the client stores \tsp and \sig (lines~\ref{line:rec-tsp}--\ref{line:rec-sig})
+First, \tsp must be equal or larger than $\mrt_j$, the most recent timestamp returned by replica $\rep_j$ (\cref{line:check-old-ts}).
+Second, the replica must have not previously sent a different timestamp for \tx (\cref{line:check-dup-tsp}) .
+If any of these is not the case, the client ignores this value and $\rep_j$ can be held accountable \wip{Describe the logic with raise.}.
+If the checks pass, the client stores \tsp (\cref{line:rec-tsp})
 and updates $\mrt_j$ with \tsp (\cref{line:upd-mrt}).
 
 The client then updates the values \rmin (\cref{line:upd-rmin-begin}) and
@@ -477,7 +490,7 @@ We now prove, through the following theorems, that \Cref{const:pod-core} satisfi
         and the construction only accepts a timestamp \tsp from $\rep_j$ if
         $\tsp \geq \mrt_j$ (\cref{line:check-old-ts}).
         Similarly for \rmax, as the construction fills missing votes in \txVotesMax with $\infty$ (lines~\ref{line:assing-missing-max-begin}--\ref{line:assing-missing-max-end}), which can only become lower when the vote is received.
-        Also note that the construction only considers the first vote from each replica on \tx (\cref{line:dup-tsp}).
+        Also note that the construction only considers the first vote from each replica on \tx (\cref{line:check-dup-tsp}).
         
         \item \oa{TODO}
     \end{enumerate}

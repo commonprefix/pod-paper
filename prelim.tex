@@ -26,25 +26,26 @@ cannot, \ewnp, produce a tuple $(m, \sig)$, such that \sig is a valid signature 
 
 \subsection{Accountable safety}
 
-Inspired by the work of Neu, Tas, and Tse~\cite[Def. 4]{DBLP:conf/fc/NeuTT22}, we define \emph{accountable safety} through an \emph{identification function}.
+Taking a similar approach as Neu, Tas, and Tse~\cite[Def. 4]{DBLP:conf/fc/NeuTT22}, we define \emph{accountable safety} through an \emph{identification function}.
 
-We define as \emph{transcript} the set of all network messages, related to an execution of a protocol, that have been sent by some party.
-We call a \emph{partial subscript} any subset of a transcript.
+\begin{definition}[Transcript and partial transcript]    
+    We define as \emph{transcript} the set of all network messages sent by all parties, related to an execution of a protocol.
+    A \emph{partial subscript} is a subset of a transcript.
+\end{definition}
 
-\begin{definition}[Cheater identification function]
-    A cheater identification function $\identify{\tran} \rightarrow \cheaters$  
-    takes as input a partial transcript, $\tran$, and outputs a set of parties $\cheaters \subset \replicas$, such that the following conditions hold.
+\begin{definition}[\beta-Accountable safety]
+    A protocol satisfies \emph{accountable safety} with \emph{resilience} \beta if its interface contains a function $\identify{\tran} \rightarrow \cheaters$,
+    which takes as input a partial transcript $\tran$ and outputs a set of replicas $\cheaters \subset \replicas$, such that the 
+    following conditions hold.
     \begin{description}
-        \item[Correctness:] If safety is violated, then there exists a partial transcript \tran, such that $\identify{\tran} \rightarrow \cheaters$ and $|\cheaters| > \beta$ and all parties in \cheaters have violated the protocol rules. \oa{This is what we discussed with Dio.}
-        \item[Correctness:] If a set of parties \cheaters violate the protocol rules in an execution, then there exists a partial transcript \tran, such that $\identify{\tran} \rightarrow \cheaters$. \oa{I think we can make it more general, closer to what Bernie suggested.}
-        \item[No-framing:] For all partial transcripts \tran, the output of $\identify{\tran}$ does not contain parties that have followed the protocol rules during the execution.
+        \item[Correctness:] If safety is violated, then there exists a partial transcript \tran, such that $\identify{\tran} \rightarrow \cheaters$ and $|\cheaters| > \beta$ and all replicas in \cheaters are adversarial.
+        \item[No-framing:] For all partial transcripts \tran, the output of $\identify{\tran}$ does not contain honest replicas.
     \end{description}
 \end{definition}
 
-\begin{definition}[\beta-Accountable safety]
-    A protocol satisfies \emph{accountable safety} with \emph{resilience} \beta if a cheater identification function exists for that protocol. \oa{I think this should be enough if we keep the \identify{} of Dio.}
-\end{definition}
-
-\begin{definition}[\beta-Accountable safety]
-    A protocol satisfies \emph{accountable safety} with \emph{resilience} \beta if, whenever a safety violation happens, \identify{} outputs a set \cheaters such that $|\cheaters| > \beta$. \oa{This if we use an \identify{} that catches all misbehaviors.}
-\end{definition}
+\begin{remark}
+    In order to keep the definition simple, we have defined the transcript based on messages sent by \emph{all} replicas.
+    We can also define a \emph{local transcript} as the set of messages observed by a single party.
+    As will become evident from the implementation of \identify{}, adversarial behavior can be identified from the local transcript of a single or a pair of parties.
+    This optimization can be used in the implementation of a protocol.
+\end{remark}
