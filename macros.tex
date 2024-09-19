@@ -59,7 +59,6 @@
 \newcommand{\opreadall}[1]{\op{read(#1)}\xspace}
 \newcommand{\opreadallret}[1]{\op{read\_return(#1)}\xspace}
 \newcommand{\opgetdeps}[1]{\op{get\_deps(#1)}\xspace}
-\newcommand{\opidentify}[1]{\op{identify(#1)}\xspace}
 \newcommand{\opbcast}[1]{\op{broadcast(#1)}\xspace}
 \newcommand{\opdel}[1]{\op{deliver(#1)}\xspace}
 \newcommand{\opSign}[1]{\op{Sign(#1)}\xspace}
@@ -82,7 +81,7 @@
 \newcommand{\opAppend}[1]{\op{append(#1)}\xspace}
 \newcommand{\opKeys}{\op{keys()}\xspace}
 \newcommand{\opValues}{\op{values()}\xspace}
-\newcommand{\opAccountableFault}[1]{\op{AccountableFault(#1)}\xspace}
+\newcommand{\opAccountableFault}[1]{\op{AccountableFault}(#1)\xspace}
 
 \newcommand{\operand}[1]{\textsf{#1}}
 \newcommand{\tx}{\operand{tx}\xspace}
@@ -113,18 +112,19 @@
 \newcommand{\allClients}{\CC}
 \newcommand{\mrt}{\operand{mrt}\xspace}
 \newcommand{\repLog}{\operand{replicaLog}\xspace}
-\newcommand{\vote}{\operand{getVoteMsg()}\xspace}
+\newcommand{\opGetVote}{\op{getVoteMsg()}\xspace}
+\newcommand{\vote}{\operand{vote}\xspace}
 \newcommand{\sendHeartBeat}{\operand{sendHeartBeat}\xspace}
 \newcommand{\transactions}{\operand{txs}\xspace}
 \newcommand{\tsps}{\operand{tsps}\xspace}
 \newcommand{\sigs}{\operand{sigs}\xspace}
-\newcommand{\txVotesMin}{\operand{timestampsMin}\xspace}
-\newcommand{\txVotesMax}{\operand{timestampsMax}\xspace}
-\newcommand{\txVotesPerf}{\operand{timestampsPerf}\xspace}
+\newcommand{\txVotesMin}{\operand{timestamps}\xspace}
+\newcommand{\txVotesMax}{\operand{timestamps}\xspace}
+\newcommand{\txVotesPerf}{\operand{timestamps}\xspace}
 \newcommand{\txVotes}{\operand{timestamps}\xspace}
 \newcommand{\certSize}{\ensuremath{c}\xspace}
 \newcommand{\tsp}{\operand{ts}\xspace}
-\newcommand{\votedReplicas}{\operand{votedReplicas}\xspace}
+\newcommand{\opGetVotedReplicas}{\operand{votedReplicas}\xspace}
 \newcommand{\missingReplicas}{\operand{missingReplicas}\xspace}
 \newcommand{\opnext}{\operand{next\_message}\xspace}
 \newcommand{\nextmsg}{\operand{msg}\xspace}
@@ -168,7 +168,7 @@
 \newcommand{\return}{\State{\textbf{return}}\xspace}
 \newcommand{\st}{\textbf{such that}\xspace}
 \newcommand{\andl}{\textbf{and}\xspace}
-\newcommand{\msg}[2]{$\langle$\textit{\uppercase{#1}}#2$\rangle$\xspace}
+\newcommand{\msg}[2]{\ensuremath{\langle\textit{\uppercase{#1 }}#2\rangle}\xspace}
 \newcommand{\msgwrite}[1]{\msg{write}{ #1}}
 \newcommand{\msgwriteresp}[1]{\msg{write-resp}{ (#1)}}
 \newcommand{\msgread}[1]{\msg{read}{#1}}

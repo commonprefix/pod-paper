@@ -17,7 +17,7 @@ A pod protocol allows a set of \emph{clients} to obtain a partially ordered list
 
 \begin{definition}[Pod]
     A \emph{pod} $\Pod$ is a triple $(\txSet, \rperf, \ppcert)$, where \txSet is a finite sequence of entries $(\tx, \rmin, \rmax, \rconf, \txcert)$, that is, transactions and associated values, \rperf is a round number, called the \emph{past-perfect round},
-    and $\ppcert \in \zo^*$ is a \emph{past-perfection certificate} \ppcert that proves the correctness of the \Pod.
+    and $\ppcert \in \zo^*$ is a \emph{past-perfection certificate} \ppcert that proves the correctness of \Pod.
 \end{definition}
 We remark that a transaction \tx in \txSet, with corresponding entry $(\tx, \rmin, \rmax, \rconf, \txcert)$, may be \emph{\confirmed}, in which case we have $\rconf \neq \bot$, or unconfirmed, with $\rconf = \bot$.
 Looking ahead, our construction will allow for deriving $\ppcert$ from all certificates $\txcert$ in $\txSet$, but we define $\ppcert$ explicitly for clarity and generality.
@@ -31,28 +31,26 @@ Looking ahead, our construction will allow for deriving $\ppcert$ from all certi
 A pod protocol has the following interface.
 \begin{itemize}
     \item $\opwrite{\tx} \returns (\rmin, \rmax, \rconf, \txcert)$:
-    It gets a transaction \tx and outputs its associated values $\rmin, \rmax$, $\rconf$, \txcert.
+    It writes a transaction \tx to the pod.
 
-    \item $\opreadall{} \returns (\Pod, \tilde{\Pod})$:
+    \item $\opreadall{} \returns \Pod$:
     It outputs a pod $\Pod = (\txSet, \rperf, \ppcert)$.
-    The second output is called an \emph{equivocation-evidence pod} and can be either $\bot$ or $\tilde{\Pod} = (\tilde{\txSet}, \tilde{\rperf}, \tilde{\ppcert})$.
+    % The second output is called an \emph{equivocation-evidence pod} and can be either $\bot$ or $\tilde{\Pod} = (\tilde{\txSet}, \tilde{\rperf}, \tilde{\ppcert})$.
 \end{itemize}
+    We say that a client \emph{reads the pod} when it calls \opread{}.
+    For any $(\tx, \rmin, \rmax, \rconf, \txcert) \in \txSet$ we say that the client \emph{observes} \tx and, if $\rconf \neq \bot$, we say that the client \emph{observes \tx as \confirmed}.
 \end{definition}
 
-We say that a client \emph{writes a transaction} \tx when it calls \opwrite{\tx}.
-We say that a client \emph{reads the pod} when it calls \opread{}.
-For any $(\tx, \rmin, \rmax, \rconf, \txcert) \in \txSet$ we say that the client \emph{observes} \tx and, if $\rconf \neq \bot$, we say that the client \emph{observes \tx as \confirmed}.
 
-\begin{definition}[View]
-    We call \emph{view of the pod} the pod \Pod in the output of \opreadall{} to client \client at the end of round \round,
+\begin{definition}[View of the pod]
+    We call \emph{view of the pod} the output of \opreadall{} to client \client obtained at round \round,
     and denote it as \podView{\client}{\round}.
-    We refer to the fields (\txSet, \rperf, \ppcert) in that output as $\podView{\client}{\round}.\txSet$,
+    We remark that \round denotes the round in which \opread{} gives output -- the client may have invoked it at an earlier round.
+    We refer to the fields (\txSet, \rperf, \ppcert) in \podView{\client}{\round} as $\podView{\client}{\round}.\txSet$,
     $\podView{\client}{\round}.\rperf$, and $\podView{\client}{\round}.\ppcert$, respectively.
     We also use the notation $\tx \in \podView{\client}{\round}$ as a shortcut for  $\tx \in \podView{\client}{\round}.\txSet$.
-    We remark that \round denotes the round in which \opread{} gives output -- the client may have invoked it at an earlier round.
 \end{definition}
     
-
 
 \dotparagraph{Security properties}
 A pod satisfies the following properties.
@@ -85,14 +83,14 @@ A pod satisfies the following properties.
         \item[Confirmation stickiness:]
         For any honest client $\client$ and rounds $\round_1, \round_2 > \round_1$,
         if $\tx \in \podView{\client}{\round_1}$ and $\tx.\rconf \neq \bot$, then $\tx \in \podView{\client}{\round_2}$ and $\tx.\rconf \neq \bot$.
-        \oa{Observe that this is a specific version of the \emph{Common subset} property for $\client_1 = \client_2$. We can prove it in the construction without gossip.}
+        \oa{Observe that this is a specific version of the \emph{Common subset} property for $\client_1 = \client_2$, which we can prove in the construction without gossip. }
 
         \item[Common subset (confirmation monotonicity) for honest transactions:]
         For any honest clients $\client_1$, $\client_2$ and rounds $\round_1, \round_2 > \round_1$,
         and for any transaction \tx written by an honest client,
         if $\tx \in \podView{\client_1}{\round_1}$ and $\tx.\rconf \neq \bot$, then $\tx \in \podView{\client_2}{\round_2}$ and $\tx.\rconf \neq \bot$.
         \oa{Observe that this is a specific version of the \emph{Common subset} property only for honest transactions.}
-        \wip{See if it is $\round_2 > \round_1 + X$, for some parameter $X$.}
+        \wip{See if it is $\round_2 > \round_1 + X$, for some parameter $X$. See if we need this property, otherwise remove it.}
 
         \item[Correctness of associated values:]
         The numbers $\rmin, \rmax$, and $\rconf$ for a transaction \tx satisfy the following:
@@ -155,28 +153,28 @@ A pod satisfies the following properties.
 
     \end{description}
         % \item[Fair punishment]
-    % No honest replica gets punished as a result of malicious operation. If $\opidentify{\txcert, \ppcert} \returns P'$, where \txcert is a record certificate for transaction \tx
+    % No honest replica gets punished as a result of malicious operation. If $\identify{\txcert, \ppcert} \returns P'$, where \txcert is a record certificate for transaction \tx
     % and $\ppcert$ is a past-perfect certificate for a pod \Pod,
     % can only be created if all parties in $P'$ sign \tx and \Pod. 
 \end{enumerate}
 
 
-\subsection {Properties recap}
-This is for us. It summarizes the aforementioned properties and shows which algorithms satisfy them.
-\begin{center}
-    \begin{tabular}{ |l|c|c||c|c|c| }
-        \hline
-                                                               & \multicolumn{2}{c||}{streaming} & \multicolumn{2}{c|}{streaming+gossip}\\
-        \hline
-                                                               & sync  & async  &sync & async \\
-        Confirmation                                           & O& O& O& O\\
-        Pp liveness                                            & O& O& O& O\\
-        Common subset                                          & X& X& O& O\\
-        Common subset for honest tx                            & O& O& O& O\\
-        Conf. stickiness                                       & O& O& O& O\\
-        Correctness of assoc. values                           & O& O& O& O\\
-        Pp correctness                                         & O& O& O& O\\
-        Pp stickiness                                          & O& O& O& O\\
-        \hline
-    \end{tabular}
-    \end{center}
+% \subsection {Properties recap}
+% This is for us. It summarizes the aforementioned properties and shows which algorithms satisfy them.
+% \begin{center}
+%     \begin{tabular}{ |l|c|c||c|c|c| }
+%         \hline
+%                                                                & \multicolumn{2}{c||}{streaming} & \multicolumn{2}{c|}{streaming+gossip}\\
+%         \hline
+%                                                                & sync  & async  &sync & async \\
+%         Confirmation                                           & O& O& O& O\\
+%         Pp liveness                                            & O& O& O& O\\
+%         Common subset                                          & X& X& O& O\\
+%         Common subset for honest tx                            & O& O& O& O\\
+%         Conf. stickiness                                       & O& O& O& O\\
+%         Correctness of assoc. values                           & O& O& O& O\\
+%         Pp correctness                                         & O& O& O& O\\
+%         Pp stickiness                                          & O& O& O& O\\
+%         \hline
+%     \end{tabular}
+%     \end{center}
