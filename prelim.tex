@@ -24,8 +24,8 @@ For all possible keypairs $(\sk, \pk)$ returned by the key-generation algorithm,
 \emph{Unforgeability} demands that an adversary, who is given access to an oracle that signs messages of the adversary's choice using \sk,
 cannot, \ewnp, produce a tuple $(m, \sig)$, such that \sig is a valid signature on $m$ with respect to \pk, without calling the oracle on message $m$.
 
-\subsection{Accountable safety}
 
+\subsection{Accountable safety}\label{sec:accountable-safety}
 Taking a similar approach as Neu, Tas, and Tse~\cite[Def. 4]{DBLP:conf/fc/NeuTT22}, we define \emph{accountable safety} through an \emph{identification function}.
 
 \begin{definition}[Transcript and partial transcript]    
@@ -33,7 +33,7 @@ Taking a similar approach as Neu, Tas, and Tse~\cite[Def. 4]{DBLP:conf/fc/NeuTT2
     A \emph{partial subscript} is a subset of a transcript.
 \end{definition}
 
-\begin{definition}[\beta-Accountable safety]
+\begin{definition}[\beta-Accountable safety]\label{def:accountable-safety}
     A protocol satisfies \emph{accountable safety} with \emph{resilience} \beta if its interface contains a function $\identify{\tran} \rightarrow \cheaters$,
     which takes as input a partial transcript $\tran$ and outputs a set of replicas $\cheaters \subset \replicas$, such that the 
     following conditions hold.

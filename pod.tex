@@ -2,7 +2,7 @@
 A pod protocol allows a set of \emph{clients} to obtain a partially ordered list of transactions from a set of \emph{replicas} with censorship-freedom guarantees and accountability for safety violations. 
 
 \begin{definition}[Transaction and associated values]
-    We associate with each transaction $\tx \in \zo^*$ values $(\tx, \rmin, \rmax, \rconf, \txcert)$.
+    We associate each transaction $\tx \in \zo^*$ with values $(\tx, \rmin, \rmax, \rconf, \txcert)$.
     We call $\rmin \in \BN$ the \emph{minimum round}, $\rmax \in \BN \cup \{\infty\}$ the \emph{maximum round},
     and $\rconf \in \BN \cup \{\bot\}$ the \emph{\confirmed round}.
     For the maximum round, symbol~$\infty$ denotes an unbounded large number,
@@ -12,14 +12,14 @@ A pod protocol allows a set of \emph{clients} to obtain a partially ordered list
 \end{definition}
 
 \begin{definition}
-    A transaction is \emph{\confirmed} if $\rconf \neq \bot$, and not \confirmed otherwise.
+    A transaction is \emph{\confirmed} if $\rconf \neq \bot$, otherwise it is \emph{not \confirmed}.
 \end{definition}
 
 \begin{definition}[Pod]
     A \emph{pod} $\Pod$ is a triple $(\txSet, \rperf, \ppcert)$, where \txSet is a finite sequence of entries $(\tx, \rmin, \rmax, \rconf, \txcert)$, that is, transactions and associated values, \rperf is a round number, called the \emph{past-perfect round},
     and $\ppcert \in \zo^*$ is a \emph{past-perfection certificate} \ppcert that proves the correctness of \Pod.
 \end{definition}
-We remark that a transaction \tx in \txSet, with corresponding entry $(\tx, \rmin, \rmax, \rconf, \txcert)$, may be \emph{\confirmed}, in which case we have $\rconf \neq \bot$, or unconfirmed, with $\rconf = \bot$.
+We remark that transactions in \txSet may or may not be \confirmed.
 Looking ahead, our construction will allow for deriving $\ppcert$ from all certificates $\txcert$ in $\txSet$, but we define $\ppcert$ explicitly for clarity and generality.
 
 \begin{definition}[Past-perfect round]
@@ -52,15 +52,17 @@ A pod protocol has the following interface.
 \end{definition}
     
 
-\dotparagraph{Security properties}
-A pod satisfies the following properties.
+% \dotparagraph{Security properties}
+% A pod satisfies the following properties.
 
-\begin{enumerate}[leftmargin=*, align=left]
-    \item{Liveness:}
+% \begin{enumerate}[leftmargin=*, align=left]
+%     \item{Liveness:}
+\dotparagraph{Liveness properties}
     \begin{description}[leftmargin=*, align=left]
 
         \item[Confirmation within \parConf:]
-        If an honest client $\client'$ writes a transaction \tx at round \round, then for any honest client $\client$ (including $\client=\client'$), it holds that $\tx \in \podView{\client}{\round + \parLive}$ and $\tx.\rconf \neq \bot$.
+        Transactions become \confirmed after at most \parConf rounds.
+        That is, if an honest client $\client$ writes a transaction \tx at round \round, then for any honest client $\client'$ (including $\client=\client'$) it holds that $\tx \in \podView{\client}{\round + \parLive}$ and $\tx.\rconf \neq \bot$.
         % \item[Confirmation within \parConf:]
         % If an honest client writes a transaction \tx at round \round, then it will obtain output $(\tx, \rmin, \rmax, \rconf, \txcert)$, such that $\rconf \neq \bot$, by round $\round + \parConf$.
         % \item[Availability after \parLive:]
@@ -72,91 +74,53 @@ A pod satisfies the following properties.
         it holds that $\podView{c}{\round}.\rperf \geq \round - \parPerf$.
     \end{description}
 
-    \item{Safety:}
-    \begin{description}[left=0pt,itemindent=0pt]
-        
-        \item[Common subset (confirmation monotonicity) after \parAgr:]
-        For any honest clients $\client_1$, $\client_2$ and rounds $\round_1, \round_2 > \round_1 + \parAgr$,
-        if $\tx \in \podView{\client_1}{\round_1}$ and $\tx.\rconf \neq \bot$, then $\tx \in \podView{\client_2}{\round_2}$ and $\tx.\rconf \neq \bot$.
-        \oa{We want this but we cannot prove it without gossip, the combination of a malicious client who writes to only \alpha replicas and then a malicious replica withholds the transaction from a client.}
-        \wip{Move it to the pod+gossiping section.}
+    % \item{Safety:}
+    \dotparagraph{Safety properties}
+    \begin{description}[left=0pt,itemindent=0pt]   
         \item[Confirmation stickiness:]
         For any honest client $\client$ and rounds $\round_1, \round_2 > \round_1$,
         if $\tx \in \podView{\client}{\round_1}$ and $\tx.\rconf \neq \bot$, then $\tx \in \podView{\client}{\round_2}$ and $\tx.\rconf \neq \bot$.
-        \oa{Observe that this is a specific version of the \emph{Common subset} property for $\client_1 = \client_2$, which we can prove in the construction without gossip. }
+        \oa{Observe that this is a specific version of the \emph{Common subset} property for $\client_1 = \client_2$, which we can prove in the construction without gossip.}
 
-        \item[Common subset (confirmation monotonicity) for honest transactions:]
-        For any honest clients $\client_1$, $\client_2$ and rounds $\round_1, \round_2 > \round_1$,
+        \oa{\item[Common subset (confirmation monotonicity) for honest transactions after $X$:]
+        For any honest clients $\client_1$, $\client_2$ and rounds $\round_1, \round_2 > \round_1 + X$,
         and for any transaction \tx written by an honest client,
         if $\tx \in \podView{\client_1}{\round_1}$ and $\tx.\rconf \neq \bot$, then $\tx \in \podView{\client_2}{\round_2}$ and $\tx.\rconf \neq \bot$.
-        \oa{Observe that this is a specific version of the \emph{Common subset} property only for honest transactions.}
-        \wip{See if it is $\round_2 > \round_1 + X$, for some parameter $X$. See if we need this property, otherwise remove it.}
+        \oa{Observe that this is a specific version of the \emph{Common subset} property only for honest transactions. Not sure if we need it. If we do, see what $X$ is.}
+        }
+        
+        \item[Past-perfection correctness:]
+        For any honest client \client and round $\round$,
+        it holds that, if $\tx \not \in \podView{\client}{\round}$, then no honest client will ever observe \tx as confirmed with $\rconf < \podView{\client}{\round}.\rperf$.
+
+        \item[Past-perfection stickiness:]
+        The past-perfect round obtained by honest clients can only grow.
+        That is, for any honest client \client and rounds $\round_1, \round_2 \geq \round_1$,
+        it holds that $\podView{\client}{\round_2}.\rperf \geq \podView{\client}{\round_1}.\rperf$.
 
         \item[Correctness of associated values:]
         The numbers $\rmin, \rmax$, and $\rconf$ for a transaction \tx satisfy the following:
         	\bd{Do we really want to call this temperature? Isn't it clearer if we call this something like timestamp slack or timestamp gap?}
-
-
-        \begin{description}[left=20pt]
-            \item [Temperature:] For any honest clients $\client_1,\client_2$, if $\client_1$ obtains $\rmin$ and $\rmax$ for \tx
+        \begin{itemize}
+            \item \textbf{Temperature bounds:} For any honest clients $\client_1,\client_2$, if $\client_1$ obtains $\rmin$ and $\rmax$ for \tx
             and $\client_2$ observes \tx as \confirmed with round $\rconf$, then
             $\rmin \leq \rconf \leq \rmax$.
-            \item [Temperature freezing:] If an honest client obtains $\rmin$ and $\rmax$ for \tx in round $\round_1$, and later obtains $\rmin'$ and $\rmax'$ for \tx in round $\round_2 > \round_1$, then $\rmin' \geq \rmin$ and $\rmax' \leq \rmax$.
-            \item [Temperature interval with parameter \parTemp:]
+            \item \textbf{Temperature freezing:} If an honest client obtains $\rmin$ and $\rmax$ for \tx in round $\round_1$, and later obtains $\rmin'$ and $\rmax'$ for \tx in round $\round_2 > \round_1$, then $\rmin' \geq \rmin$ and $\rmax' \leq \rmax$.
+            \item \textbf{\parTemp-Bounded temperature for honest transactions:}
             For any \confirmed transaction $\tx$, written by an honest client in round $\round$, it holds that:
             (a) $\rconf \in [\round, \round + \parTemp]$,
             (b) $\rmax \in [\round, \round + \parTemp]$, and
             (c) $\rmax - \rmin \leq \parTemp$.
             In particular, this implies that $\rmin \neq 0$ and $\rmax \neq \infty$.
-        \end{description}
-
-        % \item[Bounds with parameter \parTemp for \rconf, \rmin, \rmax:]
-        % If an honest client writes a transaction \tx at round \round
-        % and an honest client observes \tx as \confirmed with confirmed round \rconf and maximum round \rmax,
-        % then 
-        % \begin{enumerate}[label=(\arabic*)]
-        %     \item $\rconf \in [\round, \round + \parTemp]$
-        %     \item $\rmax \in [\round, \round + \parTemp]$
-        %     \item $\rmax - \rmin \leq \parTemp$.
-        % \end{enumerate}
-
-        \item[Past-perfection correctness:]
-        % If an honest client calls \opreadall{} to obtain a pod \Pod and a past-perfect round \rperf,
-        % then, for any transaction $\tx \not \in \Pod$, no honest client will ever observe \tx as confirmed with $\rconf < \rperf$.
-        For any honest client \client and round $\round$,
-        it holds that, if $\tx \not \in \podView{\client}{\round}$, then no honest client will ever observe \tx as confirmed with $\rconf < \podView{\client}{\round}.\rperf$.
-
-        \item[Past-perfection stickiness:]
-        % If an honest client calls \opreadall{} at round $\round_1$ to obtain $\Pod^1, \rperf^1$, and at round $\round_2$ to obtain $\Pod^2, \rperf^2$, then $\rperf^2 \geq \rperf^1$.
-        For any honest client \client and rounds $\round_1, \round_2 \geq \round_1$,
-        it holds that $\podView{\client}{\round_2}.\rperf \geq \podView{\client}{\round_1}.\rperf$.
+        \end{itemize}
     \end{description}
     
-    \item{Accountability:}
-    \begin{description}
-        %\item [Accountable equivocation for a single client:]
-        %For an honest client \client calling $\opreadall{} \returns (\Pod, \tilde{\Pod})$, if $\tilde\Pod \neq \bot$, then $\identify{\Pod,\tilde\Pod} \rightarrow \cheaters$  outputs a non-empty set $\cheaters$ of replicas who have equivocated.
-       
-        
-        \item [Accountability:]
-        If one or more replicas equivocate, then there exist
-        views $\podView{\client_1}{\round_1}$ and $\podView{\client_2}{\round_2}$, for some clients $\client_1,\client_2$ and rounds $\round_1, \round_2$ such that $\identify{\podView{\client_1}{\round_1},\podView{\client_2}{\round_2}} \rightarrow \cheaters$ outputs a non-empty set $\cheaters$ of equivocating replicas. If a safety property is violated, $\cheaters$ contains at least $\beta+1$ replicas who have caused the violation.
-        
-%        \item [Accountability for safety failures:]
-%        If a safety property is violated, then there exist
-%        views $\podView{\client_1}{\round_1}$ and $\podView{\client_2}{\round_2}$, for some clients $\client_1$, $\client_2$ and rounds $\round_1, \round_2$ such that $\identify{\podView{\client_1}{\round_1},\podView{\client_2}{\round_2}} \rightarrow \cheaters$ outputs a non-empty set $\cheaters$ containing at least $\beta+1$ replicas who have caused the violation.
-%        
-%        \bd{Accountability for safety failures is implied by accountability for equivocation for single or two clients.}
-%        \wip{Merge them.}
-        
-        \item [Unforgeability:] For any PODs $\Pod_1,\Pod_2$ and $\identify{\Pod_1,\Pod_2} \rightarrow \cheaters$, the set $\cheaters$ does not contain any honest replicas.
-
-    \end{description}
-        % \item[Fair punishment]
-    % No honest replica gets punished as a result of malicious operation. If $\identify{\txcert, \ppcert} \returns P'$, where \txcert is a record certificate for transaction \tx
-    % and $\ppcert$ is a past-perfect certificate for a pod \Pod,
-    % can only be created if all parties in $P'$ sign \tx and \Pod. 
-\end{enumerate}
+    % \item{Accountability:}
+    % \begin{description}        
+    %     \item [Accountability:]
+    %     If one or more replicas equivocate, then there exist
+    %     views $\podView{\client_1}{\round_1}$ and $\podView{\client_2}{\round_2}$, for some clients $\client_1,\client_2$ and rounds $\round_1, \round_2$ such that $\identify{\podView{\client_1}{\round_1},\podView{\client_2}{\round_2}} \rightarrow \cheaters$ outputs a non-empty set $\cheaters$ of equivocating replicas. If a safety property is violated, $\cheaters$ contains at least $\beta+1$ replicas who have caused the violation.
+% \end{enumerate}
 
 
 % \subsection {Properties recap}
