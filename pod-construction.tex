@@ -125,8 +125,8 @@ With $\emptyset$ we denote an empty map.
     \Function{\opOnReceiveVote{$\tx, \tsp, \sigma, \rep_j$}}{}
         \If{$\tsp < \mrt[j]$}\label{line:check-old-ts}
             \Let{\vote_1}{(\tx, \tsp, \sigma, \rep_j)}
-            \Let{\vote_1}{\mrt[j].\opGetVote}
-            \State{\textbf{trigger} \opAccountableFault{$[\vote_1, \vote_1]$}} \Comment{accountable fault, $\rep_j$ sent old timestamp}\label{line:raise-old-tsp}
+            \Let{\vote_2}{\mrt[j].\opGetVote}
+            \State{\textbf{trigger} \opAccountableFault{$[\vote_1, \vote_2]$}} \Comment{accountable fault, $\rep_j$ sent old timestamp}\label{line:raise-old-tsp}
             \return
         \EndIf
         \Let{\mrt[j]}{\tsp} \label{line:upd-mrt}
