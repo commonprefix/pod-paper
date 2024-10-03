@@ -59,9 +59,8 @@ With $\emptyset$ we denote an empty map.
     \State{$\mrt : \rep \rightarrow \tsp$}   \Comment{The most recent timestamp returned by each replica}
     \State{$\tsps: \tx \rightarrow ( \rep \rightarrow \tsp)$}     \Comment{The timestamp received for each transaction from each replica}
     % \State{$\sigs: \tx \rightarrow ( \rep \rightarrow \sig)$}     \Comment{The signature received for each transaction from each replica}
-    \State{$\transactions: \tx \rightarrow (\rmin, \rmax, \rconf, \txcert) $}                      \Comment{The associated values of each transaction}\label{line:client-state-end}
+    
     %\rmin \in \BN, \rmax \in \BN \cup \{\infty\}, \rconf \in \BN \cup \{\bot\}, \txcert \in \zo^*
-    \State{\rperf}                                      \Comment{The most recent round deemed perfect by the client}
     \Statex
 
     \On{event \opInit{$\rep_1, k_1, \ldots, \rep_n, k_n$}} \label{line:client-init-start}
@@ -70,9 +69,8 @@ With $\emptyset$ we denote an empty map.
         % \Let{ \mrt }{ [ 0, \ldots, 0 ]}
         % \Let{\rperf}{0}
         \State{\textbf{for all} $\rep \in \allreps: \mrt[\rep_j] \leftarrow 0 $}
-        \State{$\tsps\leftarrow\emptyset ;\; \transactions\leftarrow\emptyset$} \label{line:txs-map-init}
+        \State{$\tsps\leftarrow\emptyset$} \label{line:txs-map-init}
         % \State{$\sigs \leftarrow \emptyset$}
-        \State{$\rperf\leftarrow 0$}
         % \Let{\tsps}{\emptyset}
         % \Let{\sigs}{\emptyset}
         % \Let{\transactions}{\emptyset}
@@ -80,41 +78,45 @@ With $\emptyset$ we denote an empty map.
             \State{Send \msgconnect{} to $\rep_j$}
         \EndFor
     \EndOn\label{line:client-init-end}
-    \Statex 
-
-    \Function{$\opwrite{\tx}$}{} \label{line:write-tx-begin}
-    \For{$\rep_j \in \allreps$}
-        \State{Send \msgwrite{\tx} to $\rep_j$}\label{line:send-write-tx}
-    \EndFor
-\EndFunction\label{line:write-tx-end}
-\Statex
-
-    \Function{$\opreadall{\tx}$}{} \label{line:read-begin}
-        % \Let{\ppcert}{\bigcup_{\tx \in \tsps.\opKeys, \rep \in \tsps[\tx].\opKeys} \tsps[\tx][\rep]}
-        \Let{\ppcert}{[ \, ]}
-        % \For{$\tx \in \tsps.\opKeys$}
-        %     \For{$\rep \in \tsps[\tx].\opKeys$}
-        %         \Let{\operand{vote}}{(\tx, \tsps[\tx][\rep], \sigs[\tx][\rep], \rep)}
-        %     \EndFor
-        %         \Let{\ppcert}{\ppcert \concat [\operand{vote}]}
-        % \EndFor
-        \For{$\rep_j \in \allreps$}
-            \Let{\ppcert}{\ppcert \concat \mrt[\rep_j].\opGetVote}
-        \EndFor
-        \Let{\Pod}{(\transactions, \rperf, \ppcert)}
-        \return{ \Pod}\label{line:return-pod}
-    \EndFunction\label{line:read-end}
     \Statex
 
     \On{receive \msgrecord{(\tx, \tsp, \sig, \rep_j)}} \Comment{Received a vote from replica $\rep_j$}\label{line:receive-vote-begin}
         \If{\opVerify{$\pk_j, (\tx, \tsp), \sig$}}
-            \If{$\tx = \heartBeat$}
-                \State{\opOnReceiveHeartBeat{$\tsp, \sig, \rep_j$}}
-            \Else
-                \State{\opOnReceiveVote{$\tx, \tsp, \sig, \rep_j$}}
-            \EndIf
+            \State{\opOnReceiveVote{$\tx, \tsp, \sig, \rep_j$}}
         \EndIf
     \EndOn\label{line:receive-vote-end}
+    \Statex 
+
+    \Function{$\opwrite{\tx}$}{} \label{line:write-tx-begin}
+        \For{$\rep_j \in \allreps$}
+            \State{Send \msgwrite{\tx} to $\rep_j$}\label{line:send-write-tx}
+        \EndFor
+    \EndFunction\label{line:write-tx-end}
+    \Statex
+
+    \Function{$\opreadall{}$}{} \label{line:read-begin}
+        \State{$\allTxs \gets [ \, ] ;\; \ppcert \gets [ \, ]$}
+        \For{$\tx \in \tsps.\opKeys{}$}
+            \Let{\rmin}{\opMinPossibleTs{\tx}}\label{line:upd-rmin-begin}
+            \Let{\rmax}{\opMaxPossibleTs{\tx}}\label{line:upd-rmax-begin}
+            \State{$\rconf \gets \bot ;\; \txcert \leftarrow [ \, ] ;\; \txVotes = [ \, ]$}
+            \If{$| \tsps[\tx].\opValues{} | \geq \alpha$}\label{line:confirm-tx-begin}
+                \For{$\rep_j \in \tsps[\tx].\opValues{}$}
+                    \Let{\tsp}{\tsps[\tx][\rep_j]}
+                    \Let{\txVotes}{\txVotes \concat \tsp}
+                    \Let{\txcert}{\txcert \concat \tsp.\opGetVote}
+                \EndFor
+                \Let{\rconf}{\opMed{$\txVotes$}}\label{line:assign-median}
+            \EndIf\label{line:confirm-tx-end}
+            \Let{\allTxs}{\allTxs \concat (\tx, \rmin, \rmax, \rconf, \txcert) }
+        \EndFor
+        \Let{\rperf}{\opMinPossibleTsForNewTx{}}\label{line:upd-rperf-begin}
+        \For{$\rep_j \in \allreps$}
+            \Let{\ppcert}{\ppcert \concat \mrt[\rep_j].\opGetVote}
+        \EndFor
+        \Let{\Pod}{(\allTxs, \rperf, \ppcert)}
+        \return{ \Pod}\label{line:return-pod}
+    \EndFunction\label{line:read-end}
 \end{algorithmic}
 \end{algorithm}
     
@@ -132,6 +134,11 @@ With $\emptyset$ we denote an empty map.
         \Let{\mrt[j]}{\tsp} \label{line:upd-mrt}
         \Statex
 
+        \If{$\tx = \heartBeat$}
+            \return
+        \EndIf
+        \Statex
+
         \If{$\tsps[\tx][\rep_j] \neq \bot$ \andl $\tsps[\tx][\rep_j] \neq \tsp$}\label{line:check-dup-tsp}
             \Let{\vote_1}{(\tx, \tsp, \sigma, \rep_j)}
             \Let{\vote_2}{\tsps[\tx][\rep_j].\opGetVote}
@@ -139,54 +146,7 @@ With $\emptyset$ we denote an empty map.
             \return
         \EndIf
         \Let{\tsps[\tx][\rep_j]}{\tsp} \label{line:rec-tsp}
-        % \Let{\sigs[\tx][\rep_j]}{\sig} \label{line:rec-sig}
-        \Statex
-
-        \Let{\transactions[\tx].\rmin}{\opMinPossibleTs{\tx}}\label{line:upd-rmin-begin}
-        % \If{$\transactions[\tx].\rmin < \rmin$}
-        %     \Let{\transactions[\tx].\rmin}{\rmin}
-        %     % \State{\textbf{output event} RANGE-UPDATE \tx}
-        % \EndIf\label{line:upd-rmin-end}
-        % \Statex
-
-        \Let{\transactions[\tx].\rmax}{\opMaxPossibleTs{\tx}}\label{line:upd-rmax-begin}
-        % \If{$\transactions[\tx].\rmax > \rmax$}
-        %     \Let{\transactions[\tx].\rmax}{\rmax}
-        %     % \State{\textbf{output event} RANGE-UPDATE \tx}
-        % \EndIf\label{line:upd-rmax-end}
-        % \Statex
-        
-        \Let{\rperf}{\opMinPossibleTsForNewTx{}}\label{line:upd-rperf-begin}
-        % \If{$\rperf < \rperf' $}
-        %     \Let{\rperf}{\rperf'}
-        %     % \State{\textbf{output event} PERFECT-ROUND-UPDATE \rperf}
-        % \EndIf\label{line:upd-rperf-end}
-
-        \Statex
-        \If{$| \tsps[\tx].\opValues{} | \geq \alpha$}\label{line:confirm-tx-begin}
-            \State{$\txcert \leftarrow [ \, ] ;\; \txVotes = [ \, ]$}
-            \For{$\rep_j \in \tsps[\tx].\opValues{}$}
-                \Let{\tsp}{\tsps[\tx][\rep_j]}
-                \Let{\txVotes}{\txVotes \concat \tsp}
-                \Let{\txcert}{\txcert \concat \tsp.\opGetVote}
-            \EndFor
-            \Let{\transactions[\tx].\rconf}{\opMed{$\txVotes$}}\label{line:assign-median}
-            \Let{\transactions[\tx].\txcert}{\txcert}\label{line:assign-txcert}
-        \EndIf\label{line:confirm-tx-end}
     \EndFunction
-    \Statex
-
-    \Function{\opOnReceiveHeartBeat{$\tsp, \sigma, \rep_j$}}{}
-        \If{$\tsp < \mrt[j]$}
-            \Let{\vote_1}{(\heartBeat, \tsp, \sigma, \rep_j)}
-            \Let{\vote_2}{\mrt[j].\opGetVote}
-            \State{\textbf{trigger} \opAccountableFault{$[\vote_1, \vote_2]$}}  \Comment{accountable fault, $\rep_j$ sent old timestamp}\label{line:raise-old-heartbeat}
-            \return
-        \EndIf
-        \Let{\mrt[j]}{\tsp}\label{line:update-mrt-heartbeat}
-        % \Let{\sigs[\heartBeat][\rep_j]}{\sig}
-    \EndFunction
-
 \end{algorithmic}
 \end{algorithm}
 
