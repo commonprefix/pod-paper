@@ -4,9 +4,10 @@
 \subsection{Digital signatures}
 
 \begin{definition}[Digital signature scheme]\label{def:sig}
-    A digital signature scheme contains a key generation algorithm, which outputs a secret key \sk and a public key \pk,
-    and the following two algorithms:
+    A digital signature scheme is a triple of algorithms defined as follows that satisfies the EUF-CMA definition of~\cite{GMR88}:
     \begin{itemize}[leftmargin = *]
+    	\item 
+    	$\textsl{KeyGen}(1^{\kappa})$: The key generation algorithm takes as input a security parameter $\kappa$ and outputs a secret key $\sk$ and a public key $\pk$.
         \item
             $\opSign{\sk, m} \rightarrow \sig$:
             The signing algorithm takes as input a private key
@@ -18,13 +19,13 @@
     \end{itemize}
 \end{definition}
 
-We say that \sig is a \emph{valid} signature on message $m$ with respect to some public key \pk if $\opVerify{pk, m, \sig} = 1$.
+We say \sig is a \emph{valid} signature on $m$ with respect to public key \pk if $\opVerify{pk, m, \sig} = 1$.
 
-A digital signature scheme satisfies the \emph{correctness} and \emph{unforgeability} properties.
-For all possible keypairs $(\sk, \pk)$ returned by the key-generation algorithm,
-\emph{correctness} demands that $\opVerify{\pk, m, \opSign{\sk, m}} = 1$, \ewnp.
-\emph{Unforgeability} demands that an adversary, who is given access to an oracle that signs messages of the adversary's choice using \sk,
-cannot, \ewnp, produce a tuple $(m, \sig)$, such that \sig is a valid signature on $m$ with respect to \pk, without calling the oracle on message $m$.
+%A digital signature scheme satisfies the \emph{correctness} and \emph{unforgeability} properties.
+%For all possible keypairs $(\sk, \pk)$ returned by the key-generation algorithm,
+%\emph{correctness} demands that $\opVerify{\pk, m, \opSign{\sk, m}} = 1$, \ewnp.
+%\emph{Unforgeability} demands that an adversary, who is given access to an oracle that signs messages of the adversary's choice using \sk,
+%cannot, \ewnp, produce a tuple $(m, \sig)$, such that \sig is a valid signature on $m$ with respect to \pk, without calling the oracle on message $m$.
 
 
 \subsection{Accountable safety}\label{sec:accountable-safety}
