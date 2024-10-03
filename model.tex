@@ -1,4 +1,3 @@
-\section{Notation and model}\label{sec:system}
 
 \dotparagraph{Notation}
 We denote \BN the set of natural numbers including $0$.
@@ -11,6 +10,7 @@ subarray of $L$ from $i$ onwards, while $L[{:}j]$ means the subsequence of $L$ u
 With $[\,]$ we denote an empty sequence.
 The notation $L_1 \concat L_2$ denotes the concatenation of sequences $L_1$ and $L_2$.
 
+\subsection{Execution Model}\label{sec:system}
 
 \dotparagraph{Parties and failure model}
 We distinguish two types of parties, $n$ \emph{replicas} $\replicas=\{\replicas_1,\ldots,\replicas_n\}$ and an unlimited number of \emph{clients}.
@@ -44,21 +44,21 @@ We assume reliable and authenticated point-to-point links between parties, imple
 For point-to-point communication, we say that parties \emph{send} and \emph{deliver} messages.
 
 
-\begin{definition}[Next-message function]
-    We define a function $\opnext(\state, \req) \returns (\state', \nextmsg)$. It gets as input \state, the current state  of a replica, and \req, which can be either a client request or a message from another replica, and returns $\state'$, the new state of the replica, and \nextmsg, a message to be sent over point-to-point channel to one or more clients or replicas.
-    \oa{Problems we discovered with Dio: We need to give random tape as input to \opnext. We need to handle cases where missbehaviour is not identifiable by this function (because it is computationally hard to prove that no such sequence exists).}
-\end{definition}
-
-\begin{definition}[Distributed protocol execution]
-    A replica starts executing a distributed protocol from an initial state $\state_0$, defined by the protocol.
-    The execution proceeds by running the \opnext{} function on every received request.
-\end{definition}
-
-\begin{definition}[Equivocation]\sloppy
-    A party is \emph{equivocating} when it sends two messages \nextmsg, $\nextmsg'$, for which there exists no sequence of $\ell \geq 2$ states $\state_0, \ldots, \state_{\ell - 1}$ and $\ell$ client requests $\req_1, \ldots, \req_{\ell}$, such that
-    $\opnext(\state_1, \req_1) \returns (\state_2, \nextmsg),
-    \ldots,
-    \opnext(\state_{\ell}, \req_{\ell}) \returns (\state_{\ell+1}, \nextmsg')$,
-\end{definition}
+%\begin{definition}[Next-message function]
+%    We define a function $\opnext(\state, \req) \returns (\state', \nextmsg)$. It gets as input \state, the current state  of a replica, and \req, which can be either a client request or a message from another replica, and returns $\state'$, the new state of the replica, and \nextmsg, a message to be sent over point-to-point channel to one or more clients or replicas.
+%    \oa{Problems we discovered with Dio: We need to give random tape as input to \opnext. We need to handle cases where missbehaviour is not identifiable by this function (because it is computationally hard to prove that no such sequence exists).}
+%\end{definition}
+%
+%\begin{definition}[Distributed protocol execution]
+%    A replica starts executing a distributed protocol from an initial state $\state_0$, defined by the protocol.
+%    The execution proceeds by running the \opnext{} function on every received request.
+%\end{definition}
+%
+%\begin{definition}[Equivocation]\sloppy
+%    A party is \emph{equivocating} when it sends two messages \nextmsg, $\nextmsg'$, for which there exists no sequence of $\ell \geq 2$ states $\state_0, \ldots, \state_{\ell - 1}$ and $\ell$ client requests $\req_1, \ldots, \req_{\ell}$, such that
+%    $\opnext(\state_1, \req_1) \returns (\state_2, \nextmsg),
+%    \ldots,
+%    \opnext(\state_{\ell}, \req_{\ell}) \returns (\state_{\ell+1}, \nextmsg')$,
+%\end{definition}
 
 
