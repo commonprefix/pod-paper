@@ -98,15 +98,15 @@ A pod protocol has the following interface.
         That is, for any honest client \client and rounds $\round_1, \round_2 \geq \round_1$,
         it holds that $\podView{\client}{\round_2}.\rperf \geq \podView{\client}{\round_1}.\rperf$.
 
-        \item[Correctness of associated values:]
+        \item[Generalized ledger safety:]
         The numbers $\rmin, \rmax$, and $\rconf$ for a transaction \tx satisfy the following:
         	\bd{Do we really want to call this temperature? Isn't it clearer if we call this something like timestamp slack or timestamp gap?}
         \begin{itemize}
-            \item \textbf{Temperature bounds:} For any honest clients $\client_1,\client_2$, if $\client_1$ obtains $\rmin$ and $\rmax$ for \tx
+            \item \textbf{Temperature safety:} For any honest clients $\client_1,\client_2$, if $\client_1$ obtains $\rmin$ and $\rmax$ for \tx
             and $\client_2$ observes \tx as \confirmed with round $\rconf$, then
             $\rmin \leq \rconf \leq \rmax$.
-            \item \textbf{Temperature freezing:} If an honest client obtains $\rmin$ and $\rmax$ for \tx in round $\round_1$, and later obtains $\rmin'$ and $\rmax'$ for \tx in round $\round_2 > \round_1$, then $\rmin' \geq \rmin$ and $\rmax' \leq \rmax$.
-            \item \textbf{\parTemp-Bounded temperature for honest transactions:}
+            \item \textbf{Temperature stickiness:} If an honest client obtains $\rmin$ and $\rmax$ for \tx in round $\round_1$, and later obtains $\rmin'$ and $\rmax'$ for \tx in round $\round_2 > \round_1$, then $\rmin' \geq \rmin$ and $\rmax' \leq \rmax$.
+            \item \textbf{Temperature timeliness for honest transactions with parameter \parTemp:}
             For any \confirmed transaction $\tx$, written by an honest client in round $\round$, it holds that:
             (a) $\rconf \in [\round, \round + \parTemp]$,
             (b) $\rmax \in [\round, \round + \parTemp]$, and

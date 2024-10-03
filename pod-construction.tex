@@ -55,7 +55,7 @@ With $\emptyset$ we denote an empty map.
     \State{\textbf{State:}}
     \State{$\allreps = \{ \rep_1, \ldots, \rep_n \}$ }       \Comment{\text{The set of all replicas}}\label{line:client-state-begin}
     \State{$\pk_1, \ldots, \pk_n$ }       \Comment{\text{The public keys of the replicas}}
-    % \State{$\allLts = [ \mrt_1, \ldots, \mrt_n ] $}   \Comment{The most recent timestamp returned by each replica}
+    % \State{$\mrt = [ \mrt_1, \ldots, \mrt_n ] $}   \Comment{The most recent timestamp returned by each replica}
     \State{$\mrt : \rep \rightarrow \tsp$}   \Comment{The most recent timestamp returned by each replica}
     \State{$\tsps: \tx \rightarrow ( \rep \rightarrow \tsp)$}     \Comment{The timestamp received for each transaction from each replica}
     % \State{$\sigs: \tx \rightarrow ( \rep \rightarrow \sig)$}     \Comment{The signature received for each transaction from each replica}
@@ -67,7 +67,7 @@ With $\emptyset$ we denote an empty map.
     \On{event \opInit{$\rep_1, k_1, \ldots, \rep_n, k_n$}} \label{line:client-init-start}
         \Let{\allreps}{\{ \rep_1, \ldots, \rep_n  \} } 
         \Let{(\pk_1, \ldots, \pk_n)}{(k_1, \ldots, k_n)}
-        % \Let{ \allLts }{ [ 0, \ldots, 0 ]}
+        % \Let{ \mrt }{ [ 0, \ldots, 0 ]}
         % \Let{\rperf}{0}
         \State{\textbf{for all} $\rep \in \allreps: \mrt[\rep_j] \leftarrow 0 $}
         \State{$\tsps\leftarrow\emptyset ;\; \transactions\leftarrow\emptyset$} \label{line:txs-map-init}
@@ -190,7 +190,7 @@ With $\emptyset$ we denote an empty map.
 \end{algorithmic}
 \end{algorithm}
 
-\begin{algorithm}[t]
+\begin{algorithm}[tp]
     \caption{\podCore, client code, part 3: compute \rmin, \rmax, \rconf allowing up to \beta equivocations.}
     \label{alg:client-statistics}
     \begin{algorithmic}[1]
@@ -226,7 +226,7 @@ With $\emptyset$ we denote an empty map.
     \Statex
 
     \Function{\opMinPossibleTsForNewTx{}}{}\label{line:fn-compute-pp-begin}
-        \Let{\txVotesPerf}{\allLts}
+        \Let{\txVotesPerf}{\mrt}
         \State{\text{sort \txVotesPerf in increasing order}}
         \Let{\txVotesPerf}{ [ 0, \stackrel{\beta \text{ times}}{\ldots}, 0 ] \concat \txVotesPerf}
         \return \opMed{$\txVotesPerf[:\alpha]$}
@@ -239,7 +239,7 @@ With $\emptyset$ we denote an empty map.
 \end{algorithmic}
 \end{algorithm}
 
-\begin{algorithm}[t]
+\begin{algorithm}
 \caption{Code for a replica $\rep_i$.}
 \label{alg:pod-core-replica}
 \begin{algorithmic}[1]
@@ -344,7 +344,7 @@ and prepends \beta times the $0$ value (\cref{line:prepend-zero}), pessimistical
 The latter fills a missing vote with $\infty$ (\cref{line:fill-vote-inf})
 and appends \beta times the $\infty$ value (\cref{line:apend-infty}), the worst-case timestamp that malicious replicas may send to other clients.
 Finally, \opMinPossibleTsForNewTx{} works similarly to \opMinPossibleTs{}, except
-considering timestamps \allLts as the minimum possible for any future transaction.
+considering timestamps \mrt as the minimum possible for any future transaction.
 
 \dotparagraph{Confirming transactions}
 A transaction becomes \confirmed (i.e., it gets assigned a confirmation round $\rconf \neq \bot$) when the client receives \alpha votes for \tx from different replicas (line~\ref{line:confirm-tx-begin}).
@@ -376,7 +376,7 @@ When a client receives a \heartBeat vote from $\rep_j$ (\cref{line:receive-vote-
 This function is similar to \opOnReceiveVote{}, except that it does not check for duplicate votes and does not update any associated values for the heartbeat transaction.
 
 
-\begin{algorithm}[t]
+\begin{algorithm}
 \caption{The \identify{} function for \Cref{const:pod-core}.}
 \label{alg:identify}
 \begin{algorithmic}[1]
@@ -402,11 +402,11 @@ We first prove some useful intermediate results.
 \begin{lemma}\label{lem:assign-min-max}
     Regarding \Cref{alg:client-statistics}, we have the following.
     Assume we keep all received timestamps for a transaction \tx ($n$ values in total) in a structure \txVotes, filling in a special  value ($0$  or $\infty$) for missing votes, sorted in increasing order.
-    Assume \allLts is also sorted in increasing order of timestamps.
+    Assume \mrt is also sorted in increasing order of timestamps.
     \begin{enumerate}
         \item \opMinPossibleTs{} returns as \rmin the timestamp at index $\lfloor \alpha / 2 \rfloor - \beta$ of \txVotes.
         \item \opMaxPossibleTs{} returns as \rmax the timestamp at index $n - \alpha + \lfloor \alpha / 2 \rfloor + \beta$ of \txVotes.
-        \item \opMinPossibleTsForNewTx{} returns as \rperf the timestamp at index $\lfloor \alpha / 2 \rfloor - \beta$ of \allLts.
+        \item \opMinPossibleTsForNewTx{} returns as \rperf the timestamp at index $\lfloor \alpha / 2 \rfloor - \beta$ of \mrt.
     \end{enumerate}
 \end{lemma}
 \begin{proof}
@@ -419,7 +419,7 @@ We first prove some useful intermediate results.
     then there exists some honest replica $\rep_j$, such that the most-recent timestamp (mrt) from $\rep_j$ received by the client satisfies $\mrt_j \leq \rperf$.
 \end{lemma}
 \begin{proof}
-    From \Cref{lem:assign-min-max} we have that \rperf is the timestamp at index ($\lfloor \alpha / 2 \rfloor - \beta$) of sorted \allLts.
+    From \Cref{lem:assign-min-max} we have that \rperf is the timestamp at index ($\lfloor \alpha / 2 \rfloor - \beta$) of sorted \mrt.
     The condition $\alpha \geq 4\beta + 1$ implies that $\beta < \lfloor \alpha / 2 \rfloor - \beta$,
     i.e., there are less than $\lfloor \alpha / 2 \rfloor - \beta$ malicious parties, hence one of the indexes between $0$ and $\lfloor \alpha / 2 \rfloor - \beta$ (inclusive) will
     contain the timestamp sent to the client by an honest replica.
@@ -441,15 +441,15 @@ We first prove some useful intermediate results.
 %         and, since $\rmax \neq \infty$, at least $n - \alpha  + \lceil \alpha / 2 \rceil - 1 = n - \lfloor \alpha / 2 \rfloor - 1$
 %         of them are timestamps returned by honest parties.
 %         \oa{TODO: The equivalent of this is $2f$. We would ideally like it to be $2f+1$. Check again.}
-%         \item It follows from \Cref{lem:assign-min-max}, as \rperf is the ($\lceil \alpha / 2 \rceil - \beta$)-th smallest value in \allLts.
+%         \item It follows from \Cref{lem:assign-min-max}, as \rperf is the ($\lceil \alpha / 2 \rceil - \beta$)-th smallest value in \mrt.
 %     \end{enumerate}
 % \end{proof}
 
 \noindent
 The following theorem proves that \Cref{const:pod-core} satisfies the definition of pod. We prove it through a series of lemmas.
 
-\begin{theorem}[\podCore is a pod protocol]
-    Assuming $\alpha \geq 4 \beta + 1$, \podCore (\Cref{const:pod-core}) satisfies the properties of a \emph{pod} protocol (\Cref{sec:pod-model}) with \beta-accountable safety (\Cref{def:accountable-safety}).
+\begin{theorem}[Pod security]
+    \Cref{sec:pod-model}, parametrized $\alpha \geq 4 \beta + 1$, is a secure pod, with \beta-accountable safety (\Cref{def:accountable-safety}).
     Regarding the properties with parameters, it satisfies:
     \begin{itemize}
         \item \emph{Confirmation within \parConf}, for $\parConf = 2 \delta$
@@ -500,7 +500,7 @@ The following theorem proves that \Cref{const:pod-core} satisfies the definition
     
     Let $\allreps_1$ be the set of replicas $\rep_j$ for which \client has an $\mrt_j$, such that $\mrt_j \geq \rperf$.
     Observe that replicas in $\allreps_1$ have sent to \client a vote on \emph{some} transaction with timestamp at least $\rperf$, and no replica in $\allreps_1$ has sent to \client a vote on \tx (because $\tx \not \in \txSet$).
-    From \Cref{lem:assign-min-max} (\rperf is the timestamp at index $\lfloor \alpha / 2 \rfloor - \beta$ of sorted \allLts) we have that $|R_1| \geq n - \lfloor a/2 \rfloor + \beta$. 
+    From \Cref{lem:assign-min-max} (\rperf is the timestamp at index $\lfloor \alpha / 2 \rfloor - \beta$ of sorted \mrt) we have that $|R_1| \geq n - \lfloor a/2 \rfloor + \beta$. 
 
     Let $\allreps_2$ be the set of replicas $\rep_j$ that have sent to $\client'$ a vote on \tx with timestamp $\tsp_j$, such that $\tsp_j < \rperf$.
     It must be that $|\allreps_2| \geq \lfloor \alpha/2 \rfloor + 1$ (because the timestamp is computed as the median of at least \alpha votes).
@@ -518,7 +518,7 @@ The following theorem proves that \Cref{const:pod-core} satisfies the definition
     
     % All together, for replicas in $\replicas_H$ client \client must have received an $\mrt_j$ such that $\mrt_j < \rperf$.
     % However, this is impossible, because 
-    % from \Cref{lem:assign-min-max}, there are at most $\lfloor \frac{\alpha}{2} \rfloor - \beta - 1$ replicas for which \client has received an $\mrt_j$ satisfying $\mrt_j < \rperf$ (\rperf is the timestamp at index $\lfloor \alpha / 2 \rfloor - \beta$ of sorted \allLts).
+    % from \Cref{lem:assign-min-max}, there are at most $\lfloor \frac{\alpha}{2} \rfloor - \beta - 1$ replicas for which \client has received an $\mrt_j$ satisfying $\mrt_j < \rperf$ (\rperf is the timestamp at index $\lfloor \alpha / 2 \rfloor - \beta$ of sorted \mrt).
 \end{proof}
 
 \begin{lemma}[Past-perfection monotonicity]
