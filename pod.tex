@@ -2,32 +2,32 @@
 A pod protocol allows a set of \emph{clients} to obtain a partially ordered list of transactions from a set of \emph{replicas} with censorship-freedom guarantees and accountability for safety violations. 
 
 \begin{definition}[Transaction and associated values]
-    We associate each transaction $\tx \in \zo^*$ with values $(\tx, \rmin, \rmax, \rconf, \txcert)$.
+    A transaction $\tx \in \zo^*$ has associated values represented as a tuple $(\tx, \rmin, \rmax, \rconf, \txcert)$.
     We call $\rmin \in \BN$ the \emph{minimum round}, $\rmax \in \BN \cup \{\infty\}$ the \emph{maximum round},
     and $\rconf \in \BN \cup \{\bot\}$ the \emph{\confirmed round}.
-    For the maximum round, symbol~$\infty$ denotes an unbounded large number,
-    and for the \confirmed round, symbol~$\bot$ denotes an undefined value.
-    Finally, $\txcert \in \zo^*$ is a \emph{transaction certificate} that proves the correctness of $\rmin, \rmax, \rconf$.
-    For transaction \tx, we refer to its associated values as $\tx.\rmin, \tx.\rmax, \tx.\rconf$, and $\tx.\txcert$.
+    We denote by $\rmax=\infty$ an unbounded maximum round and by $\rconf=\bot$ an undefined \confirmed round.
+    A \emph{transaction certificate}  $\txcert \in \zo^*$ proves correctness of $\rmin, \rmax, \rconf$.
+    For transaction \tx, denote its associated values by $\tx.\rmin, \tx.\rmax, \tx.\rconf$, and $\tx.\txcert$.
 \end{definition}
 
-\begin{definition}
-    A transaction is \emph{\confirmed} if $\rconf \neq \bot$, otherwise it is \emph{not \confirmed}.
+\begin{definition}[Confirmed Transaction]
+    A transaction with associated values tuple $(\tx, \rmin, \rmax, \rconf, \allowbreak \txcert)$ is \emph{\confirmed} if $\rconf \neq \bot$, otherwise it is \emph{not \confirmed}.
 \end{definition}
 
-\begin{definition}[Pod]
-    A \emph{pod} $\Pod$ is a triple $(\txSet, \rperf, \ppcert)$, where \txSet is a finite sequence of entries $(\tx, \rmin, \rmax, \rconf, \txcert)$, that is, transactions and associated values, \rperf is a round number, called the \emph{past-perfect round},
+\begin{definition}[Transaction Set]
+A \emph{Transaction Set} $\txSet$ is a set of tuples $(\tx, \rmin, \rmax, \rconf, \txcert)$. We say that a transaction $\tx$ \emph{appears} in $\txSet$ when $\exists \, (\tx, \rmin, \rmax, \rconf, \txcert) \in \txSet$. Conversely, we say that a transaction $\tx$ \emph{does not appear} in $\txSet$ when $\nexists \, (\tx, \rmin, \rmax, \rconf, \txcert) \in \txSet$.
+\end{definition}
+
+\begin{definition}[Pod data structure]
+    A \emph{pod} $\Pod$ is a triple $(\txSet, \rperf, \ppcert)$, where \txSet is a transaction set, \rperf is a round number, called the \emph{past-perfect round},
     and $\ppcert \in \zo^*$ is a \emph{past-perfection certificate} \ppcert that proves the correctness of \Pod.
 \end{definition}
+
+
 We remark that transactions in \txSet may or may not be \confirmed.
-Looking ahead, our construction will allow for deriving $\ppcert$ from all certificates $\txcert$ in $\txSet$, but we define $\ppcert$ explicitly for clarity and generality.
+Looking ahead, our construction will allow for deriving $\ppcert$ from all certificates $\txcert$ in $\txSet$, but we define $\ppcert$ explicitly for clarity and generality. We now define the Pod protocol interface and associated concepts.
 
-\begin{definition}[Past-perfect round]
-    Given a set of transactions \txSet, a round \rperf is \emph{past-perfect} if,
-    for any transaction $\tx \not \in \txSet$, no honest client will ever observe \tx as confirmed with $\rconf < \rperf$.
-\end{definition}
-
-\begin{definition}[Pod protocol]
+\begin{definition}[Pod interface]\label{def:podinterface}
 A pod protocol has the following interface.
 \begin{itemize}
     \item $\opwrite{\tx} \returns (\rmin, \rmax, \rconf, \txcert)$:
@@ -38,74 +38,99 @@ A pod protocol has the following interface.
     % The second output is called an \emph{equivocation-evidence pod} and can be either $\bot$ or $\tilde{\Pod} = (\tilde{\txSet}, \tilde{\rperf}, \tilde{\ppcert})$.
 \end{itemize}
     We say that a client \emph{reads the pod} when it calls \opread{}.
-    For any $(\tx, \rmin, \rmax, \rconf, \txcert) \in \txSet$ we say that the client \emph{observes} \tx and, if $\rconf \neq \bot$, we say that the client \emph{observes \tx as \confirmed}.
+    If $\tx$ appears in $\txSet$,
+    %$(\tx, \rmin, \rmax, \rconf, \txcert) \in \txSet$
+     we say that the client \emph{observes} \tx and, if $\tx.\rconf \neq \bot$, we say that the client \emph{observes \tx as \confirmed}.
 \end{definition}
 
+\begin{definition}[Past-perfect round]
+	Given a set \txSet obtained by an honest client who reads the pod, a round \rperf is \emph{past-perfect} if,
+	for any transaction $\tx$ that does not appear in $ \txSet$, no honest client will ever observe \tx as confirmed with $\tx.\rconf < \rperf$.
+\end{definition}
 
 \begin{definition}[View of the pod]
     We call \emph{view of the pod} the output of \opreadall{} to client \client obtained at round \round,
     and denote it as \podView{\client}{\round}.
-    We remark that \round denotes the round in which \opread{} gives output -- the client may have invoked it at an earlier round.
-    We refer to the fields (\txSet, \rperf, \ppcert) in \podView{\client}{\round} as $\podView{\client}{\round}.\txSet$,
-    $\podView{\client}{\round}.\rperf$, and $\podView{\client}{\round}.\ppcert$, respectively.
-    We also use the notation $\tx \in \podView{\client}{\round}$ as a shortcut for  $\tx \in \podView{\client}{\round}.\txSet$.
+    We remark that \round denotes the round when \opread{} outputs, as the client may have invoked it at an earlier round.
+    We denote the components of a view as $\podView{\client}{\round}=(\podView{\client}{\round}.\txSet,
+    \podView{\client}{\round}.\rperf, \podView{\client}{\round}.\ppcert)$.
+    We write $\tx \in \podView{\client}{\round}$ when  $\tx$ appears in $\podView{\client}{\round}.\txSet$.
 \end{definition}
     
 
-% \dotparagraph{Security properties}
-% A pod satisfies the following properties.
+\begin{definition}[Secure Pod]\label{def:podsec}
+A protocol is a \emph{Secure Pod} if it implements the Pod Interface of Definition~\ref{def:podinterface} and satisfies the following properties.
 
-% \begin{enumerate}[leftmargin=*, align=left]
-%     \item{Liveness:}
+
+
 \dotparagraph{Liveness properties}
-    \begin{description}[leftmargin=*, align=left]
+\begin{description}[leftmargin=*, align=left]
+	
+	\item[Confirmation within \parConf:]
+	Transactions become \confirmed after at most \parConf rounds.
+	That is, if an honest client $\client$ writes a transaction \tx at round \round, then for any honest client $\client'$ (including $\client=\client'$) it holds that $\tx \in \podView{\client'}{\round + \parConf}$ and $\tx.\rconf \neq \bot$.
+	% \item[Confirmation within \parConf:]
+	% If an honest client writes a transaction \tx at round \round, then it will obtain output $(\tx, \rmin, \rmax, \rconf, \txcert)$, such that $\rconf \neq \bot$, by round $\round + \parConf$.
+	% \item[Availability after \parLive:]
+	% If an honest client writes a transaction \tx at round \round, then for any honest client $\client$, it holds that $\tx \in \podView{c}{\round + \parLive}$ and $\tx.\rconf \neq \bot$.
+	
+	\item[\parTemp-timeliness for honest transaction confirmation:] For any \confirmed transaction $\tx$, written by an honest client in round $\round$, it holds that:
+	(a) $\rconf \in [\round, \round + \parTemp]$,
+	(b) $\rmax \in [\round, \round + \parTemp]$, and
+	(c) $\rmax - \rmin \leq \parTemp$.
+	In particular, this implies that $\rmin \neq 0$ and $\rmax \neq \infty$. \bd{This was under safety properties but it seems to be rather a liveness property as it just puts bounds on $\rmax,\rconf,\rmax-\rmin$. I'm not certain if we should always require this or if this should be defined as an optional property. Please check if you agree.}
+	
+	\item[Past-perfection within \parPerf:]
+	Rounds become past-perfect after at most $\parPerf$ rounds. 
+	That is, for any honest client \client and round $\round \geq \parPerf$,
+	it holds that $\podView{c}{\round}.\rperf \geq \round - \parPerf$.
+\end{description}
 
-        \item[Confirmation within \parConf:]
-        Transactions become \confirmed after at most \parConf rounds.
-        That is, if an honest client $\client$ writes a transaction \tx at round \round, then for any honest client $\client'$ (including $\client=\client'$) it holds that $\tx \in \podView{\client}{\round + \parLive}$ and $\tx.\rconf \neq \bot$.
-        % \item[Confirmation within \parConf:]
-        % If an honest client writes a transaction \tx at round \round, then it will obtain output $(\tx, \rmin, \rmax, \rconf, \txcert)$, such that $\rconf \neq \bot$, by round $\round + \parConf$.
-        % \item[Availability after \parLive:]
-        % If an honest client writes a transaction \tx at round \round, then for any honest client $\client$, it holds that $\tx \in \podView{c}{\round + \parLive}$ and $\tx.\rconf \neq \bot$.
 
-        \item[Past-perfection within \parPerf:]
-        Rounds become past-perfect after at most $\parPerf$ rounds. 
-        That is, for any honest client \client and round $\round \geq \parPerf$,
-        it holds that $\podView{c}{\round}.\rperf \geq \round - \parPerf$.
-    \end{description}
+\dotparagraph{Safety properties}
+\begin{description}[left=0pt,itemindent=0pt]   
+	
+	\item[Past-perfection safety]
+	For any honest client \client and round $\round$,
+	if $\tx \not \in \podView{\client}{\round}$, then no honest client $\client'$ (including $\client'=\client$) will ever observe \tx as confirmed with $\rconf < \podView{\client}{\round}.\rperf$.
+	
+	%\item[Generalized ledger safety:]
+	%The numbers $\rmin, \rmax$, and $\rconf$ for a transaction \tx satisfy the following:
+	
+	\item[Confirmation bounds:] For any honest clients $\client_1,\client_2$, if $\client_1$ observes $\tx$ with $\rmin$ and $\rmax$ and $\client_2$ observes \tx as \confirmed with confirmation round $\rconf'$, then $\rmin \leq \rconf' \leq \rmax$.
 
-    % \item{Safety:}
-    \dotparagraph{Safety properties}
-    \begin{description}[left=0pt,itemindent=0pt]   
-        \item[Confirmation stickiness:]
-        For any honest client $\client$ and rounds $\round_1, \round_2 > \round_1$,
-        if $\tx \in \podView{\client}{\round_1}$ and $\tx.\rconf \neq \bot$, then $\tx \in \podView{\client}{\round_2}$ and $\tx.\rconf \neq \bot$.
-        
-        \item[Past-perfection correctness:]
-        For any honest client \client and round $\round$,
-        it holds that, if $\tx \not \in \podView{\client}{\round}$, then no honest client will ever observe \tx as confirmed with $\rconf < \podView{\client}{\round}.\rperf$.
+\end{description}
 
-        \item[Past-perfection stickiness:]
-        The past-perfect round obtained by honest clients can only grow.
-        That is, for any honest client \client and rounds $\round_1, \round_2 \geq \round_1$,
-        it holds that $\podView{\client}{\round_2}.\rperf \geq \podView{\client}{\round_1}.\rperf$.
+\end{definition}
 
-        \item[Generalized ledger safety:]
-        The numbers $\rmin, \rmax$, and $\rconf$ for a transaction \tx satisfy the following:
-        	\bd{Do we really want to call this temperature? Isn't it clearer if we call this something like timestamp slack or timestamp gap?}
-        \begin{itemize}
-            \item \textbf{Temperature safety:} For any honest clients $\client_1,\client_2$, if $\client_1$ obtains $\rmin$ and $\rmax$ for \tx
-            and $\client_2$ observes \tx as \confirmed with round $\rconf$, then
-            $\rmin \leq \rconf \leq \rmax$.
-            \item \textbf{Temperature stickiness:} If an honest client obtains $\rmin$ and $\rmax$ for \tx in round $\round_1$, and later obtains $\rmin'$ and $\rmax'$ for \tx in round $\round_2 > \round_1$, then $\rmin' \geq \rmin$ and $\rmax' \leq \rmax$.
-            \item \textbf{Temperature timeliness for honest transactions with parameter \parTemp:}
-            For any \confirmed transaction $\tx$, written by an honest client in round $\round$, it holds that:
-            (a) $\rconf \in [\round, \round + \parTemp]$,
-            (b) $\rmax \in [\round, \round + \parTemp]$, and
-            (c) $\rmax - \rmin \leq \parTemp$.
-            In particular, this implies that $\rmin \neq 0$ and $\rmax \neq \infty$.
-        \end{itemize}
-    \end{description}
+\begin{definition}[Pod Monotonicity]
+A Pod satisfies \emph{Pod Monotonicity} if it is a Secure Pod as per Definition~\ref{def:podsec} and the following properties hold for any rounds $\round_1,\round_2 > \round_1$:
+\begin{enumerate}
+	\item (Past-perfection Stickiness) $\podView{\client}{\round_2}.\rperf \geq \podView{\client}{\round_1}.\rperf $;
+	\item (Transaction Stickiness) If  transaction $\tx$ appears in $\podView{\client}{\round_1}.\txSet$, then $\tx$ appears in $\podView{\client}{\round_2}.\txSet$;
+	\item (Temperature Stickiness) For every $\tx$ that appears in $\podView{\client}{\round_1}.\txSet$ with $\rmin,\rmax,\rconf$ and appears in  $\podView{\client}{\round_2}.\txSet$ with $\rmin',\rmax',\rconf'$,  it holds that $\rmin'\geq \rmin$, $\rmax' \leq \rmax$, $\rconf' \geq \rconf$.
+
+\end{enumerate}
+
+A Pod that satisfies Pod Monotonicity is called a Monotone Pod.
+
+\end{definition}
+
+\bd{The remarks below can be moved to the appendix.}
+
+
+\begin{remark}
+Every Secure Pod can be transformed into a Monotone Pod if parties are stateful. Let $\round_1$ be the last round when an honest client $\client$ read the pod obtaining view $\podView{\client}{\round_1}$, which is stored as state until $\client$ reads the pod again. At any round $\round_2>\round_1$, if $\client$ reads the pod and obtains $\podView{\client}{\round_2}$, $\client$ can define a view $\overline{\podView{\client}{\round_2}}$ satisfying the properties of Pod Monotonicity:
+
+\begin{enumerate}
+	\item If $\tx$ appears in $\podView{\client}{\round_1}$ with $\tx.\rmin,\tx.\rmax,\tx.\rconf,\tx.\txcert$, then $\tx$ appears in $\overline{\podView{\client}{\round_2}}$ with $\tx.\overline{\rmin}=\rmin,\tx.\overline{\rmax}=\rmax,\tx.\overline{\rconf}=\rconf,\tx.\overline{\txcert}=\txcert$.
+	\item If $\tx$ appears in $\podView{\client}{\round_2}$ with $\tx.\rmin',\tx.\rmax',\tx.\rconf',\tx.\txcert'$ and does not appear in $\podView{\client}{\round_1}$, then $\tx$ appears in $\overline{\podView{\client}{\round_2}}$ with $\tx.\overline{\rmin}=\rmin',\tx.\overline{\rmax}=\rmax',\tx.\overline{\rconf}=\rconf',\tx.\overline{\txcert}=\txcert'$.
+	\item For every $\tx$ that appears in $\podView{\client}{\round_1}.\txSet$ and in  $\podView{\client}{\round_2}.\txSet$ such that $\rmin'\geq \rmin$, $\rmax' \leq \rmax$, $\rconf' \geq \rconf$, update $\tx.\overline{\rmin}=\rmin',\tx.\overline{\rmax}=\rmax',\tx.\overline{\rconf}=\rconf',\tx.\overline{\txcert}=\txcert'$.
+	\item If  $\podView{\client}{\round_2}.\rperf > \podView{\client}{\round_1}.\rperf$, then $\overline{\podView{\client}{\round_2}}.\rperf=\podView{\client}{\round_2}.\rperf $. Otherwise, $\overline{\podView{\client}{\round_2}}.\rperf=\podView{\client}{\round_1}.\rperf $.
+	
+\end{enumerate}
+\end{remark}
+
     
     % \item{Accountability:}
     % \begin{description}        
@@ -114,9 +139,33 @@ A pod protocol has the following interface.
     %     views $\podView{\client_1}{\round_1}$ and $\podView{\client_2}{\round_2}$, for some clients $\client_1,\client_2$ and rounds $\round_1, \round_2$ such that $\identify{\podView{\client_1}{\round_1},\podView{\client_2}{\round_2}} \rightarrow \cheaters$ outputs a non-empty set $\cheaters$ of equivocating replicas. If a safety property is violated, $\cheaters$ contains at least $\beta+1$ replicas who have caused the violation.
 % \end{enumerate}
 
+
+
+
+
+
+
+
+
+In the remarks below, we observe that Pod Monotonicity implies a number of useful properties about the monotonicity of past perfection and the values $\rmin,\rmax,\rconf$ associated to a transactions in the Pod.
+
+\begin{remark}[Confirmation stickiness]\label{rem:confstick}
+Properties 2 and 3 of Pod Monotonicity imply that  for any honest client $\client$ and rounds $\round_1, \round_2 > \round_1$,
+if $\tx \in \podView{\client}{\round_1}$ and $\tx.\rconf \neq \bot$, then $\tx \in \podView{\client}{\round_2}$ and $\tx.\rconf \neq \bot$.
+\end{remark}
+
+\begin{remark}[Past-perfection stickiness:]
+Property 1 of Pod Monotonicity imply that the past-perfect round obtained by honest clients can only grow.
+That is, for any honest client \client and rounds $\round_1, \round_2 \geq \round_1$,
+it holds that $\podView{\client}{\round_2}.\rperf \geq \podView{\client}{\round_1}.\rperf$.
+\end{remark}
+
+\begin{remark}[Temperature stickiness:]
+ Properties 2 and 3 of Pod Monotonicity imply that if an honest client obtains $\rmin$ and $\rmax$ for \tx in round $\round_1$, and later obtains $\rmin'$ and $\rmax'$ for \tx in round $\round_2 > \round_1$, then $\rmin' \geq \rmin$ and $\rmax' \leq \rmax$.
+\end{remark}
+
 \begin{remark}
-    \oa{Remove or move to appendix}
-    Observe that the \emph{confirmation stickiness} property in \Cref{sec:pod-model} is a specific version of a more general \emph{Common subset} property, which would demand the condition for any two honest clients $\client_1, \client_2$. We provide such a property in \Cref{sec:pod-with-propagation}.
+    Observe that the \emph{confirmation stickiness} property in Remark~\ref{rem:confstick} is a specific version of a more general \emph{Common subset} property, which would demand the condition for any two honest clients $\client_1, \client_2$. We provide such a property in \Cref{sec:pod-with-propagation}.
     \Cref{const:pod-core} satisfies the \emph{confirmation stickiness} property.
     % \emph{ Confirmation monotonicity for honest transactions after $X$:}
     % For any honest clients $\client_1$, $\client_2$ and rounds $\round_1, \round_2 > \round_1 + X$,
