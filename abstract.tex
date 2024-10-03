@@ -5,12 +5,12 @@
     In this paper we observe that for some applications not even that property is required.
     The most common example is running auctions on top of a distributed system: at a prespecified \emph{deadline}, an auctioneer reads the bids from the system, runs the auction protocol, and announces the auction winner.
     Indeed, the bids of each user need not be ordered.
-    What is instead required is that the auctioneer can not censor bids that have been written to the system.
-    More specifically, honest bidders must be able to publicly prove that their bid was written in the system \emph{before} the deadline.
+    What is instead require is that the auctioneer can not censor bids that have been written to the system.
+    More specifically, honest bidders must be able to publicly prove that their bids were placed in the system \emph{before} the deadline.
 
-    We present \emph{pod}, a distributed protocol that achieves \emph{partial ordering} among transactions and \emph{past-perfection} guarantees.
-    Partial ordering means stems from the fact that each transaction written to the system is assigned a non-fixed \emph{timestamp} and an interval in which this timestamp may wiggle. Hence, transactions written sufficiently far from each other are ordered, while some transactions may appear forever as concurrent.
-    Perfect view means that a party that reads the system is guaranteed to see all transactions written to the system by a specific time, called the \emph{past-perfect round}. What is more, the reading party cannot deny having seen all transactions up to the past-perfect round.
+    We present \emph{pod}, a new notion for distributed systems that achieves \emph{partial ordering} among transactions and \emph{past-perfection} guarantees.
+    Partial ordering stems from the fact that each transaction written to the system is assigned a non-fixed \emph{timestamp} and an interval in which this timestamp may wiggle. Hence, transactions written sufficiently far from each other are ordered, while some transactions may appear forever as concurrent.
+    Past perfection means that a party that reads the system is guaranteed to see all transactions written to the system by a specific time, called the \emph{past-perfect round}. Moreover, the parties cannot deny having seen all transactions up to the past-perfect round.
 
-    The efficiency gain that results from this simple observation is tremendous. Replicas in pod.
+    The efficiency gain that results from this simple observation is tremendous. The protocol we propose is executed by a number of \emph{replicas} and \emph{clients} in a way that minimizes interaction among these parties. In particular, neither replicas nor clients communicate among each other, and clients read/write transactions by directly communicating with each replica. In this setting, replicas can be kept accountable, in the sense that replicas violating safety guarantees can be publicly identified. Based on this protocol, we show how to realize applications such as payments and auctions with censorship resistance.
 \end{abstract}
