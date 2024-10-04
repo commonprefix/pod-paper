@@ -39,7 +39,7 @@ We assume that all messages between clients and replicas carry a session identif
 \end{remark}
 
 \begin{remark}[Streaming construction]
-    The client protocol we show in \Cref{const:pod-core} is \emph{streaming}, that is, clients maintain a connection to the replicas and persist their state (received transactions, votes, and associated values) across all invocations of \opwrite{} an\opreadall{}.
+    The client protocol we show in \Cref{const:pod-core} is \emph{streaming}, that is, clients maintain a connection to the replicas, and \emph{stateful}, that is, they persist their state (received transactions, votes, and associated values) across all invocations of \opwrite{} and \opreadall{}.
 \end{remark}
 
 \dotparagraph{Pseudocode notation}
@@ -49,7 +49,7 @@ For a map $x$, the operations $x.\opKeys$ and $x.\opValues$ return all keys and 
 With $\emptyset$ we denote an empty map.
 
 \begin{algorithm}[tp]
-\caption{\podCore, client code, part 1.}
+\caption{Client code, part 1.}
 \label{alg:client-1}
 \begin{algorithmic}[1]
     \State{\textbf{State:}}
@@ -121,7 +121,7 @@ With $\emptyset$ we denote an empty map.
 \end{algorithm}
     
 \begin{algorithm}[tp]
-\caption{\podCore, client code, part 2.}
+\caption{Client code, part 2.}
 \label{alg:client-2}
 \begin{algorithmic}[1]
     \Function{\opOnReceiveVote{$\tx, \tsp, \sigma, \rep_j$}}{}
@@ -151,7 +151,7 @@ With $\emptyset$ we denote an empty map.
 \end{algorithm}
 
 \begin{algorithm}[tp]
-    \caption{\podCore, client code, part 3: compute \rmin, \rmax, \rconf allowing up to \beta equivocations.}
+    \caption{Client code, part 3: compute \rmin, \rmax, \rconf allowing up to \beta equivocations.}
     \label{alg:client-statistics}
     \begin{algorithmic}[1]
     \Function{\opMinPossibleTs{\tx}}{}
@@ -250,8 +250,8 @@ With $\emptyset$ we denote an empty map.
 \end{algorithm}
 
 
-\begin{construction}[\podCore]\label{const:pod-core}
-We present a pod construction, called \emph{\podCore}, in Algorithms~\ref{alg:client-1}--\ref{alg:pod-core-replica},
+\begin{construction}\label{const:pod-core}
+We present a pod construction in Algorithms~\ref{alg:client-1}--\ref{alg:pod-core-replica},
 and discuss its main points, first for the client and then for the replica construction, in the following paragraphs.
 Pod core achieves \emph{accountable safety} (see \Cref{sec:accountable-safety}); the \identify{} function is shown in \Cref{alg:identify}.
 \end{construction}
@@ -406,15 +406,15 @@ We first prove some useful intermediate results.
 % \end{proof}
 
 \noindent
-The following theorem proves that \Cref{const:pod-core} satisfies the definition of pod. We prove it through a series of lemmas.
+The following theorem proves that \Cref{const:pod-core} satisfies the security definition of pod. We prove it through a series of lemmas.
 
 \begin{theorem}[Pod security]
-    \Cref{sec:pod-model}, parametrized $\alpha \geq 4 \beta + 1$, is a secure pod, with \beta-accountable safety (\Cref{def:accountable-safety}).
+    \Cref{const:pod-core}, parametrized $\alpha \geq 4 \beta + 1$, is a secure pod, with \beta-accountable safety (\Cref{def:accountable-safety}).
     Regarding the properties with parameters, it satisfies:
     \begin{itemize}
-        \item \emph{Confirmation within \parConf}, for $\parConf = 2 \delta$
-        \item \emph{Past-perfection within \parPerf}, for $\parPerf = \delta$
-        \item \parTemp-Bounded temperature for honest transactions, for $\parTemp = \wip{fill}$
+        \item Confirmation within $\parConf = 2 \delta$
+        \item $\parTemp = \wip{fill}$ timeliness for honest transaction confirmation
+        \item Past-perfection within $\parPerf = \delta$
     \end{itemize}
 \end{theorem}
 
@@ -429,6 +429,12 @@ The following theorem proves that \Cref{const:pod-core} satisfies the definition
     As are at least \alpha honest replicas, $\client'$ receives at least \alpha such votes, hence the condition in line~\ref{line:confirm-tx-begin} is satisfied and $\client'$ observes \tx as \confirmed.
 \end{proof}
 
+\begin{lemma}[$\parTemp$ timeliness for honest transaction confirmation]
+    \Cref{const:pod-core} satisfies the \emph{$\parTemp$-timeliness} property for $\parTemp = \wip{fill}$.
+\end{lemma}
+\begin{proof}
+\end{proof}
+
 \begin{lemma}[Past-perfection within $\parPerf$]
     \Cref{const:pod-core} satisfies the \emph{past-perfection within $\parPerf$} property for $\parPerf = \delta$.
 \end{lemma}
@@ -441,18 +447,18 @@ The following theorem proves that \Cref{const:pod-core} satisfies the definition
     All together, $\podView{c}{\round}.\rperf \geq \round - \delta$.
 \end{proof}
 
-\begin{lemma}[Confirmation stickiness]
-    \Cref{const:pod-core} satisfies the \emph{confirmation stickiness} property.
-\end{lemma}
-\begin{proof}
-    It follows from the fact that clients in \Cref{const:pod-core} are \emph{stateful} and operation \opread{} (lines~\ref{line:read-begin}--\ref{line:read-end}) operates on local state.
-    If \opread{} returns a set of transaction \transactions which contains a \confirmed transaction \tx, then \transactions will contain this \tx as confirmed in any subsequent call to \opread{}.
-    % This implies that \tx got assigned an $\rconf \neq \bot$ in line~\ref{line:assign-median}, which implies the condition in line~\ref{line:confirm-tx-begin} was at some point true. As the structure \tsps is persisted across calls to \opread{}, any subsequent \opread{} will return \tx as \confirmed.
-\end{proof}
+% \begin{lemma}[Confirmation stickiness]
+%     \Cref{const:pod-core} satisfies the \emph{confirmation stickiness} property.
+% \end{lemma}
+% \begin{proof}
+%     It follows from the fact that clients in \Cref{const:pod-core} are \emph{stateful} and operation \opread{} (lines~\ref{line:read-begin}--\ref{line:read-end}) operates on local state.
+%     If \opread{} returns a set of transaction \transactions which contains a \confirmed transaction \tx, then \transactions will contain this \tx as confirmed in any subsequent call to \opread{}.
+%     % This implies that \tx got assigned an $\rconf \neq \bot$ in line~\ref{line:assign-median}, which implies the condition in line~\ref{line:confirm-tx-begin} was at some point true. As the structure \tsps is persisted across calls to \opread{}, any subsequent \opread{} will return \tx as \confirmed.
+% \end{proof}
 
-\begin{lemma}[Past-perfection correctness]
-    (1) Assuming at most \beta malicious replicas, the pod $\Pod = (\txSet, \rperf, \ppcert)$ output by \opreadall{} in Construction~\ref{const:pod-core} (line~\ref{line:return-pod}) satisfies the \emph{past-perfection correctness} property.
-    (2) Construction~\ref{const:pod-core} satisfies \emph{\beta-Accountability safety} for violations of the \emph{past-perfection correctness} property.
+\begin{lemma}[Past-perfection safety]
+    (1) Assuming at most \beta malicious replicas, the pod $\Pod = (\txSet, \rperf, \ppcert)$ output by \opreadall{} in Construction~\ref{const:pod-core} (line~\ref{line:return-pod}) satisfies the \emph{past-perfection safety} property.
+    (2) Construction~\ref{const:pod-core} satisfies \emph{\beta-accountability safety} for violations of the \emph{past-perfection safety} property.
 \end{lemma}
 \begin{proof}
     Assume an honest client \client at round \round has outputs a pod $(\txSet, \rperf, \ppcert)$, such that $\tx \not \in \txSet$, for some $\tx \in \zo^*$.
@@ -470,30 +476,21 @@ The following theorem proves that \Cref{const:pod-core} satisfies the definition
 
     For (2) observe that $\allreps_1 \cap \allreps_2$ contain at least $\beta + 1$ replicas that have sent to \client a vote on \emph{some} transaction with timestamp greater or equal to $\rperf$, they have not sent to \client a vote on \tx, and they have sent to $\client'$ a vote on \tx with timestamp less than $\rperf$. On input the set of these votes, function \identify{} returns $\allreps_1 \cap \allreps_2$.
     \wip{Show this in \identify{} after we encode the order of messages.}
-    % Client $\client'$ must have received at least $\lfloor \frac{\alpha}{2} \rfloor$ votes from replicas $\rep_j$ with a timestamp $\tsp_j < \rperf$ (because the timestamp is computed as the median of at least \alpha votes).
-    % Out of those votes, at least $\lfloor \frac{\alpha}{2} \rfloor - \beta$ must be from honest replicas.
-    % Call $\replicas_H$ this set of honest replicas.
-    % For each $\rep_j \in \replicas_H$, client \client has not received a vote on \tx from $\rep_j$ (because $\tx \not \in \txSet$). If $\mrt_j$ is the most-recent timestamp that \client has received from $\rep_j$,
-    % it must be that $ \mrt_j \leq \tsp_j$ (because \client has received all votes from $\rep_j$ with timestamp up to $\mrt_j$),
-    
-    % All together, for replicas in $\replicas_H$ client \client must have received an $\mrt_j$ such that $\mrt_j < \rperf$.
-    % However, this is impossible, because 
-    % from \Cref{lem:assign-min-max}, there are at most $\lfloor \frac{\alpha}{2} \rfloor - \beta - 1$ replicas for which \client has received an $\mrt_j$ satisfying $\mrt_j < \rperf$ (\rperf is the timestamp at index $\lfloor \alpha / 2 \rfloor - \beta$ of sorted \mrt).
 \end{proof}
 
-\begin{lemma}[Past-perfection monotonicity]
-    \Cref{const:pod-core} satisfies the \emph{past-perfection monotonicity} property.
-\end{lemma}
-\begin{proof}
-    It follows from the fact that clients in \Cref{const:pod-core} use a stateful construction,
-    and the fact that the most-recent timestamps can only increase.
-\end{proof}
+% \begin{lemma}[Past-perfection monotonicity]
+%     \Cref{const:pod-core} satisfies the \emph{past-perfection monotonicity} property.
+% \end{lemma}
+% \begin{proof}
+%     It follows from the fact that clients in \Cref{const:pod-core} use a stateful construction,
+%     and the fact that the most-recent timestamps can only increase.
+% \end{proof}
 
-\begin{lemma}[Correctness of \rconf, \rmin, \rmax with parameter \parTemp]
+\begin{lemma}[Confirmation bounds]
 \end{lemma}
 \begin{proof}
-    \begin{enumerate}[label=(\arabic*)]
-        \item Assume client $\client_1$ computes \rmin and client $\client_2$ computes $\rconf < \rmin$ for \tx.
+        \wip{show accountability}
+        Assume client $\client_1$ computes \rmin and client $\client_2$ computes $\rconf < \rmin$ for \tx.
         From \Cref{lem:assign-min-max}, the number of replicas that have sent to $\client_1$ a timestamp for \tx smaller than \rmin can  be  at most $\lfloor \alpha / 2 \rfloor - \beta - 1$.
         Allowing up to \beta replicas to equivocate, there can be at most $\lfloor \alpha / 2 \rfloor - 1$ replicas that send $\client_2$  a timestamp smaller than \rmin.
         However, in order to assign $\rconf < \rmin$ to \tx, client $\client_2$ must have received timestamps smaller than \rmin from at least $\lfloor \alpha / 2 \rfloor$ replicas, a contradiction.
@@ -505,16 +502,6 @@ The following theorem proves that \Cref{const:pod-core} satisfies the definition
         and if \alpha is even, then $\alpha - \lfloor \alpha / 2 \rfloor - 1 = \lfloor \alpha / 2 \rfloor - 1$, while $\client_2$ would need at least
         $\lfloor \alpha / 2 \rfloor$ votes larger that \rmax in order to  
         compute a median larger than \rmax (we remind that \cref{alg:client-statistics} returns as median the value at position $\lfloor \alpha /  2 \rfloor$).
-
-        \item From \Cref{lem:assign-min-max}, \rmin is the element at index $\lfloor \alpha / 2 \rfloor - \beta$ of \txVotesMin. This value can only grow, because, for a missing vote from replica $\rep_j$, it is assigned $\mrt_j$ (lines~\ref{line:assing-missing-min-begin}--\ref{line:assing-missing-min-end}),
-        and the construction only accepts a timestamp \tsp from $\rep_j$ if
-        $\tsp \geq \mrt_j$ (\cref{line:check-old-ts}).
-        Similarly for \rmax, as the construction fills missing votes in \txVotesMax with $\infty$ (lines~\ref{line:assing-missing-max-begin}--\ref{line:assing-missing-max-end}), which can only become lower when the vote is received.
-        Also note that the construction only considers the first vote from each replica on \tx (\cref{line:check-dup-tsp}).
-        
-        \item \oa{TODO}
-    \end{enumerate}
-    \oa{Remark: This does not include  drifts of the clocks.}
 \end{proof}
 
 
@@ -525,11 +512,10 @@ The following theorem proves that \Cref{const:pod-core} satisfies the definition
     and \identify{$\podView{\client_1}{\round_1}$, $\podView{\client_2}{\round_2}$}, for the \emph{accountability from the  view of two parties} properties. 
 \end{theorem}
 \begin{proof}
-    \wip{For the past-perfection property, add \txcert to \Pod.}
 \end{proof}
 
 \bd{Let's adjust this according to the updated accountability for equivocation encompassing both cases. In the proof we can argue two cases: 1. equivocating towards a single party where we have  $\podView{\client_1}{\round_1},\podView{\client_1}{\round_2}=\Pod'$  output by \opreadall{}; 2. equivocating towards two or more parties, where the $\podView{\client_1}{\round_1}$ view is obtained by $\client_1$ and $\podView{\client_2}{\round_2}$ view is obtained by $\client_1$ with $\client_1\neq \client_2$.}
-\oa{TODO}
+\wip{Let' discuss whether we need a separate theorem.}
 
 % \begin{proof}
 %     Since $\rperf \geq \txcert.\rconf$, pod \Pod must contain votes with timestamp greater than or equal to \txcert.\rconf from at least \alpha replicas (otherwise \rperf is invalid), hence from at least $\alpha - \beta$ honest replicas.
@@ -550,63 +536,47 @@ The following theorem proves that \Cref{const:pod-core} satisfies the definition
 
 \section{Pod with transaction gossiping} \label{sec:pod-with-propagation}
 In the construction of \Cref{sec:pod-core-const}, replicas do not communicate with each other.
-As we saw, we were still able to prove all security properties of \Cref{sec:pod-model}.
-In this section we introduce two additional properties and describe a construction that satisfies them.
+In this section we introduce and additional property, \emph{Common subset after \parAgr}, and describe a construction that satisfies it.
 
-\begin{definition}[\pend transaction]
-    We associate one more value with each transaction \tx, a boolean value \emph{\ispend}.
-    Now $\opwrite{\tx}$ returns $(\tx, \rmin, \rmax, \rconf, \ispend, \txcert)$,
-    and \opreadall{} returns a pod \Pod, which contains entries $(\tx, \rmin, \rmax, \rconf, \ispend, \txcert)$.
-    If $\ispend = \true$ and $\rconf = \bot$, we say that \tx is a \emph{\pend} transaction.
-\end{definition}
+% \begin{definition}[Pending-confirmation transaction]
+%     We associate one more value with each transaction \tx, a boolean value \emph{\ispend}.
+%     Now entries of \txSet have the form $(\tx, \rmin, \rmax, \rconf, \ispend, \txcert)$.
+%     If $\ispend = \true$ we say that \tx is a \emph{\pend} transaction.
+% \end{definition}
 
-We require the following two safety properties from a pod primitive, in addition to the ones presented in \Cref{sec:pod-model}.
-\begin{description}[left=0pt,itemindent=0pt]
-    \item[Common subset (confirmation monotonicity) after \parAgr:]
+\begin{definition}[Common subset after \parAgr]
     If an honest client observes transaction \tx as \confirmed,
     then every other honest client will observe \tx as \confirmed after at most \parAgr rounds.
     That is, for any honest clients $\client_1$, $\client_2$ and rounds $\round_1, \round_2 > \round_1 + \parAgr$,
     if $\tx \in \podView{\client_1}{\round_1}$ and $\tx.\rconf \neq \bot$, then $\tx \in \podView{\client_2}{\round_2}$ and $\tx.\rconf \neq \bot$.
-    
-    \item[Pending-confirmation soundness:]
-    If an honest client observes transaction \tx as \pend, then eventually it will observe it as \confirmed.
-\end{description}
-
+\end{definition}
 Observe that the \emph{confirmation agreement after \parAgr} property generalizes the \emph{confirmation monotonicity} property of \emph{pod core} (\Cref{sec:pod-model}) for views of two honest clients $\client_1$, $\client_2$.
 
-\begin{construction}[Pod with transaction propagation]
+% \begin{definition}
+%     \item[Pending-confirmation soundness:]
+%     % If an honest client observes transaction \tx as \pend, then eventually it will observe it as \confirmed.
+% \end{definition}
+    
 
-\end{construction}
-
-\begin{remark}[Transaction propagation]
-    In order to satisfy the \emph{agreement} and \emph{\pend soundness} properties,
+\begin{construction}[Pod with transaction propagation]\label{cons:pod-with-prop}
+    \oa{If we have time, describe in words (no pseudocode).}
+    In order to satisfy the \emph{common subset} property,
     the construction requires a transaction propagation mechanism, that ensures that all honest replicas see the same set of transactions,
     even for transactions sent by malicious parties.
     We denote by \tProp the maximum number of rounds it takes for a transaction to be delivered by all replicas.
-\end{remark}
+\end{construction}
 
 \subsection{Security}
 \begin{lemma}[Agreement after \parAgr]
-    Construction \oa{TODO} satisfies the \emph{agreement after \parAgr} property for $\parAgr = 0$ for transactions written by honest clients and $\parAgr = \tProp$ for transactions written by malicious clients.
+    \Cref{cons:pod-with-prop} satisfies the \emph{agreement after \parAgr} property for $\parAgr = \tProp$.
 \end{lemma}
 \begin{proof}
     \oa{Proof sketch: a malicious replica returns \tx only to the first client, making the difference
     between being confirmed and not. Using gossip/relaying, after \tProp all honest will have seen \tx, hence the second client also sees it as confirmed. }
 \end{proof}
 
-\begin{lemma}[Pending-confirmation soundness]
-    Construction \oa{TODO} satisfies the \emph{pending-confirmation soundness} property.
-\end{lemma}
-\begin{proof}
-    \oa{TODO}
-\end{proof}
-
-\begin{claim}
-    Assume some client obtains certificate \txcert for a \confirmed transaction \tx,
-    and another (possibly malicious) client
-    reads the pod and outputs $(\Pod, \rperf, \ppcert)$, such that $\rperf \geq \txcert.\rconf$.
-    Then, \tx will be contained in \Pod as \pend of \confirmed.
-    \oa{This does not hold. Maybe if $\rperf \geq \txcert.\rmax$?
-    I  thought  we need  it  for the auction, but  we  do  not. The  auctioneer  can  make a confirmed  \tx appear as \pend, and a \pend appear with $<\beta$  votes, but not a
-    confirmed  appear with  $<\beta$ votes, so that's ok.}
-\end{claim}
+% \begin{lemma}[Pending-confirmation soundness]
+%     \Cref{cons:pod-with-prop} satisfies the \emph{pending-confirmation soundness} property.
+% \end{lemma}
+% \begin{proof}
+% \end{proof}
