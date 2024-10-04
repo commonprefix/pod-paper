@@ -406,15 +406,17 @@ We first prove some useful intermediate results.
 The following theorem proves that \Cref{const:pod-core} satisfies the security definition of pod. We prove it through a series of lemmas.
 
 \begin{theorem}[Pod security]
-    \Cref{const:pod-core}, parametrized $\alpha \geq 4 \beta + 1$, is a secure pod, with \beta-accountable safety (\Cref{def:accountable-safety}).
-    Regarding the properties with parameters, it satisfies:
+    \Cref{const:pod-core}, parametrized $\alpha \geq 4 \beta + 1$ and assuming at most \beta malicious replicas, is a secure pod with \beta-accountable safety (\Cref{def:accountable-safety}) and with the following parameters for the liveness properties.
     \begin{itemize}
         \item Confirmation within $\parConf = 2 \delta$
         \item Past-perfection within $\parPerf = \delta$
     \end{itemize}
 \end{theorem}
+\begin{proof}
+    In Lemmas~\ref{lem:pod-confirmation}--\ref{lem:pod-accountable-safety}.
+\end{proof}
 
-\begin{lemma}[Confirmation within $\parConf$]
+\begin{lemma}[Confirmation within $\parConf$]\label{lem:pod-confirmation}
   \Cref{const:pod-core} satisfies the \emph{confirmation within $\parConf$} property for $\parConf = 2 \delta$.
 \end{lemma}
 \begin{proof}
@@ -446,13 +448,13 @@ The following theorem proves that \Cref{const:pod-core} satisfies the security d
 %     % This implies that \tx got assigned an $\rconf \neq \bot$ in line~\ref{line:assign-median}, which implies the condition in line~\ref{line:confirm-tx-begin} was at some point true. As the structure \tsps is persisted across calls to \opread{}, any subsequent \opread{} will return \tx as \confirmed.
 % \end{proof}
 
-\begin{lemma}[Past-perfection safety]
-    (1) Assuming at most \beta malicious replicas, \Cref{const:pod-core} (line~\ref{line:return-pod}) satisfies the \emph{past-perfection safety} property.
-    (2) Construction~\ref{const:pod-core} satisfies \emph{\beta-accountability safety} for violations of the \emph{past-perfection safety} property.
+\begin{lemma}[Past-perfection safety]\label{lem:pod-pp-safety}
+    \Cref{const:pod-core} satisfies the \emph{past-perfection safety} property.
 \end{lemma}
 \begin{proof}
-    Assume an honest client \client at round \round has outputs a pod $(\txSet, \rperf, \ppcert)$, such that $\tx \not \in \txSet$, for some $\tx \in \zo^*$.
-    Assume another client $\client'$ creates a certificate $\txcert$ for \tx, such that $\txcert.\rconf \neq \bot$ and $\txcert.\rconf < \rperf$.
+    Assume an honest client \client at round \round outputs a pod $(\txSet, \rperf, \ppcert)$, such that $\tx \not \in \txSet$, for some $\tx \in \zo^*$.
+    Assume another client $\client'$ outputs a pod $(\txSet', \cdot, \cdot)$,
+    such that $(\tx, \cdot, \cdot, \rconf, \txcert) \in \txSet'$ and $\rconf \neq \bot$ and $\rconf < \rperf$.
     
     Let $\allreps_1$ be the set of replicas $\rep_j$ for which \client has an $\mrt_j$, such that $\mrt_j \geq \rperf$.
     Observe that replicas in $\allreps_1$ have sent to \client a vote on \emph{some} transaction with timestamp at least $\rperf$, and no replica in $\allreps_1$ has sent to \client a vote on \tx (because $\tx \not \in \txSet$).
@@ -461,11 +463,8 @@ The following theorem proves that \Cref{const:pod-core} satisfies the security d
     Let $\allreps_2$ be the set of replicas $\rep_j$ that have sent to $\client'$ a vote on \tx with timestamp $\tsp_j$, such that $\tsp_j < \rperf$.
     It must be that $|\allreps_2| \geq \lfloor \alpha/2 \rfloor + 1$ (because the timestamp is computed as the median of at least \alpha votes).
 
-    For (1) we will show that, if at most \beta replicas are adversarial, then this leads to a contradiction.
+    We will show that, if at most \beta replicas are adversarial, then this leads to a contradiction.
     Observe that an honest replica cannot be in both $\allreps_1$ and $\allreps_2$, because that would imply that it omitted sending a vote to \client. However, from the cardinality of $\allreps_1$ and $\allreps_2$, we have that at least $\beta + 1$ replicas must be in both sets, a contradiction
-
-    For (2) observe that $\allreps_1 \cap \allreps_2$ contain at least $\beta + 1$ replicas that have sent to \client a vote on \emph{some} transaction with timestamp greater or equal to $\rperf$, they have not sent to \client a vote on \tx, and they have sent to $\client'$ a vote on \tx with timestamp less than $\rperf$. On input the set of these votes, function \identify{} returns $\allreps_1 \cap \allreps_2$.
-    \wip{Show this in \identify{} after we encode the order of messages.}
 \end{proof}
 
 % \begin{lemma}[Past-perfection monotonicity]
@@ -477,9 +476,9 @@ The following theorem proves that \Cref{const:pod-core} satisfies the security d
 % \end{proof}
 
 \begin{lemma}[Confirmation bounds]
+    \Cref{const:pod-core} satisfies the \emph{confirmation bounds} property.
 \end{lemma}
 \begin{proof}
-        \wip{show accountability}
         Assume client $\client_1$ computes \rmin and client $\client_2$ computes $\rconf < \rmin$ for \tx.
         From \Cref{lem:assign-min-max}, the number of replicas that have sent to $\client_1$ a timestamp for \tx smaller than \rmin can  be  at most $\lfloor \alpha / 2 \rfloor - \beta - 1$.
         Allowing up to \beta replicas to equivocate, there can be at most $\lfloor \alpha / 2 \rfloor - 1$ replicas that send $\client_2$  a timestamp smaller than \rmin.
@@ -494,16 +493,31 @@ The following theorem proves that \Cref{const:pod-core} satisfies the security d
         compute a median larger than \rmax (we remind that \cref{alg:client-statistics} returns as median the value at position $\lfloor \alpha /  2 \rfloor$).
 \end{proof}
 
-\begin{theorem}[Accountability]
-    The accountability properties are satisfied using
-    \identify{}, for the \emph{accountability from the  view of a single party} property,
-    and \identify{$\podView{\client_1}{\round_1}$, $\podView{\client_2}{\round_2}$}, for the \emph{accountability from the  view of two parties} properties. 
-\end{theorem}
+\begin{lemma}[\beta-Accountable safety]\label{lem:pod-accountable-safety}
+    % The accountability properties are satisfied using
+    % \identify{}, for the \emph{accountability from the  view of a single party} property,
+    % and \identify{$\podView{\client_1}{\round_1}$, $\podView{\client_2}{\round_2}$}, for the \emph{accountability from the  view of two replicas} properties. 
+    \Cref{const:pod-core} satisfies accountable safety with resilience \beta.
+\end{lemma}
 \begin{proof}
+    We show that \identify{} in \Cref{alg:identify} satisfies the \emph{correctness} and \emph{no-framing} properties required by \Cref{def:accountable-safety}, through the following steps.
+    \begin{enumerate}[left=0pt,itemindent=0pt]   
+        \item If the past-perfection safety property is violated, there exists a partial transcript \tran, such that \Cref{alg:identify} on input \tran returns at least \beta adversarial replicas.
+        \emph{Proof:}
+        Assume, as in the proof of \Cref{lem:pod-pp-safety}, an honest client \client at round \round outputs a pod $(\txSet, \rperf, \ppcert)$, such that $\tx \not \in \txSet$, for some $\tx \in \zo^*$,
+        and another client $\client'$ outputs a pod $(\txSet', \cdot, \cdot)$,
+        such that $(\tx, \cdot, \cdot, \rconf, \txcert) \in \txSet'$ and $\rconf \neq \bot$ and $\rconf < \rperf$.
+        Using the sets $\allreps_1, \allreps_2$ as constructed in the proof of \Cref{lem:pod-pp-safety},
+        observe that $\allreps_1 \cap \allreps_2$ contains at least $\beta + 1$ replicas that have sent to \client a vote on \emph{some} transaction with timestamp greater or equal to $\rperf$, have not sent to \client a vote on \tx, and have sent to $\client'$ a vote on \tx with timestamp less than $\rperf$. On input a set that contains these votes, function \identify{} returns $\allreps_1 \cap \allreps_2$.
+    \wip{Show this in \identify{} after we encode the order of messages.}
+        \item If the confirmation-bounds property is violated, there exists a partial transcript \tran, such that \Cref{alg:identify} on input \tran returns at least \beta adversarial replicas.
+        \emph{Proof:} \wip{}
+        \item \Cref{alg:identify} never outputs honest replicas.
+        \emph{Proof:} \wip{}
+    \end{enumerate}
+    
 \end{proof}
 
-\bd{Let's adjust this according to the updated accountability for equivocation encompassing both cases. In the proof we can argue two cases: 1. equivocating towards a single party where we have  $\podView{\client_1}{\round_1},\podView{\client_1}{\round_2}=\Pod'$  output by \opreadall{}; 2. equivocating towards two or more parties, where the $\podView{\client_1}{\round_1}$ view is obtained by $\client_1$ and $\podView{\client_2}{\round_2}$ view is obtained by $\client_1$ with $\client_1\neq \client_2$.}
-\wip{Let' discuss whether we need a separate theorem.}
 
 % \begin{proof}
 %     Since $\rperf \geq \txcert.\rconf$, pod \Pod must contain votes with timestamp greater than or equal to \txcert.\rconf from at least \alpha replicas (otherwise \rperf is invalid), hence from at least $\alpha - \beta$ honest replicas.
@@ -516,9 +530,10 @@ The following theorem proves that \Cref{const:pod-core} satisfies the security d
 
 
 \begin{theorem}[$\parTemp$-timeliness for honest transactions]
-    \Cref{const:pod-core} satisfies \emph{\parTemp-timeliness for honest transactions} (\Cref{def:pod-timely}) for $\parTemp = \wip{fill}$.
+    \Cref{const:pod-core} satisfies \emph{\parTemp-timeliness for honest transactions}, as per \Cref{def:pod-timely}, for $\parTemp = \wip{fill}$.
 \end{theorem}
 \begin{proof}
+    \wip{todo}
 \end{proof}
 
 
