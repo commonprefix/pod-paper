@@ -4,11 +4,12 @@ A pod protocol allows a set of \emph{clients} to obtain a partially ordered list
 \begin{definition}[Transaction and associated values]
     A transaction $\tx \in \zo^*$ has associated values represented as a tuple $(\tx, \rmin, \rmax, \rconf, \txcert)$.
     We call $\rmin \in \BN$ the \emph{minimum round}, $\rmax \in \BN \cup \{\infty\}$ the \emph{maximum round},
-    and $\rconf \in \BN \cup \{\bot\}$ the \emph{\confirmed round}.
+    $\rconf \in \BN \cup \{\bot\}$ the \emph{\confirmed round}, and $\txcert \in \zo^*$ contains some auxiliary data.
     We denote by $\rmax=\infty$ an unbounded maximum round and by $\rconf=\bot$ an undefined \confirmed round.
-    A \emph{transaction certificate}  $\txcert \in \zo^*$ proves correctness of $\rmin, \rmax, \rconf$.
     For transaction \tx, denote its associated values by $\tx.\rmin, \tx.\rmax, \tx.\rconf$, and $\tx.\txcert$.
 \end{definition}
+
+Looking ahead, \txcert will be a certificate containing signatures and will be used to achieve accountability.
 
 \begin{definition}[Confirmed transaction]
     A transaction with associated values tuple $(\tx, \rmin, \rmax, \rconf, \allowbreak \txcert)$ is \emph{\confirmed} if $\rconf \neq \bot$, otherwise it is \emph{not \confirmed}.
@@ -16,20 +17,21 @@ A pod protocol allows a set of \emph{clients} to obtain a partially ordered list
 
 \begin{definition}[Transaction set]
 \sloppy{
-A \emph{Transaction Set} $\txSet$ is a set of tuples $(\tx, \rmin, \rmax, \rconf, \txcert)$. We say that a transaction $\tx$ \emph{appears} in $\txSet$ when $\exists \, (\tx, \rmin, \rmax, \rconf, \txcert) \in \txSet$. Conversely, we say that a transaction $\tx$ \emph{does not appear} in $\txSet$ when $\nexists \, (\tx, \rmin, \rmax, \rconf, \txcert) \in \txSet$.
+A \emph{transaction set} $\txSet$ is a set of tuples $(\tx, \rmin, \rmax, \rconf, \txcert)$. We say that a transaction $\tx$ \emph{appears} in $\txSet$ when $\exists \, (\tx, \rmin, \rmax, \rconf, \txcert) \in \txSet$. Conversely, we say that a transaction $\tx$ \emph{does not appear} in $\txSet$ when $\nexists \, (\tx, \rmin, \rmax, \rconf, \txcert) \in \txSet$.
 }
 \end{definition}
 
 
 \begin{definition}[Pod data structure]
     A \emph{pod} $\Pod$ is a triple $(\txSet, \rperf, \ppcert)$, where \txSet is a transaction set, \rperf is a round number, called the \emph{past-perfect round},
-    and $\ppcert \in \zo^*$ is a \emph{past-perfection certificate} \ppcert that proves the correctness of \Pod.
+    and $\ppcert \in \zo^*$ contains auxiliary data.
 \end{definition}
 
+Looking ahead, and similar to \txcert, \ppcert will be a certificate containing signatures and will be used to achieve accountability.
+Our construction will allow for deriving $\ppcert$ from all certificates $\txcert$ in $\txSet$, but we define $\ppcert$ explicitly for clarity and generality. 
+We also remark that transactions in \txSet may be \confirmed on unconfirmed.
 
-We remark that transactions in \txSet may or may not be \confirmed.
-Looking ahead, our construction will allow for deriving $\ppcert$ from all certificates $\txcert$ in $\txSet$, but we define $\ppcert$ explicitly for clarity and generality. We now define the Pod protocol interface and associated concepts.
-
+We now define the Pod protocol interface and associated concepts.
 \begin{definition}[Pod interface]\label{def:podinterface}
 A pod protocol has the following interface.
 \begin{itemize}
@@ -63,8 +65,6 @@ A pod protocol has the following interface.
 
 \begin{definition}[Secure Pod]\label{def:podsec}
 A protocol is a \emph{secure pod} if it implements the pod interface of Definition~\ref{def:podinterface} and satisfies the following properties.
-
-
 
 \dotparagraph{Liveness properties}
 \begin{description}[leftmargin=*, align=left]

@@ -24,9 +24,9 @@ The protocol outputs a publically verifiable set of bids with accountable censor
         \begin{description}
             \item[Termination within \parAuctionTerm:]
                 An honest auctioneer completes the auction within time $X$. \hue{Liveness: In a synchronous network, the auction by an honest auctioneer concludes by $t_0 + 2\Delta + 2\delta$.}
-            \item [Censorship resistance:]
-                If an honest bidder submits bid \bid by time \ttwo, then $\bid \in \bag$. \oa{We will prove this assuming good network conditions.}
-                \hue{Bid inclusion: In a synchronous network, all bids are included}
+            \item [Accountable censorship resistance:]
+                If an honest bidder submits bid \bid by time \ttwo, then either $\bid \in \bag$ or the auctioneer is accountable. \oa{We will prove this assuming good network conditions.}
+                \hue{Bid inclusion: In a synchronous network, all honest bids are included}
         \end{description}
         
         \item Safety:
@@ -106,6 +106,9 @@ Assuming $\ttwo \geq \tone + \Delta$ and $\tthree \geq \ttwo + \Delta$, we now p
     Assuming good network conditions during the interval $[\tone, \ttwo]$, the construction satisfies the \emph{censorship resistance}.
 \end{theorem}
 \begin{proof}
+    (1) If bidder honest and acutioneer honest.
+    (2) If censorship happpened: Show this is accountable, how the auctioneer can be pinpointed. Use the certificate for the bid and the past-perfection certificate.
+    (3) Prove no-framing for honest auctioneer.
     % If the auctioneer is honest and reads the pod at time after $\tone + \delta$, from the \emph{availability after \parLive} property we have that it will observe \bid as confirmed.
     % , and, from the \emph{transaction bounds} property, the maximum round number of \bid will satisfy $\rmax \in [\tone, \tone+\delta]$.
     % Assume now the auctioneer is malicious and tries to censor \bid.

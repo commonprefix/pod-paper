@@ -17,16 +17,13 @@
 %     A transaction $\tx$ becomes \emph{\confirmed} for a client when that client obtains at least $\alpha$ votes from different replicas on $\tx$, where $\alpha$ is the confirmation threshold.
 % \end{definition}
 
-\begin{definition}[Transaction certificate]
-    A \emph{transaction certificate} \txcert is a collection of votes $(\tx, \tsp_j, \sigma_j, \rep_j)$ on \tx from different replicas $\rep_j$,
-    such that the values $\rmin, \rmax, \rconf$ associated with \tx can be verified from \txcert.
-    The \emph{size} of the certificate $|\txcert|$ is the numbere of votes it contains.
-\end{definition}
+% \begin{definition}[Transaction certificate]
+%     A \emph{transaction certificate} \txcert is a collection of votes $(\tx, \tsp_j, \sigma_j, \rep_j)$ on \tx from different replicas $\rep_j$,
+%     such that the values $\rmin, \rmax, \rconf$ associated with \tx can be verified from \txcert.
+%     The \emph{size} of the certificate $|\txcert|$ is the numbere of votes it contains.
+% \end{definition}
 
-Given a certificate \txcert for \tx, we use $\txcert.\tx$, $\txcert.\rmin$, $\txcert.\rmax$, and $\txcert.\rconf$ to refer to \tx and the values associated with it.
-% We may also denote the size of the certificate as
-% \emph{$x$-certificate}, for any $x \in (0,n]$.
-% For example, an $\alpha$-certificate corresponds to a confirmed transaction.
+% Given a certificate \txcert for \tx, we use $\txcert.\tx$, $\txcert.\rmin$, $\txcert.\rmax$, and $\txcert.\rconf$ to refer to \tx and the values associated with it.
 
 \begin{remark}[Implicit session identifiers]
 We assume that all messages between clients and replicas carry a session identifier (\emph{sid}), which is unique across concurrent executions of the protocol. Moreover, the sid is implicitly included in all messages signed by the replicas.
@@ -272,8 +269,8 @@ In order to write a transaction \tx, a client sends a \msgwrite{\tx} message to 
 As for reading, since the construction is stateful and streaming, the client state contains at all times the latest view the client has of the pod.
 Hence, \opreadall{} (lines~\ref{line:read-begin}--\ref{line:read-end}) only needs to operate on the local state.
 It returns the set of transactions and associated values \transactions that the client has seen so far,
-the current past-perfect round \rperf,
-and as past-perfection certificate \ppcert the vote sent by each replica on its most recent timestamp.
+the current past-perfect round \rperf.
+The auxiliary data \ppcert contains the vote on the most recent timestamp $\mrt[\rep_j]$ received from each replica $\rep_j$.
 
 \dotparagraph{Receiving votes}
 A client maintains a connection to each replica and receives votes through \msgrecord{$(\tx, \tsp, \sig, \rep)$} messages (lines~\ref{line:receive-vote-begin}--\ref{line:receive-vote-end}).
@@ -309,7 +306,7 @@ considering timestamps \mrt as the minimum possible for any future transaction.
 \dotparagraph{Confirming transactions}
 A transaction becomes \confirmed (i.e., it gets assigned a confirmation round $\rconf \neq \bot$) when the client receives \alpha votes for \tx from different replicas (line~\ref{line:confirm-tx-begin}).
 The assigned \rconf is the median of all received timestamps (line~\ref{line:assign-median}),
-and the certificate \txcert contains all received votes (line~\ref{line:assign-txcert}).
+and the auxiliary data \txcert contains all the received votes on \tx (line~\ref{line:assign-txcert}).
 This implies that, in our construction a transaction is confirmed if and only if $|\txcert| \geq \alpha$.
 
 \dotparagraph{Replica code}
@@ -450,7 +447,7 @@ The following theorem proves that \Cref{const:pod-core} satisfies the security d
 % \end{proof}
 
 \begin{lemma}[Past-perfection safety]
-    (1) Assuming at most \beta malicious replicas, the pod $\Pod = (\txSet, \rperf, \ppcert)$ output by \opreadall{} in Construction~\ref{const:pod-core} (line~\ref{line:return-pod}) satisfies the \emph{past-perfection safety} property.
+    (1) Assuming at most \beta malicious replicas, \Cref{const:pod-core} (line~\ref{line:return-pod}) satisfies the \emph{past-perfection safety} property.
     (2) Construction~\ref{const:pod-core} satisfies \emph{\beta-accountability safety} for violations of the \emph{past-perfection safety} property.
 \end{lemma}
 \begin{proof}
