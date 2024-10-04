@@ -10,13 +10,16 @@ A pod protocol allows a set of \emph{clients} to obtain a partially ordered list
     For transaction \tx, denote its associated values by $\tx.\rmin, \tx.\rmax, \tx.\rconf$, and $\tx.\txcert$.
 \end{definition}
 
-\begin{definition}[Confirmed Transaction]
+\begin{definition}[Confirmed transaction]
     A transaction with associated values tuple $(\tx, \rmin, \rmax, \rconf, \allowbreak \txcert)$ is \emph{\confirmed} if $\rconf \neq \bot$, otherwise it is \emph{not \confirmed}.
 \end{definition}
 
-\begin{definition}[Transaction Set]
+\begin{definition}[Transaction set]
+\sloppy{
 A \emph{Transaction Set} $\txSet$ is a set of tuples $(\tx, \rmin, \rmax, \rconf, \txcert)$. We say that a transaction $\tx$ \emph{appears} in $\txSet$ when $\exists \, (\tx, \rmin, \rmax, \rconf, \txcert) \in \txSet$. Conversely, we say that a transaction $\tx$ \emph{does not appear} in $\txSet$ when $\nexists \, (\tx, \rmin, \rmax, \rconf, \txcert) \in \txSet$.
+}
 \end{definition}
+
 
 \begin{definition}[Pod data structure]
     A \emph{pod} $\Pod$ is a triple $(\txSet, \rperf, \ppcert)$, where \txSet is a transaction set, \rperf is a round number, called the \emph{past-perfect round},
@@ -59,7 +62,7 @@ A pod protocol has the following interface.
     
 
 \begin{definition}[Secure Pod]\label{def:podsec}
-A protocol is a \emph{Secure Pod} if it implements the Pod Interface of Definition~\ref{def:podinterface} and satisfies the following properties.
+A protocol is a \emph{secure pod} if it implements the pod interface of Definition~\ref{def:podinterface} and satisfies the following properties.
 
 
 
@@ -90,7 +93,7 @@ A protocol is a \emph{Secure Pod} if it implements the Pod Interface of Definiti
 \dotparagraph{Safety properties}
 \begin{description}[left=0pt,itemindent=0pt]   
 	
-	\item[Past-perfection safety]
+	\item[Past-perfection safety:]
 	For any honest client \client and round $\round$,
 	if $\tx \not \in \podView{\client}{\round}$, then no honest client $\client'$ (including $\client'=\client$) will ever observe \tx as confirmed with $\rconf < \podView{\client}{\round}.\rperf$.
 	
@@ -103,16 +106,15 @@ A protocol is a \emph{Secure Pod} if it implements the Pod Interface of Definiti
 
 \end{definition}
 
-\begin{definition}[Pod Monotonicity]
-A Pod satisfies \emph{Pod Monotonicity} if it is a Secure Pod as per Definition~\ref{def:podsec} and the following properties hold for any rounds $\round_1,\round_2 > \round_1$:
+\begin{definition}[Pod monotonicity]
+A pod satisfies \emph{pod monotonicity} if it is a secure pod, as per Definition~\ref{def:podsec}, and the following properties hold for any rounds $\round_1,\round_2 > \round_1$:
 \begin{enumerate}
 	\item (Past-perfection Stickiness) $\podView{\client}{\round_2}.\rperf \geq \podView{\client}{\round_1}.\rperf $;
 	\item (Transaction Stickiness) If  transaction $\tx$ appears in $\podView{\client}{\round_1}.\txSet$, then $\tx$ appears in $\podView{\client}{\round_2}.\txSet$;
 	\item (Temperature Stickiness) For every $\tx$ that appears in $\podView{\client}{\round_1}.\txSet$ with $\rmin,\rmax,\rconf$ and appears in  $\podView{\client}{\round_2}.\txSet$ with $\rmin',\rmax',\rconf'$,  it holds that $\rmin'\geq \rmin$, $\rmax' \leq \rmax$, $\rconf' \geq \rconf$.
 
 \end{enumerate}
-
-A Pod that satisfies Pod Monotonicity is called a Monotone Pod.
+A pod that satisfies \emph{pod monotonicity} is called a \emph{monotone pod}.
 
 \end{definition}
 
@@ -120,7 +122,7 @@ A Pod that satisfies Pod Monotonicity is called a Monotone Pod.
 
 
 \begin{remark}
-Every Secure Pod can be transformed into a Monotone Pod if parties are stateful. Let $\round_1$ be the last round when an honest client $\client$ read the pod obtaining view $\podView{\client}{\round_1}$, which is stored as state until $\client$ reads the pod again. At any round $\round_2>\round_1$, if $\client$ reads the pod and obtains $\podView{\client}{\round_2}$, $\client$ can define a view $\overline{\podView{\client}{\round_2}}$ satisfying the properties of Pod Monotonicity:
+Every secure pod can be transformed into a monotone pod if parties are stateful. Let $\round_1$ be the last round when an honest client $\client$ read the pod obtaining view $\podView{\client}{\round_1}$, which is stored as state until $\client$ reads the pod again. At any round $\round_2>\round_1$, if $\client$ reads the pod and obtains $\podView{\client}{\round_2}$, $\client$ can define a view $\overline{\podView{\client}{\round_2}}$ satisfying the properties of pod monotonicity:
 
 \begin{enumerate}
 	\item If $\tx$ appears in $\podView{\client}{\round_1}$ with $\tx.\rmin,\tx.\rmax,\tx.\rconf,\tx.\txcert$, then $\tx$ appears in $\overline{\podView{\client}{\round_2}}$ with $\tx.\overline{\rmin}=\rmin,\tx.\overline{\rmax}=\rmax,\tx.\overline{\rconf}=\rconf,\tx.\overline{\txcert}=\txcert$.
@@ -147,25 +149,25 @@ Every Secure Pod can be transformed into a Monotone Pod if parties are stateful.
 
 
 
-In the remarks below, we observe that Pod Monotonicity implies a number of useful properties about the monotonicity of past perfection and the values $\rmin,\rmax,\rconf$ associated to a transactions in the Pod.
+In the remarks below, we observe that pod monotonicity implies a number of useful properties about the monotonicity of past perfection and the values $\rmin,\rmax,\rconf$ associated to a transactions in the Pod.
 
 \begin{remark}[Confirmation stickiness]\label{rem:confstick}
-Properties 2 and 3 of Pod Monotonicity imply that  for any honest client $\client$ and rounds $\round_1, \round_2 > \round_1$,
+Properties 2 and 3 of pod monotonicity imply that  for any honest client $\client$ and rounds $\round_1, \round_2 > \round_1$,
 if $\tx \in \podView{\client}{\round_1}$ and $\tx.\rconf \neq \bot$, then $\tx \in \podView{\client}{\round_2}$ and $\tx.\rconf \neq \bot$.
 \end{remark}
 
-\begin{remark}[Past-perfection stickiness:]
-Property 1 of Pod Monotonicity imply that the past-perfect round obtained by honest clients can only grow.
+\begin{remark}[Past-perfection stickiness]
+Property 1 of pod monotonicity imply that the past-perfect round obtained by honest clients can only grow.
 That is, for any honest client \client and rounds $\round_1, \round_2 \geq \round_1$,
 it holds that $\podView{\client}{\round_2}.\rperf \geq \podView{\client}{\round_1}.\rperf$.
 \end{remark}
 
-\begin{remark}[Temperature stickiness:]
- Properties 2 and 3 of Pod Monotonicity imply that if an honest client obtains $\rmin$ and $\rmax$ for \tx in round $\round_1$, and later obtains $\rmin'$ and $\rmax'$ for \tx in round $\round_2 > \round_1$, then $\rmin' \geq \rmin$ and $\rmax' \leq \rmax$.
+\begin{remark}[Temperature stickiness]
+ Properties 2 and 3 of pod monotonicity imply that if an honest client obtains $\rmin$ and $\rmax$ for \tx in round $\round_1$, and later obtains $\rmin'$ and $\rmax'$ for \tx in round $\round_2 > \round_1$, then $\rmin' \geq \rmin$ and $\rmax' \leq \rmax$.
 \end{remark}
 
 \begin{remark}
-    Observe that the \emph{confirmation stickiness} property in Remark~\ref{rem:confstick} is a specific version of a more general \emph{Common subset} property, which would demand the condition for any two honest clients $\client_1, \client_2$. We provide such a property in \Cref{sec:pod-with-propagation}.
+    Observe that the \emph{confirmation stickiness} property in Remark~\ref{rem:confstick} is a specific version of a more general \emph{common subset} property, which would demand the condition for any two honest clients $\client_1, \client_2$. We provide such a property in \Cref{sec:pod-with-propagation}.
     \Cref{const:pod-core} satisfies the \emph{confirmation stickiness} property.
     % \emph{ Confirmation monotonicity for honest transactions after $X$:}
     % For any honest clients $\client_1$, $\client_2$ and rounds $\round_1, \round_2 > \round_1 + X$,

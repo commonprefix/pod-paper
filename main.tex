@@ -17,7 +17,7 @@
 \fi
 
 \iflncs
-\documentclass[11pt]{llncs}
+\documentclass[runningheads]{llncs}
 \fi
 \ifccs
 \documentclass[sigconf, anonymous]{acmart}
@@ -25,7 +25,7 @@
 \fi
 
 \usepackage{preamble}
-\usepackage{geometry}
+% \usepackage{geometry}
 % \geometry{a4paper,total={170mm,237mm},left=32mm,right=32mm}
 
 \begin{document}
@@ -44,10 +44,13 @@
 \else
   \bibliographystyle{abbrv}
 \fi
+\iflncs
+  \bibliographystyle{splncs04}
+\fi
 
 \pdfbookmark[section]{References}{references}
 \bibliography{dblpbibtex,biblio,crypto,pubs}
 
-\input{commonprefix.tex}
+% \input{commonprefix.tex}
 
 \end{document}

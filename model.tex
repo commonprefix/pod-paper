@@ -14,7 +14,7 @@ The notation $L_1 \concat L_2$ denotes the concatenation of sequences $L_1$ and 
 
 \dotparagraph{Parties and failure model}
 We distinguish two types of parties, $n$ \emph{replicas} $\replicas=\{\replicas_1,\ldots,\replicas_n\}$ and an unlimited number of \emph{clients}.
-Validators run the protocol and clients interact with it using its interface.
+Replicas run the protocol and clients interact with it using its interface.
 We call a party -- replica or client -- \emph{honest}, if it follows the protocol, and \emph{malicious} otherwise.
 Malicious parties can be Byzantine, that is, deviate arbitrarily from the protocol.
 We denote by $\beta \in [0,n]$ the \emph{resilience threshold}, i.e.,  number of malicious replicas in an execution, and
