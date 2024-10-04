@@ -413,7 +413,6 @@ The following theorem proves that \Cref{const:pod-core} satisfies the security d
     Regarding the properties with parameters, it satisfies:
     \begin{itemize}
         \item Confirmation within $\parConf = 2 \delta$
-        \item $\parTemp = \wip{fill}$ timeliness for honest transaction confirmation
         \item Past-perfection within $\parPerf = \delta$
     \end{itemize}
 \end{theorem}
@@ -427,12 +426,6 @@ The following theorem proves that \Cref{const:pod-core} satisfies the security d
     An honest replica receives this by round $\round + \delta$, assigns its current round $\round + \delta$ as the timestamp (line~\ref{line:rep-assign-tsp}), and sends a \msgrecord{} message back to all connected clients (line~\ref{line:send-vote}).
     An honest client $\client'$ receives the vote by round $\round + 2\delta$.
     As are at least \alpha honest replicas, $\client'$ receives at least \alpha such votes, hence the condition in line~\ref{line:confirm-tx-begin} is satisfied and $\client'$ observes \tx as \confirmed.
-\end{proof}
-
-\begin{lemma}[$\parTemp$ timeliness for honest transaction confirmation]
-    \Cref{const:pod-core} satisfies the \emph{$\parTemp$-timeliness} property for $\parTemp = \wip{fill}$.
-\end{lemma}
-\begin{proof}
 \end{proof}
 
 \begin{lemma}[Past-perfection within $\parPerf$]
@@ -504,8 +497,6 @@ The following theorem proves that \Cref{const:pod-core} satisfies the security d
         compute a median larger than \rmax (we remind that \cref{alg:client-statistics} returns as median the value at position $\lfloor \alpha /  2 \rfloor$).
 \end{proof}
 
-
-
 \begin{theorem}[Accountability]
     The accountability properties are satisfied using
     \identify{}, for the \emph{accountability from the  view of a single party} property,
@@ -525,6 +516,14 @@ The following theorem proves that \Cref{const:pod-core} satisfies the security d
 %     Hence, \auc will wait until $b$ becomes \confirmed and will include in \Pod all the corresponding votes,
 %     which means $b$ will not be censored.
 % \end{proof}
+
+
+\begin{theorem}[$\parTemp$-timeliness for honest transactions]
+    \Cref{const:pod-core} satisfies \emph{\parTemp-timeliness for honest transactions} (\Cref{def:pod-timely}) for $\parTemp = \wip{fill}$.
+\end{theorem}
+\begin{proof}
+\end{proof}
+
 
 % \subsection{Optimizations}
 % \begin{enumerate}
