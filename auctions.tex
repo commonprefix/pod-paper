@@ -100,7 +100,7 @@ The protocol outputs a publically verifiable set of bids with accountable censor
 \end{proof}
 
 \begin{lemma}
-    \Cref{cosnt:bidset} satisfies the \emph{Termination within \parAuctionTerm} property for $parAuctionTerm = \tzero + 2\Delta + \delta$.
+    \Cref{cosnt:bidset} satisfies the \emph{Termination within \parAuctionTerm} property for $\parAuctionTerm = \tzero + 2\Delta + \delta$.
 \end{lemma}
 \begin{proof}
     The auctioneer starts running \opRunAuction{} at time \ttwo. From \Cref{lem:bidset-past-perfect}, the condition of line~\ref{line:bidset-wait-pp} becomes true by round $\ttwo + \delta = \tzero + 2\Delta + \delta$.

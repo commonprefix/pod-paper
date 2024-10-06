@@ -41,12 +41,13 @@
 
 \ifccs
   \bibliographystyle{ACM-Reference-Format}
+\elseiflncs
+  \bibliographystyle{splncs04}
 \else
   \bibliographystyle{abbrv}
 \fi
-\iflncs
-  \bibliographystyle{splncs04}
-\fi
+
+% \fi
 
 \pdfbookmark[section]{References}{references}
 \bibliography{dblpbibtex,biblio,crypto,pubs}
