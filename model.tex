@@ -14,12 +14,16 @@ The notation $L_1 \concat L_2$ denotes the concatenation of sequences $L_1$ and 
 
 \dotparagraph{Parties and failure model}
 We distinguish two types of parties, $n$ \emph{replicas} $\replicas=\{\replicas_1,\ldots,\replicas_n\}$ and an unlimited number of \emph{clients}.
-Replicas run the protocol and clients interact with it using its interface.
+The replicas are known to all parties. We assume a Public Key Infrastructure (PKI) for replicas: each replica has a public key, known to all parties, and a secret key with which it can sign messages.
+The clients do not participate in the PKI.
 We call a party -- replica or client -- \emph{honest}, if it follows the protocol, and \emph{malicious} otherwise.
 Malicious parties can be Byzantine, that is, deviate arbitrarily from the protocol.
 We denote by $\beta \in [0,n]$ the \emph{resilience threshold}, i.e.,  number of malicious replicas in an execution, and
 by $\alpha \in [0,n]$ the \emph{confirmation threshold}.
-% The pod construction will impose limits on \alpha and \beta.
+We assume \emph{static corruption}, that is, the set of malicious replicas is decided before the execution starts and remains constant.
+The adversary has access to the internal state and secret keys of all malicious parties.
+Our constructions will impose limits on \alpha and \beta, but we make no honesty assumptions on clients.
+
 
 \dotparagraph{Stateful clients} A stateful client is a party who stores \emph{state} (\textit{i.e.}, data) between executions of different algorithms.
 

@@ -1,4 +1,4 @@
-\subsection{Related work}
+\section{Related work}
 \bd{Move to appendix if needed.}
 
 \dotparagraph{Consensusless payments}
@@ -33,8 +33,6 @@ that the output of \opread{} contains all transactions that can ever be confirme
 This implies that reading clients (such as an auctioneer) cannot claim not having received a transaction when reading the pod, as this is detectable by any other client who reads the pod.
 To the best of our knowledge, previous work in the consensusless literature has not considered or achieved this property,
 hence it cannot readily support applications like auctions.
-
-\oa{TODO: Write a paragraph on auctions.}
 
 \dotparagraph{Parallel consensusless payments}
 Bazzi and Piergiovanni~\cite{DBLP:conf/podc/BazziP24} observe two limitations of consensusless protocols: As they employ sequence numbers and deterministic broadcast,
