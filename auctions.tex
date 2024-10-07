@@ -55,24 +55,23 @@ The protocol outputs a publically verifiable set of bids with accountable censor
 \subsection{Construction}
 
 \begin{construction}\label{cosnt:bidset}
-    We show the construction in \Cref{alg:bid-set}.
+    We show the construction in Algorithms~\Cref{alg:bid-set-bidder} and ~\Cref{alg:bid-set-auctioneer}.
 \end{construction}
 
 \begin{algorithm}
-    \caption{Bid-set construction}
-    \label{alg:bid-set}
+    \caption{Our bid-set construction. It makes use of a pod instance \podInst and is parametrized by $\tzero$ and $\Delta$. Code for a bidder, run at time \tzero.}
+    \label{alg:bid-set-bidder}
     \begin{algorithmic}[1]
-        \State{\textbf{Uses:}}
-        \State{A pod instance \podInst}
-        \Statex
-        \State{\textbf{Parameters:}}
-        \State{$\tzero, \ttwo = \tzero + 2 \Delta$}
-        \Statex
-        \Function{\opSubmitBid{\bid}}{}\Comment{Run by a bidder at time \tzero}
+        \Function{\opSubmitBid{\bid}}{}\Comment{Run by a bidder }
             \State{\podInst.\opwrite{\bid}}
         \EndFunction 
-        \Statex
+\end{algorithmic}
+\end{algorithm}
 
+\begin{algorithm}
+    \caption{Our bid-set construction. It makes use of a pod instance \podInst and is parametrized by $\tzero$ and $\Delta$. Code for an auctioneer, run at time $\ttwo = \tzero + 2 \Delta$.}
+    \label{alg:bid-set-auctioneer}
+    \begin{algorithmic}[1]
         \Function{\opRunAuction{}}{}\Comment{Run by the auctioneer at time \ttwo}
             \Let{(\txSet, \rperf, \ppcert)}{\podInst.\opreadall{}}
             \While{\rperf < \ttwo}\label{line:bidset-wait-pp}
@@ -81,8 +80,8 @@ The protocol outputs a publically verifiable set of bids with accountable censor
             \Let{\bag}{\{\tx \mid (\tx, \cdot, \cdot, \cdot, \cdot) \in \txSet\}}
             \State{\textbf{output event} \opResult{\bag}}
         \EndFunction
-    \end{algorithmic}
-    \end{algorithm}
+\end{algorithmic}
+\end{algorithm}
 
 
 \begin{lemma}

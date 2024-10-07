@@ -407,7 +407,7 @@ We first prove some useful intermediate results.
 The following theorem proves that \Cref{const:pod-core} satisfies the security definition of pod. We prove it through a series of lemmas.
 
 \begin{theorem}[Pod security]
-    \Cref{const:pod-core}, parametrized $\alpha \geq 4 \beta + 1$ and assuming at most \beta malicious replicas, is a secure pod with \beta-accountable safety (\Cref{def:accountable-safety}) and with the following parameters for the liveness properties.
+    \Cref{const:pod-core}, instantiated with a secure signature scheme, parametrized $\alpha \geq 4 \beta + 1$ and assuming at most \beta malicious replicas, is a secure pod with \beta-accountable safety (\Cref{def:accountable-safety}) and with the following parameters for the liveness properties.
     \begin{itemize}
         \item Confirmation within $\parConf = 2 \delta$
         \item Past-perfection within $\parPerf = \delta$
@@ -465,7 +465,8 @@ The following theorem proves that \Cref{const:pod-core} satisfies the security d
     It must be that $|\allreps_2| \geq \lfloor \alpha/2 \rfloor + 1$ (because the timestamp is computed as the median of at least \alpha votes).
 
     We will show that, if at most \beta replicas are adversarial, then this leads to a contradiction.
-    Observe that an honest replica cannot be in both $\allreps_1$ and $\allreps_2$, because that would imply that it omitted sending a vote to \client. However, from the cardinality of $\allreps_1$ and $\allreps_2$, we have that at least $\beta + 1$ replicas must be in both sets, a contradiction
+    Observe that an honest replica cannot be in both $\allreps_1$ and $\allreps_2$, because that would imply that it omitted sending a vote to \client. However, from the cardinality of $\allreps_1$ and $\allreps_2$, we have that at least $\beta + 1$ replicas must be in both sets, a contradiction.
+    \oa{Check if this is ewnp, due to signature forging.}
 \end{proof}
 
 % \begin{lemma}[Past-perfection monotonicity]
@@ -492,6 +493,7 @@ The following theorem proves that \Cref{const:pod-core} satisfies the security d
         and if \alpha is even, then $\alpha - \lfloor \alpha / 2 \rfloor - 1 = \lfloor \alpha / 2 \rfloor - 1$, while $\client_2$ would need at least
         $\lfloor \alpha / 2 \rfloor$ votes larger that \rmax in order to  
         compute a median larger than \rmax (we remind that \cref{alg:client-statistics} returns as median the value at position $\lfloor \alpha /  2 \rfloor$).
+        \oa{Check if this is ewnp, due to signature forging.}
 \end{proof}
 
 \begin{lemma}[\beta-Accountable safety]\label{lem:pod-accountable-safety}
@@ -515,6 +517,7 @@ The following theorem proves that \Cref{const:pod-core} satisfies the security d
         \emph{Proof:} \wip{}
         \item \Cref{alg:identify} never outputs honest replicas.
         \emph{Proof:} \wip{}
+        \oa{Check if this is ewnp, due to signature forging.}
     \end{enumerate}
     
 \end{proof}

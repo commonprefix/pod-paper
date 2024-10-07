@@ -42,7 +42,7 @@ Taking a similar approach as Neu, Tas, and Tse~\cite[Def. 4]{DBLP:conf/fc/NeuTT2
     following conditions hold.
     \begin{description}
         \item[Correctness:] If safety is violated, then there exists a partial transcript \tran, such that $\identify{\tran} \rightarrow \cheaters$ and $|\cheaters| > \beta$ and all replicas in \cheaters are adversarial.
-        \item[No-framing:] For all partial transcripts \tran, the output of $\identify{\tran}$ does not contain honest replicas.
+        \item[No-framing:] For any partial transcript \tran that can be produced during an execution of the protocol, the output of $\identify{\tran}$ does not contain honest replicas.
     \end{description}
 \end{definition}
 
