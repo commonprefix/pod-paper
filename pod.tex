@@ -18,8 +18,7 @@ Looking ahead, \txcert will be a certificate containing signatures and will be u
 
 \begin{definition}[Transaction set]
 \sloppy{
-A \emph{transaction set} $\txSet$ is a set of tuples $(\tx, \rmin, \rmax, \rconf, \txcert)$. We say that a transaction $\tx$ \emph{appears} in $\txSet$ when an entry $ (\tx, \rmin, \rmax, \rconf, \txcert)$ exists in \txSet.
-% Conversely, we say that a transaction $\tx$ \emph{does not appear} in $\txSet$ when $\nexists \, (\tx, \rmin, \rmax, \rconf, \txcert) \in \txSet$.
+A \emph{transaction set} $\txSet$ is a set of tuples $(\tx, \rmin, \rmax, \rconf, \txcert)$. We say that a transaction $\tx$ \emph{appears} in $\txSet$ when $\exists (\tx', \rmin, \rmax, \rconf, \txcert) \in \txSet$ such that $\tx'=\tx$.  Conversely, we say that a transaction $\tx$ \emph{does not appear} in $\txSet$ when this condition is not satisfied.
 }
 \end{definition}
 
@@ -62,7 +61,7 @@ A pod protocol has the following interface.
     We remark that \round denotes the round when \opread{} outputs, as the client may have invoked it at an earlier round.
     We denote the components of a view as $\podView{\client}{\round}=(\podView{\client}{\round}.\txSet,
     \podView{\client}{\round}.\rperf, \podView{\client}{\round}.\ppcert)$.
-    We write $\tx \in \podView{\client}{\round}$ when  $\tx$ appears in $\podView{\client}{\round}.\txSet$.
+    We write $\tx \in \podView{\client}{\round}$ if $\tx$ appears in $\podView{\client}{\round}.\txSet$.
 \end{definition}
     
 

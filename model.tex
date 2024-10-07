@@ -32,7 +32,7 @@ Our constructions will impose limits on \alpha and \beta, but we make no honesty
 % For any two honest parties, their clocks can be at most time $\phi$ apart.
 % For simplicity, our analysis will assume \emph{synchronized clocks}, that is, $\phi = 0$.
 Time proceeds in discrete \emph{rounds}.
-We assume that parties have clocks allowing them to determine the current round.
+We assume that parties have clocks allowing them to determine the current round. We assume that all honest parties perform all necessary protocol steps at every round, \textit{i.e.} perform any local probabilistic polynomial time computation and send any messages as prescribed in the protocol descriptions (although message delivery is not guaranteed and will be modeled as discussed below).
 A \emph{timestamp} is a round number assigned to an event (such as receiving a transaction or sending a protocol message).
 
 \dotparagraph{Modeling network}
@@ -46,7 +46,8 @@ In both cases, the delivery order of messages may be chosen adversarially. Notic
 
 \dotparagraph{Modeling communication}
 We assume reliable and authenticated point-to-point links between parties, implemented by a low-level primitive independent to our protocols.
-For point-to-point communication, we say that parties \emph{send} and \emph{deliver} messages.
+%For point-to-point communication, 
+We say that parties \emph{send} and \emph{deliver} messages over such links.
 
 
 %\begin{definition}[Next-message function]

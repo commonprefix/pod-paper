@@ -4,7 +4,7 @@
 \subsection{Digital signatures}
 
 \begin{definition}[Digital signature scheme]\label{def:sig}
-    A digital signature scheme is a triple of algorithms defined as follows that satisfies the EUF-CMA definition of~\cite{GMR88}:
+    A digital signature scheme is a triple of algorithms satisfying the EUF-CMA definition of~\cite{GMR88} as defined below:
     \begin{itemize}[leftmargin = *]
     	\item 
     	$\textsl{KeyGen}(1^{\kappa})$: The key generation algorithm takes as input a security parameter $\kappa$ and outputs a secret key $\sk$ and a public key $\pk$.
@@ -39,7 +39,7 @@ Taking a similar approach as Neu, Tas, and Tse~\cite[Def. 4]{DBLP:conf/fc/NeuTT2
 \begin{definition}[\beta-Accountable safety]\label{def:accountable-safety}
     A protocol satisfies \emph{accountable safety} with \emph{resilience} \beta if its interface contains a function $\identify{\tran} \rightarrow \cheaters$,
     which takes as input a partial transcript $\tran$ and outputs a set of replicas $\cheaters \subset \replicas$, such that the 
-    following conditions hold.
+    following conditions hold except with negligible probability.
     \begin{description}
         \item[Correctness:] If safety is violated, then there exists a partial transcript \tran, such that $\identify{\tran} \rightarrow \cheaters$ and $|\cheaters| > \beta$ and all replicas in \cheaters are adversarial.
         \item[No-framing:] For any partial transcript \tran that can be produced during an execution of the protocol, the output of $\identify{\tran}$ does not contain honest replicas.
