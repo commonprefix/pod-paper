@@ -338,7 +338,7 @@ This function is similar to \opOnReceiveVote{}, except that it does not check fo
 \caption{The \identify{} function for \Cref{const:pod-core}.}
 \label{alg:identify}
 \begin{algorithmic}[1]
-    \Function{\identify{\tran}}{}\
+    \Function{\identify{\tran}}{}
         \Let{\cheaters}{\emptyset}
         \For{$ \msgrecord{(\tx_1, \tsp_1, \sig_1, \rep_1)},\; \msgrecord{(\tx_2, \tsp_2, \sig_2, \rep_2)} \in \tran$}
             \If{$\rep_1  = \rep_2 \textbf { and } \tx_1 = \tx_2 \textbf { and } \tsp_1 \neq \tsp_2$ }
@@ -407,7 +407,7 @@ We first prove some useful intermediate results.
 The following theorem proves that \Cref{const:pod-core} satisfies the security definition of pod. We prove it through a series of lemmas.
 
 \begin{theorem}[Pod security]
-    \Cref{const:pod-core}, instantiated with a secure signature scheme, parametrized $\alpha \geq 4 \beta + 1$ and assuming at most \beta malicious replicas, is a secure pod with \beta-accountable safety (\Cref{def:accountable-safety}) and with the following parameters for the liveness properties.
+    \Cref{const:pod-core}, instantiated with a secure signature scheme, parametrized with $\alpha \geq 4 \beta + 1$ and assuming at most \beta malicious replicas, is a secure pod with \beta-accountable safety (\Cref{def:accountable-safety}) and with the following parameters for the liveness properties.
     \begin{itemize}
         \item Confirmation within $\parConf = 2 \delta$
         \item Past-perfection within $\parPerf = \delta$
@@ -423,7 +423,7 @@ The following theorem proves that \Cref{const:pod-core} satisfies the security d
 \begin{proof}
     Assume an honest client \client calls \opwrite{\tx} at round \round.
     It sends a message \msgwrite{\tx} to all replicas at round \round (line~\ref{line:send-write-tx}).
-    An honest replica receives this by round $\round + \delta$, assigns its current round $\round + \delta$ as the timestamp (line~\ref{line:rep-assign-tsp}), and sends a \msgrecord{} message back to all connected clients (line~\ref{line:send-vote}).
+    An honest replica receives this by round $\round + \delta$ and sends a \msgrecord{} message back to all connected clients (line~\ref{line:send-vote}).
     An honest client $\client'$ receives the vote by round $\round + 2\delta$.
     As are at least \alpha honest replicas, $\client'$ receives at least \alpha such votes, hence the condition in line~\ref{line:confirm-tx-begin} is satisfied and $\client'$ observes \tx as \confirmed.
 \end{proof}
@@ -449,17 +449,19 @@ The following theorem proves that \Cref{const:pod-core} satisfies the security d
 %     % This implies that \tx got assigned an $\rconf \neq \bot$ in line~\ref{line:assign-median}, which implies the condition in line~\ref{line:confirm-tx-begin} was at some point true. As the structure \tsps is persisted across calls to \opread{}, any subsequent \opread{} will return \tx as \confirmed.
 % \end{proof}
 
-\begin{lemma}[Past-perfection safety]\label{lem:pod-pp-safety}
-    \Cref{const:pod-core} satisfies the \emph{past-perfection safety} property.
+\begin{lemma}[Past-perfection]\label{lem:pod-pp-safety}
+    \Cref{const:pod-core} satisfies the \emph{past-perfection} safety property.
 \end{lemma}
 \begin{proof}
     Assume an honest client \client at round \round outputs a pod $(\txSet, \rperf, \ppcert)$, such that $\tx \not \in \txSet$, for some $\tx \in \zo^*$.
-    Assume another client $\client'$ outputs a pod $(\txSet', \cdot, \cdot)$,
+    Assume another client $\client'$ at round $\round'$ outputs a pod $(\txSet', \cdot, \cdot)$,
     such that $(\tx, \cdot, \cdot, \rconf, \txcert) \in \txSet'$ and $\rconf \neq \bot$ and $\rconf < \rperf$.
     
-    Let $\allreps_1$ be the set of replicas $\rep_j$ for which \client has an $\mrt_j$, such that $\mrt_j \geq \rperf$.
-    Observe that replicas in $\allreps_1$ have sent to \client a vote on \emph{some} transaction with timestamp at least $\rperf$, and no replica in $\allreps_1$ has sent to \client a vote on \tx (because $\tx \not \in \txSet$).
-    From \Cref{lem:assign-min-max} (\rperf is the timestamp at index $\lfloor \alpha / 2 \rfloor - \beta$ of sorted \mrt) we have that $|R_1| \geq n - \lfloor a/2 \rfloor + \beta$. 
+    Let $\allreps_1$ be the set of replicas $\rep_j$ for which \client stores at round \round an $\mrt_j$, such that $\mrt_j \geq \rperf$.
+    % That is, $\allreps_1$ is the set of replicas that have sent to \client a vote on \emph{some} transaction with timestamp at least $\rperf$.
+    From \Cref{lem:assign-min-max} (\rperf is computed as the timestamp at index $\lfloor \alpha / 2 \rfloor - \beta$ of sorted \mrt) there exist at least $n - \lfloor a/2 \rfloor + \beta$ replicas that have sent to \client an $\mrt_j \geq \rperf$, hence we have that  $|R_1| \geq n - \lfloor a/2 \rfloor + \beta$. 
+    Observe that no replica in $\allreps_1$ has sent to \client a vote on \tx (because $\tx \not \in \txSet$),
+    and that, for each $\rep_j \in \allreps_1$, \client has received the \emph{whole} log of $\rep_j$ with timestamps smaller than $\rperf$ (because replicas do not omit transaction from their log).
 
     Let $\allreps_2$ be the set of replicas $\rep_j$ that have sent to $\client'$ a vote on \tx with timestamp $\tsp_j$, such that $\tsp_j < \rperf$.
     It must be that $|\allreps_2| \geq \lfloor \alpha/2 \rfloor + 1$ (because the timestamp is computed as the median of at least \alpha votes).
@@ -523,21 +525,21 @@ The following theorem proves that \Cref{const:pod-core} satisfies the security d
 \end{proof}
 
 
-% \begin{proof}
-%     Since $\rperf \geq \txcert.\rconf$, pod \Pod must contain votes with timestamp greater than or equal to \txcert.\rconf from at least \alpha replicas (otherwise \rperf is invalid), hence from at least $\alpha - \beta$ honest replicas.
-%     Given that $\ttwo \geq \tone + \Delta$, these honest replicas will have received $b$ by time \ttwo, and, since honest replicas do not omit transactions, the auctioneer will receive votes on $b$ from them.
-%     Hence, \Pod will contain at least $\alpha - \beta$ votes on $b$ (otherwise, see bad case 2 below).
-%     However, a bid in pod that contains $\alpha - \beta$ votes is \pend, and an auctioneer will not output such a pod (otherwise, see bad case 1 below).
-%     Hence, \auc will wait until $b$ becomes \confirmed and will include in \Pod all the corresponding votes,
-%     which means $b$ will not be censored.
-% \end{proof}
-
-
 \begin{theorem}[$\parTemp$-timeliness for honest transactions]
-    \Cref{const:pod-core} satisfies \emph{\parTemp-timeliness for honest transactions}, as per \Cref{def:pod-timely}, for $\parTemp = \wip{fill}$.
+    \Cref{const:pod-core}, parametrized with $\alpha \geq 4 \beta + 1$, satisfies \emph{\parTemp-timeliness for honest transactions}, as per \Cref{def:pod-timely}, for $\parTemp = \delta$.
 \end{theorem}
 \begin{proof}
-    \wip{todo}
+    Assume an honest client \client calls \opwrite{\tx} at round \round.
+    It sends a message \msgwrite{\tx} to all replicas at round \round (line~\ref{line:send-write-tx}).
+    An honest replica receives this by round $\round + \delta$ and assigns its current round $\round' \in (r, \round + \delta]$ as the timestamp (line~\ref{line:rep-assign-tsp}).
+    \begin{enumerate}
+        \item Regarding \rconf, when a client calls \opreadall{}, and since by assumption \tx is confirmed, it will have received votes on \tx from at least \alpha replicas. All honest replicas have sent timestamps for \tx in the interval $ (r, \round + \delta]$. Since \rconf is computed as the median of \alpha timestamps and $\alpha > 4\beta + 1$,\footnote{For this argument, $\alpha > 2\beta + 1$ would also be enough. The condition $\alpha > 2\beta + 1$ is necessary in order for \rmin and \rmax of a confirmed transaction to be timestamps returned by honest replicas.}
+        it will be a timestamp returned by an honest replica, or it will lie between timestamps returned by honest replicas. Hence, $\rconf \in (r, \round + \delta]$.
+
+        \item Regarding \rmax, from \Cref{lem:assign-min-max}, at least $\lceil \alpha/2 \rceil -\beta \beta $ replicas have sent to \client a timestamp greater or equal than \rmax and, since $\alpha > 4\beta + 1$, at least one of those is a timestamp returned by an honest replica, hence  $\rmax \in (r, \round + \delta]$.
+        
+        \item Similarly, from \Cref{lem:assign-min-max} we get that \rmin is a timestamp returned by an honest replica, hence $\rmin \in (r, \round + \delta]$ and $\rmax - \rmin < \parTemp$.
+    \end{enumerate}
 \end{proof}
 
 

@@ -31,7 +31,8 @@ A \emph{transaction set} $\txSet$ is a set of tuples $(\tx, \rmin, \rmax, \rconf
 
 Looking ahead, and similar to \txcert, \ppcert will be a certificate containing signatures and will be used to achieve accountability.
 Our construction will allow for deriving $\ppcert$ from all certificates $\txcert$ in $\txSet$, but we define $\ppcert$ explicitly for clarity and generality. 
-We also remark that transactions in \txSet may be \confirmed on unconfirmed.
+Moreover, \rperf will imply a completeness property on \txSet, defined by the past-perfection safety property of pod. \oa{Previous sentence is new. I removed the definition of past perfection.}
+We remark that transactions in \txSet may be \confirmed on unconfirmed.
 
 We now define the Pod protocol interface and associated concepts.
 \begin{definition}[Pod interface]\label{def:podinterface}
@@ -50,10 +51,10 @@ A pod protocol has the following interface.
      we say that the client \emph{observes} \tx and, if $\tx.\rconf \neq \bot$, we say that the client \emph{observes \tx as \confirmed}.
 \end{definition}
 
-\begin{definition}[Past-perfect round]
-	Given a set \txSet obtained by an honest client who reads the pod, a round \rperf is \emph{past-perfect} if,
-	for any transaction $\tx$ that does not appear in $ \txSet$, no honest client will ever observe \tx as confirmed with $\tx.\rconf < \rperf$.
-\end{definition}
+% \begin{definition}[Past-perfect round]
+% 	Given a set \txSet obtained by an honest client who reads the pod, a round \rperf is \emph{past-perfect} if,
+% 	for any transaction $\tx$ that does not appear in $ \txSet$, no honest client will ever observe \tx as confirmed with $\tx.\rconf < \rperf$.
+% \end{definition}
 
 \begin{definition}[View of the pod]
     We call \emph{view of the pod} the output of \opreadall{}, where \opreadall{} is invoked by client \client and the output is produced at round \round,
@@ -88,10 +89,11 @@ A protocol is a \emph{secure pod} if it implements the pod interface of Definiti
 \dotparagraph{2. Safety properties}
 \begin{description}[left=0pt,itemindent=0pt]   
 	
-	\item[Past-perfection safety:]
-	For any honest client \client and round $\round$,
-	if $\tx \not \in \podView{\client}{\round}$, then no honest client $\client'$ (including $\client'=\client$) observes \tx as confirmed with $\rconf < \podView{\client}{\round}.\rperf$.
-    \oa{At which round is \tx observed?}
+	\item[Past-perfection:]
+	Let \client be an honest client with view $\podView{\client}{\round}$ at round $\round$.
+	Then, for any transaction $\tx \in \zo^*$ that becomes confirmed in view $\podView{\client'}{\round'}$, where $\client'$ is an honest client and $\round' \geq 0$ is a round, with confirmed round $\rconf$, it holds that, if $\rconf < \podView{\client}{\round}.\rperf$ then $\tx \in \podView{\client}{\round}$.
+	% For any honest client \client and round $\round$,
+	% if $\tx \not \in \podView{\client}{\round}$, then no honest client $\client'$ (including $\client'=\client$) observes \tx as confirmed with $\rconf < \podView{\client}{\round}.\rperf$.
 	
 	%\item[Generalized ledger safety:]
 	%The numbers $\rmin, \rmax$, and $\rconf$ for a transaction \tx satisfy the following:
@@ -107,9 +109,9 @@ In the following we define two additional types of properties, \emph{pod timelin
 \begin{definition}[Pod \parTemp-timeliness for honest transactions]\label{def:pod-timely}
     A pod is \emph{\parTemp-timely} if it is a secure pod, as per Definition~\ref{def:podsec}, and the following properties hold for any transaction \tx written by an honest client in round $\round$ (observe that, from the \emph{confirmation within \parConf} property, \tx will become confirmed):
     \begin{enumerate}
-        \item $\rconf \in [\round, \round + \parTemp]$
-        \item $\rmax \in [\round, \round + \parTemp]$
-        \item $\rmax - \rmin \leq \parTemp$, implying that $\rmin \neq 0$ and $\rmax \neq \infty$.
+        \item $\rconf \in (\round, \round + \parTemp]$
+        \item $\rmax \in (\round, \round + \parTemp]$
+        \item $\rmax - \rmin < \parTemp$, implying that $\rmin \neq 0$ and $\rmax \neq \infty$.
     \end{enumerate}
 \end{definition}
 
