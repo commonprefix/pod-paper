@@ -68,7 +68,7 @@ The protocol outputs a publically verifiable set of bids with accountable censor
     \caption{Our bid-set construction. It makes use of a pod instance \podInst and is parametrized by $\tzero$ and $\Delta$. Code for a bidder, run at time \tzero.}
     \label{alg:bid-set-bidder}
     \begin{algorithmic}[1]
-        \Function{\opSubmitBid{\bid}}{}\Comment{Run by a bidder }
+        \Function{\opSubmitBid{\bid}}{}
             \State{\podInst.\opwrite{\bid}}
         \EndFunction 
 \end{algorithmic}
@@ -78,7 +78,7 @@ The protocol outputs a publically verifiable set of bids with accountable censor
     \caption{Our bid-set construction. It makes use of a pod instance \podInst and is parametrized by $\tzero$ and $\Delta$. Code for an auctioneer, run at time $\ttwo = \tzero + 2 \Delta$.}
     \label{alg:bid-set-auctioneer}
     \begin{algorithmic}[1]
-        \Function{\opRunAuction{}}{}\Comment{Run by the auctioneer at time \ttwo}
+        \Function{\opRunAuction{}}{}
             \Let{(\txSet, \rperf, \ppcert)}{\podInst.\opreadall{}}
             \While{\rperf < \ttwo}\label{line:bidset-wait-pp}
                 \Let{(\txSet, \rperf, \ppcert)}{\podInst.\opreadall{}}
@@ -171,74 +171,3 @@ The protocol outputs a publically verifiable set of bids with accountable censor
     By counting arguments, at least one of these timestamps must be from one of the honest replicas in $\allreps'$, and, since honest replicas do not omit transactions, that replica will have sent a vote on \tx to the auctioneer. Hence, the auctioneer will include that \tx in \bag.
     \wip{Can this be derived directly from the past-perfection property of pod? }
 \end{proof}
-
-\subsection{Old construction}
-The high-level idea is that bidders use pod to write their bids, and the auctioneer reads the pod, waits until the auction start time becomes past-perfect, and then runs the auction.
-
-\begin{construction}[Censorship-resistant auction over synchronous pod]\label{const:auction-sync}
-A client that wants to participate in the auction submits its bid \bid at time at most \tone by calling \opwrite{\tx} on the pod.
-
-The auctioneer does the following. At time \ttwo, it starts reading the pod using \opreadall{}, until it obtains a pod \Pod 
-for which the following conditions hold:
-        \begin{enumerate}
-            \item \Pod contains no \pend transactions with $\rmin \leq \ttwo$
-            \item $\Pod.\rperf \geq \ttwo$
-        \end{enumerate}
-In order to satisfy the first condition, for each \pend transaction \bid, the auctioneer calls $\opwrite{\bid}$ \emph{once}.
-In order to satisfy the second, the auctioneer keeps reading the pod.
-When this happens, \auc creates a bag \bag that contains all confirmed transactions \tx in \Pod with $\tx.\rconf < \ttwo$, that is, $\bag = \{ \tx \mid (\tx, \cdot, \cdot, \rconf, \cdot) \in \Pod \land \rconf \leq \ttwo \}$, and runs the auction on input \bag.
-\end{construction}
-
-
-Assuming $\ttwo \geq \tone + \Delta$ and $\tthree \geq \ttwo + \Delta$, we now prove that \Cref{const:auction-sync} satisfies the properties of a \emph{censorhsip resistant auction protocol}. \oa{TODO: Check these numbers again.}
-% If any party can present a certificate certifying the *maximum* timestamp to be before the deadline, but the auctioneer has not included the bid in question, the auctioneer is slashed by resorting to the parent chain. An equivocating auctioneer is similarly slashed. Honest party bids are guaranteed to have both a confirmation timestamp and a maximum timestamp before the deadline, as long as the bids are submitted at the auction starting time and the network is synchronous. Lastly, the honest bidder has no fear of being censored when following the honest strategy because any transaction that could appear with a certificate of maximality prior to the deadline will necessarily appear with a confirmed timestamp prior to the deadline in any other certificate.
-
-% If the protocol designer wants to also protect against a stalling auctioneer, the contract can choose to slash an auctioneer who delays the choice of bids beyond the expected network latency. Such a system has economic liveness guarantees, but risks slashing honest auctioneers in case of network asynchrony, so the choice remains with the protocol designers.
-
-% The reason why pod can be used to run auctions is that bid order is not important for auctions: As long as we can agree on the bids we are considering, we are good to go.
-
-\begin{lemma}
-    Assuming good network conditions during the interval $[\tone, \ttwo]$, if an honest client submits a bid by time \tone then
-    (a) the bid will be \confirmed with $\rconf \leq \ttwo$, and (b) the client will obtain a certificate \txcert by time \ttwo.
-\end{lemma}
-\begin{proof}
-    (a) It follows from the \emph{correctness of associated values} property of pod for $\parTemp = \Delta$ and from the fact that  $\ttwo \geq \tone + \Delta$.
-    (b) It follows from the \emph{confirmation within \parConf} property and the fact that $\ttwo \geq \tone + \Delta$.
-\end{proof}
-
-\begin{lemma}
-    For any bid \bid that is not included in \bag by an honest auctioneer, no client can ever obtain a certificate \txcert for \bid, such that $\txcert.\rconf \leq \ttwo$.
-\end{lemma}
-\begin{proof}
-    \oa{It does not hold. It is possible that a client obtains a \txcert for \bid, but the auctioneer does not. For this to hold we would need pod to satisfy the \emph{Common subset (confirmation monotonicity)} property in its \emph{cross-client, all-tx} version (see Section 3.1), it only satisfies the \emph{cross-client, honest-tx} version, so a dishonest client can obtain \txcert for \bid but cause the auctioneer to never obtain it.}
-\end{proof}
-
-\begin{theorem}[Censorship resistance]\label{thm:bidset-wgossip-censorship}
-    Assuming good network conditions during the interval $[\tone, \ttwo]$, the construction satisfies the \emph{censorship resistance}.
-\end{theorem}
-\begin{proof}
-\end{proof}
-
-\begin{theorem}[Termination within $\parAuctionTerm = \delta$]
-    In a synchronous period, the construction satisfies the \emph{termination} property for $\parAuctionTerm = \delta$. \oa{Is it $\delta$?}
-\end{theorem}
-\begin{proof}
-    It follows from the \emph{past-perfection liveness} property that
-    \ttwo will eventually become past perfect.
-    In synchrony this will become at round $\ttwo + \delta$.
-    Moreover, from the \emph{totality} property of pod, every \pend transaction will eventually become \confirmed. \oa{Say when exactly.}
-\end{proof}
-
-\begin{theorem}[Accountability]
-    The construction satisfies the \emph{accountability} property.
-\end{theorem}
-\begin{proof}
-    \oa{TODO}
-    Regarding fair punishment,
-    from the \emph{past-perfection} safety property, it follows that, after the auctioneer creates a past-perfection certificate \ppcert for a round \rperf,
-    no new transaction can be \confirmed with $\rconf < \rperf$.
-\end{proof}
-
-\begin{theorem}[Verifiability]
-    The construction satisfies the \emph{verifiability} property.
-\end{theorem}
