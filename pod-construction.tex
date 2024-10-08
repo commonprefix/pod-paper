@@ -26,7 +26,7 @@
 % Given a certificate \txcert for \tx, we use $\txcert.\tx$, $\txcert.\rmin$, $\txcert.\rmax$, and $\txcert.\rconf$ to refer to \tx and the values associated with it.
 
 \begin{remark}[Implicit session identifiers]
-We assume that all messages between clients and replicas carry a session identifier (\emph{sid}), which is unique across concurrent executions of the protocol. Moreover, the sid is implicitly included in all messages signed by the replicas.
+We assume that all messages between clients and replicas are concatenated with a session identifier (sid), which is unique for each concurrent execution of the protocol. Moreover, the sid is implicitly included in all messages signed by the replicas.
 \end{remark}
 
 \begin{remark}[Logs without omissions]
