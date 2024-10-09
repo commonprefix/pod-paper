@@ -47,7 +47,7 @@ The protocol outputs a publically verifiable set of bids with accountable censor
             % \hue{Liveness accountability fairness: In a synchronous network, no honest auctioneer can be blamed for a liveness failure. BUT: Liveness accountability unfairness: In asynchronous networks, an honest auctioneer may be blamed for a liveness failure.}
             \item[Deadline:]
             No bid submitted after $X$ can appear in \bag.
-            \wip{See how to achieve this.}
+            \wip{The current construction cannot achieve this, I think, as a malicious replica can always include a bid any time. Does it fix it if we only keep those bids that appear at least $beta+1$ times?}
         \end{description}
 
     \end{enumerate}
