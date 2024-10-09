@@ -25,14 +25,12 @@
 
 % Given a certificate \txcert for \tx, we use $\txcert.\tx$, $\txcert.\rmin$, $\txcert.\rmax$, and $\txcert.\rconf$ to refer to \tx and the values associated with it.
 
-\begin{remark}[Implicit session identifiers]
-We assume that all messages between clients and replicas are concatenated with a session identifier (sid), which is unique for each concurrent execution of the protocol. Moreover, the sid is implicitly included in all messages signed by the replicas.
+\begin{remark}[Processing votes in order]
+    The construction requires that clients process votes from each replica in the same order, namely in order of increasing timestamps. For this we employ \emph{sequence numbers}. Each replica maintains a sequence number, which it increments and includes every time it assigns a timestamp to a transaction.
 \end{remark}
 
-\begin{remark}[Logs without omissions]
-    In this section we assume that the entries of a transaction log are ordered by the timestamp value
-    and replicas send the transaction/timestamp pairs in that order to the clients.
-    We show in \wip{reference} how this can be guaranteed.
+\begin{remark}[Implicit session identifiers]
+We assume that all messages between clients and replicas are concatenated with a session identifier (sid), which is unique for each concurrent execution of the protocol. Moreover, the sid is implicitly included in all messages signed by the replicas.
 \end{remark}
 
 \begin{remark}[Streaming construction]
@@ -45,7 +43,7 @@ Notation $x: a \in A \rightarrow b \in B$ denotes that variable $x$ is a map fro
 For a map $x$, the operations $x.\opKeys$ and $x.\opValues$ return all keys and all values in $x$, respectively.
 With $\emptyset$ we denote an empty map. \wip{Make sure you add reminders in the description of the code.}
 
-\begin{algorithm}[tp]
+\begin{algorithm}[]
 \caption{Client code, part 1.}
 \label{alg:client-1}
 \begin{algorithmic}[1]
@@ -80,12 +78,42 @@ With $\emptyset$ we denote an empty map. \wip{Make sure you add reminders in the
     \Statex
 
     \On{receive \msgrecord{(\tx, \tsp, \sn, \sig, \rep_j)}} \Comment{Received a vote from replica $\rep_j$}\label{line:receive-vote-begin}
-        \If{$\sn = \lastsn[\rep_j]+1 $\textbf{ and} \opVerify{$\pk_j, (\tx, \tsp, \sn), \sig$}}\label{line:client-check-sn}
-            \State{\opOnReceiveVote{$\tx, \tsp, \sig, \rep_j$}}
+        \If{\textbf{not} \opVerify{$\pk_j, (\tx, \tsp, \sn), \sig$}}
+            \State{\textbf{return}}
         \EndIf
+        \If{$\sn \neq \lastsn[\rep_j]+1$}\label{line:client-check-sn}
+            \State{\textbf{return}}     \Comment{Vote cannot be processed yet}
+        \EndIf
+        \If{$\tsp < \mrt[j]$}\label{line:check-old-ts}
+            \Let{\vote_1}{(\tx, \tsp, \sigma, \rep_j)}
+            \Let{\vote_2}{\mrt[j].\opGetVote}
+            \State{\textbf{trigger} \opAccountableFault{$[\vote_1, \vote_2]$}} \Comment{$\rep_j$ sent old timestamp}\label{line:raise-old-tsp}
+            \return
+        \EndIf
+        \Let{\mrt[j]}{\tsp} \label{line:upd-mrt}
+
+        \If{$\tx = \heartBeat$}
+            \return
+        \EndIf
+
+        \If{$\tsps[\tx][\rep_j] \neq \bot$ \andl $\tsps[\tx][\rep_j] \neq \tsp$}\label{line:check-dup-tsp}
+            \Let{\vote_1}{(\tx, \tsp, \sigma, \rep_j)}
+            \Let{\vote_2}{\tsps[\tx][\rep_j].\opGetVote}
+            \State{\textbf{trigger} \opAccountableFault{$[\vote_1, \vote_2]$}} \Comment{$\rep_j$ sent dupl. timestamp} \label{line:raise-dup-tsp}
+            \return
+        \EndIf
+        \Let{\tsps[\tx][\rep_j]}{\tsp} \label{line:rec-tsp}
     \EndOn\label{line:receive-vote-end}
     \Statex 
 
+    
+\end{algorithmic}
+\end{algorithm}
+    
+\begin{algorithm}[t]
+\caption{Client code, part 2.}
+\label{alg:client-2}
+\begin{algorithmic}[1]
     \Function{$\opwrite{\tx}$}{} \label{line:write-tx-begin}
         \For{$\rep_j \in \allreps$}
             \State{Send \msgwrite{\tx} to $\rep_j$}\label{line:send-write-tx}
@@ -116,40 +144,14 @@ With $\emptyset$ we denote an empty map. \wip{Make sure you add reminders in the
         \Let{\Pod}{(\allTxs, \rperf, \ppcert)}
         \return{ \Pod}\label{line:return-pod}
     \EndFunction\label{line:read-end}
-\end{algorithmic}
-\end{algorithm}
     
-\begin{algorithm}[tp]
-\caption{Client code, part 2.}
-\label{alg:client-2}
-\begin{algorithmic}[1]
-    \Function{\opOnReceiveVote{$\tx, \tsp, \sigma, \rep_j$}}{}
-        \If{$\tsp < \mrt[j]$}\label{line:check-old-ts}
-            \Let{\vote_1}{(\tx, \tsp, \sigma, \rep_j)}
-            \Let{\vote_2}{\mrt[j].\opGetVote}
-            \State{\textbf{trigger} \opAccountableFault{$[\vote_1, \vote_2]$}} \Comment{$\rep_j$ sent old timestamp}\label{line:raise-old-tsp}
-            \return
-        \EndIf
-        \Let{\mrt[j]}{\tsp} \label{line:upd-mrt}
-        \Statex
-
-        \If{$\tx = \heartBeat$}
-            \return
-        \EndIf
-        \Statex
-
-        \If{$\tsps[\tx][\rep_j] \neq \bot$ \andl $\tsps[\tx][\rep_j] \neq \tsp$}\label{line:check-dup-tsp}
-            \Let{\vote_1}{(\tx, \tsp, \sigma, \rep_j)}
-            \Let{\vote_2}{\tsps[\tx][\rep_j].\opGetVote}
-            \State{\textbf{trigger} \opAccountableFault{$[\vote_1, \vote_2]$}} \Comment{$\rep_j$ sent dupl. timestamp} \label{line:raise-dup-tsp}
-            \return
-        \EndIf
-        \Let{\tsps[\tx][\rep_j]}{\tsp} \label{line:rec-tsp}
-    \EndFunction
+    % \Function{\opOnReceiveVote{$\tx, \tsp, \sigma, \rep_j$}}{}
+        
+    % \EndFunction
 \end{algorithmic}
 \end{algorithm}
 
-\begin{algorithm}[tp]
+\begin{algorithm}[]
     \caption{Client code, part 3: compute \rmin, \rmax, \rconf allowing up to \beta equivocations. \wip{Do we have time to write this for omission faults too?}}
     \label{alg:client-statistics}
     \begin{algorithmic}[1]
