@@ -1,0 +1,64 @@
+\begin{algorithm}
+    \caption{Client code, part 1.}
+    \label{alg:client-1}
+    \begin{algorithmic}[1]
+        \State{\textbf{State:}}
+        \State{$\allreps = \{ \rep_1, \ldots, \rep_n \}$ }       \Comment{\text{The set of all replicas}}\label{line:client-state-begin}
+        \State{$\pk_1, \ldots, \pk_n$ }       \Comment{\text{The public keys of the replicas}}
+        % \State{$\mrt = [ \mrt_1, \ldots, \mrt_n ] $}   \Comment{The most recent timestamp returned by each replica}
+        \State{$\lastsn : \rep \rightarrow \sn$}   \Comment{The last sequence number returned by each replica}
+        \State{$\mrt : \rep \rightarrow \tsp$}   \Comment{The most recent timestamp returned by each replica}
+        \State{$\tsps: \tx \rightarrow ( \rep \rightarrow \tsp)$}     \Comment{Timestamp received for each transaction from each replica}
+        \State{$\Pod = (\allTxs, \rperf, \ppcert)$}                   \Comment{The pod observed by the client so far}
+        % \State{$\sigs: \tx \rightarrow ( \rep \rightarrow \sig)$}     \Comment{The signature received for each transaction from each replica}
+        
+        %\rmin \in \BN, \rmax \in \BN \cup \{\infty\}, \rconf \in \BN \cup \{\bot\}, \txcert \in \zo^*
+        \Statex
+    
+        \On{event \opInit{$\rep_1, k_1, \ldots, \rep_n, k_n$}} \label{line:client-init-start}
+            \State{$\allreps \gets \{ \rep_1, \ldots, \rep_n  \} ;\; (\pk_1, \ldots, \pk_n) \gets (k_1, \ldots, k_n) $} 
+            % \Let{ \mrt }{ [ 0, \ldots, 0 ]}
+            % \Let{\rperf}{0}
+            \State{$\Pod = (\emptyset, 0, [ \, ]) ;\; \tsps\leftarrow\emptyset$} \label{line:txs-map-init}
+            % \State{\textbf{for} $\rep_j \in \allreps: $}
+            % \State{$\sigs \leftarrow \emptyset$}
+            % \Let{\tsps}{\emptyset}
+            % \Let{\sigs}{\emptyset}
+            % \Let{\transactions}{\emptyset}
+            \For{$\rep_j \in \allreps$}
+                \State{$\mrt[\rep_j] \leftarrow 0 $}
+                \State{Send \msgconnect{} to $\rep_j$}
+            \EndFor
+        \EndOn\label{line:client-init-end}
+        \Statex
+    
+        \On{receive \msgrecord{(\tx, \tsp, \sn, \sig, \rep_j)}} \Comment{Received a vote from replica $\rep_j$}\label{line:receive-vote-begin}
+            \If{\textbf{not} \opVerify{$\pk_j, (\tx, \tsp, \sn), \sig$}}
+                \State{\textbf{return}}
+            \EndIf
+            \If{$\sn \neq \lastsn[\rep_j]+1$}\label{line:client-check-sn}
+                \State{\textbf{return}}     \Comment{Vote cannot be processed yet}
+            \EndIf
+            \If{$\tsp < \mrt[j]$}\label{line:check-old-ts}
+                % \Let{\vote_1}{(\tx, \tsp, \sigma, \rep_j)}
+                % \Let{\vote_2}{\mrt[j].\opGetVote}
+                % \State{\textbf{trigger} \opAccountableFault{$[\vote_1, \vote_2]$}} 
+                \return \Comment{$\rep_j$ sent old timestamp}\label{line:raise-old-tsp}
+            \EndIf
+            \Let{\mrt[j]}{\tsp} \label{line:upd-mrt}
+    
+            \If{$\tx = \heartBeat$}
+                \return
+            \EndIf
+    
+            \If{$\tsps[\tx][\rep_j] \neq \bot$ \andl $\tsps[\tx][\rep_j] \neq \tsp$}\label{line:check-dup-tsp}
+                % \Let{\vote_1}{(\tx, \tsp, \sigma, \rep_j)}
+                % \Let{\vote_2}{\tsps[\tx][\rep_j].\opGetVote}
+                % \State{\textbf{trigger} \opAccountableFault{$[\vote_1, \vote_2]$}} 
+                \return \Comment{$\rep_j$ sent dupl. timestamp} \label{line:raise-dup-tsp}
+            \EndIf
+            \Let{\tsps[\tx][\rep_j]}{\tsp} \label{line:rec-tsp}
+        \EndOn\label{line:receive-vote-end}
+        \Statex 
+    \end{algorithmic}
+    \end{algorithm}

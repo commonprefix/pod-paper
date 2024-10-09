@@ -1,0 +1,38 @@
+
+\begin{algorithm}[t]
+    \caption{Client code, part 2.}
+    \label{alg:client-2}
+    \begin{algorithmic}[1]
+        \Function{$\opwrite{\tx}$}{} \label{line:write-tx-begin}
+            \For{$\rep_j \in \allreps$}
+                \State{Send \msgwrite{\tx} to $\rep_j$}\label{line:send-write-tx}
+            \EndFor
+        \EndFunction\label{line:write-tx-end}
+        \Statex
+    
+        \Function{$\opreadall{}$}{} \label{line:read-begin}
+            \State{$\allTxs \gets \emptyset ;\; \ppcert \gets [ \, ]$}
+            \For{$\tx \in \tsps.\opKeys{}$}
+                \Let{\rmin}{\opMinPossibleTs{\tx}}\label{line:upd-rmin-begin}
+                \Let{\rmax}{\opMaxPossibleTs{\tx}}\label{line:upd-rmax-begin}
+                \State{$\rconf \gets \bot ;\; \txcert \leftarrow [ \, ] ;\; \txVotes = [ \, ]$}
+                \If{$| \tsps[\tx].\opValues{} | \geq \alpha$}\label{line:confirm-tx-begin}
+                    \For{$\rep_j \in \tsps[\tx].\opValues{}$}
+                        \Let{\tsp}{\tsps[\tx][\rep_j]}
+                        \Let{\txVotes}{\txVotes \concat \tsp}
+                        \Let{\txcert}{\txcert \concat \tsp.\opGetVote}
+                    \EndFor
+                    \Let{\rconf}{\opMed{$\txVotes$}}\label{line:assign-median}
+                \EndIf\label{line:confirm-tx-end}
+                \Let{\allTxs}{\allTxs \cup \{ (\tx, \rmin, \rmax, \rconf, \txcert) \} }
+            \EndFor
+            \Let{\rperf}{\opMinPossibleTsForNewTx{}}\label{line:upd-rperf-begin}
+            \For{$\rep_j \in \allreps$}
+                \Let{\ppcert}{\ppcert \concat \mrt[\rep_j].\opGetVote}
+            \EndFor
+            \Let{\Pod}{(\allTxs, \rperf, \ppcert)}
+            \return{ \Pod}\label{line:return-pod}
+        \EndFunction\label{line:read-end}
+    \end{algorithmic}
+    \end{algorithm}
+    
