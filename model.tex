@@ -44,12 +44,6 @@ In the \emph{synchronous} model, $\Delta$ is \emph{known} to all processes.
 In the \emph{asynchronous} model, $\Delta$ is \emph{unknown} but still finite, i.e., all messages are eventually delivered.
 In both cases, the delivery order of messages may be chosen adversarially. Notice that our protocol is \emph{responsive}, meaning that its liveness guarantees only depend on the actual network delay $\delta$ and the protocols do not rely on knowledge of $\Delta$.
 
-\dotparagraph{Modeling communication}
-We assume reliable and authenticated point-to-point links between parties, implemented by a low-level primitive independent to our protocols.
-%For point-to-point communication, 
-We say that parties \emph{send} and \emph{deliver} messages over such links.
-
-
 %\begin{definition}[Next-message function]
 %    We define a function $\opnext(\state, \req) \returns (\state', \nextmsg)$. It gets as input \state, the current state  of a replica, and \req, which can be either a client request or a message from another replica, and returns $\state'$, the new state of the replica, and \nextmsg, a message to be sent over point-to-point channel to one or more clients or replicas.
 %    \oa{Problems we discovered with Dio: We need to give random tape as input to \opnext. We need to handle cases where missbehaviour is not identifiable by this function (because it is computationally hard to prove that no such sequence exists).}
