@@ -53,6 +53,7 @@ With $\emptyset$ we denote an empty map. \wip{Make sure you add reminders in the
     \State{$\allreps = \{ \rep_1, \ldots, \rep_n \}$ }       \Comment{\text{The set of all replicas}}\label{line:client-state-begin}
     \State{$\pk_1, \ldots, \pk_n$ }       \Comment{\text{The public keys of the replicas}}
     % \State{$\mrt = [ \mrt_1, \ldots, \mrt_n ] $}   \Comment{The most recent timestamp returned by each replica}
+    \State{$\lastsn : \rep \rightarrow \sn$}   \Comment{The last sequence number returned by each replica}
     \State{$\mrt : \rep \rightarrow \tsp$}   \Comment{The most recent timestamp returned by each replica}
     \State{$\tsps: \tx \rightarrow ( \rep \rightarrow \tsp)$}     \Comment{Timestamp received for each transaction from each replica}
     \State{$\Pod = (\allTxs, \rperf, \ppcert)$}                   \Comment{The pod observed by the client so far}
@@ -78,8 +79,8 @@ With $\emptyset$ we denote an empty map. \wip{Make sure you add reminders in the
     \EndOn\label{line:client-init-end}
     \Statex
 
-    \On{receive \msgrecord{(\tx, \tsp, \sig, \rep_j)}} \Comment{Received a vote from replica $\rep_j$}\label{line:receive-vote-begin}
-        \If{\opVerify{$\pk_j, (\tx, \tsp), \sig$}}
+    \On{receive \msgrecord{(\tx, \tsp, \sn, \sig, \rep_j)}} \Comment{Received a vote from replica $\rep_j$}\label{line:receive-vote-begin}
+        \If{$\sn = \lastsn[\rep_j]+1 $\textbf{ and} \opVerify{$\pk_j, (\tx, \tsp, \sn), \sig$}}
             \State{\opOnReceiveVote{$\tx, \tsp, \sig, \rep_j$}}
         \EndIf
     \EndOn\label{line:receive-vote-end}
@@ -203,22 +204,24 @@ With $\emptyset$ we denote an empty map. \wip{Make sure you add reminders in the
 \begin{algorithmic}[1]
     \State{\textbf{State:}}
     \State{\sk}                 \Comment{The secret key of the replica, used for signing}
+    \State{\nextsn}             \Comment{\text{The next sequence number to assign to votes}}
     \State{$\allClients$ }      \Comment{\text{The set of all connected clients}}
-    \State{$\repLog : \tx \rightarrow (\tsp, \sig)$}             \Comment{\text{The transaction log or the replica}}
+    \State{$\repLog$}  \Comment{\text{The transaction log or the replica}}
+    % \State{$\repLog : \tx \rightarrow (\tsp, \sn, \sig)$}  \Comment{\text{The transaction log or the replica}}
     \State{\opTime{}}           \Comment{\text{A function that returns the wall time of the replica}}
     \Statex
 
     \On{event \opInit{}}
-        \Let{\allClients}{\emptyset}    \label{line:rep-init-clients}
-        \Let{\repLog}{[ \, ]}           \label{line:rep-init-log}
+        \State{$\nextsn \gets 0 ;\; \allClients \gets \emptyset ;\; \repLog \gets [ \, ]$}\label{line:rep-init-clients}
+        % \Let{\repLog}{[ \, ]}           \label{line:rep-init-log}
     \EndOn
     \Statex
 
     \On{receive \msgconnect{} from client \client} \label{line:rep-receive-connect-begin}
         \Let{\allClients}{\allClients \cup \{\client\}}
-        \For{$\tx \in \repLog.\opKeys$} \Comment{Loop over existing transactions.}
-            \Let{(\tsp, \sigma)}{\repLog[\tx]}
-            \State{Send \msgrecord{(\tx, \tsp, \sigma, \rep_i)} to \client}
+        \For{$(\tx, \tsp, \sn, \sigma) \in \repLog$}
+            % \Let{(\tsp, \sn, \sigma)}{\repLog[\tx]}
+            \State{Send \msgrecord{(\tx, \tsp, \sn, \sigma, \rep_i)} to \client}
         \EndFor
     \EndOn\label{line:rep-receive-connect-end}
     \Statex
@@ -232,12 +235,14 @@ With $\emptyset$ we denote an empty map. \wip{Make sure you add reminders in the
     \Statex
 
     \Function{\opSendVote{\tx}}{}
-        \Let{\tsp}{\opTime{}}\label{line:rep-assign-tsp}
-        \Let{\sig}{\opSign{\sk, (\tx, \tsp)}}\label{line:rep-sign}
-        \Let{\repLog[\tx]}{(\tsp, \sig)}
+        \Let{\tsp}{\opTime} \label{line:rep-assign-tsp}
+        \Let{\sn}{\nextsn}
+        \Let{\sig}{\opSign{\sk, (\tx, \tsp, \sn)}}\label{line:rep-sign}
+        \Let{\repLog}{\repLog \concat (\tx, \tsp, \sn, \sig)}
         \For{$\client \in \allClients$}
-            \State{Send \msgrecord{(\tx, \tsp, \sig, \rep_i)} to \client} \label{line:send-vote}
-        \EndFor        
+            \State{Send \msgrecord{(\tx, \tsp, \sn, \sig, \rep_i)} to \client} \label{line:send-vote}
+        \EndFor       
+        \Let{\nextsn}{\nextsn+1} 
     \EndFunction
     \Statex
 
@@ -453,21 +458,37 @@ The following theorem proves that \Cref{const:pod-core} satisfies the security d
     \Cref{const:pod-core} satisfies the \emph{past-perfection} safety property.
 \end{lemma}
 \begin{proof}
-    Assume an honest client \client at round \round outputs a pod $(\txSet, \rperf, \ppcert)$, such that $\tx \not \in \txSet$, for some $\tx \in \zo^*$.
-    Assume another client $\client'$ at round $\round'$ outputs a pod $(\txSet', \cdot, \cdot)$,
-    such that $(\tx, \cdot, \cdot, \rconf, \txcert) \in \txSet'$ and $\rconf \neq \bot$ and $\rconf < \rperf$.
-    
+    Assume an honest client \client at round \round reads pod $(\txSet, \rperf, \ppcert)$, such that $\tx \not \in \txSet$, for some $\tx \in \zo^*$.
     Let $\allreps_1$ be the set of replicas $\rep_j$ for which \client stores at round \round an $\mrt_j$, such that $\mrt_j \geq \rperf$.
-    % That is, $\allreps_1$ is the set of replicas that have sent to \client a vote on \emph{some} transaction with timestamp at least $\rperf$.
-    From \Cref{lem:assign-min-max} (\rperf is computed as the timestamp at index $\lfloor \alpha / 2 \rfloor - \beta$ of sorted \mrt) there exist at least $n - \lfloor a/2 \rfloor + \beta$ replicas that have sent to \client an $\mrt_j \geq \rperf$, hence we have that  $|R_1| \geq n - \lfloor a/2 \rfloor + \beta$. 
-    Observe that no replica in $\allreps_1$ has sent to \client a vote on \tx (because $\tx \not \in \txSet$),
-    and that, for each $\rep_j \in \allreps_1$, \client has received the \emph{whole} log of $\rep_j$ with timestamps smaller than $\rperf$ (because replicas do not omit transaction from their log).
+    From \Cref{lem:assign-min-max} (\rperf is computed as the timestamp at index $\lfloor \alpha / 2 \rfloor - \beta$ of sorted \mrt) there exist at least $n - \lfloor a/2 \rfloor + \beta$ replicas that have sent to \client an $\mrt_j \geq \rperf$, hence $|R_1| \geq n - \lfloor a/2 \rfloor + \beta$. 
+    % Observe that no replica in $\allreps_1$ has sent to \client a vote on \tx (because $\tx \not \in \txSet$),
+    For each $\rep_j \in \allreps_1$, \client has received the whole log (without gaps in the sequence numbers) of $\rep_j$ with timestamps up to $\mrt_j$.
+    That is, for each $\rep_j \in \allreps_1$ there exists an $m_j$, such that \client has received $m_j$ votes
+    %
+    \begin{equation}\label{eq:proof-pp-set1}
+    (\tx_{j,1}, \tsp_{j,1}, 1, \sigma_{j,1}, \rep_j), (\tx_{j,2}, \tsp_{j,2}, 2, \sigma_{j,2}, \rep_j), \ldots, (\tx_{j,m_j}, \tsp_{j, m_j}, m_j, \sigma_{j, m_j}, \rep_j),
+    \end{equation}
+    %
+    such that $\tsp_{j, m_j} \geq \mrt_j \geq \rperf$.
 
-    Let $\allreps_2$ be the set of replicas $\rep_j$ that have sent to $\client'$ a vote on \tx with timestamp $\tsp_j$, such that $\tsp_j < \rperf$.
-    It must be that $|\allreps_2| \geq \lfloor \alpha/2 \rfloor + 1$ (because the timestamp is computed as the median of at least \alpha votes).
-
-    We will show that, if at most \beta replicas are adversarial, then this leads to a contradiction.
-    Observe that an honest replica cannot be in both $\allreps_1$ and $\allreps_2$, because that would imply that it omitted sending a vote to \client. However, from the cardinality of $\allreps_1$ and $\allreps_2$, we have that at least $\beta + 1$ replicas must be in both sets, a contradiction.
+    Assume now another client $\client'$ at round $\round'$ outputs a pod $(\txSet', \cdot, \cdot)$,
+    such that $(\tx, \cdot, \cdot, \rconf, \txcert) \in \txSet'$ and $\rconf < \rperf$.
+    For $\client'$ to output a confirmation round $\rconf < \rperf$, it must have received timestamps $\tsp_j$ on \tx, such that $\tsp_j < \rperf$, from at least $\lfloor \alpha/2 \rfloor + 1$ (because \rconf is computed as the median of at least \alpha votes).
+    Let $\allreps_2$ be the set of replicas $\rep_j$ that have sent to $\client'$ a vote on \tx with timestamp $\tsp_j < \rperf$. We have $|\allreps_2| \geq \lfloor \alpha/2 \rfloor + 1$.
+    That means, for each $\rep_j \in \allreps_2$, client $\client'$ has received a vote
+    %
+    \begin{equation}\label{eq:proof-pp-set2}
+        (\tx, \tsp^*_j, \sn^*_j, \sigma^*_j, \rep_j),
+    \end{equation}
+    %
+    such that $\tsp^*_j < \rperf$.
+    
+    % We will show that, if at most \beta replicas are adversarial, then this leads to a contradiction.
+    % Observe that an honest replica cannot be in both $\allreps_1$ and $\allreps_2$, because that would imply that it omitted sending a vote to \client.
+    Observe from the cardinality of $\allreps_1$ and $\allreps_2$, that at least $\beta + 1$ replicas must be in both sets, hence at least one honest replica must be in both sets.
+    For that replica, the vote of \cref{eq:proof-pp-set2} must be one of the votes of \cref{eq:proof-pp-set1} since $\tsp^*_j < \rperf$ and $\tsp_{j, m_j} \geq \rperf$.
+    Hence, client \client will receive at least one vote on \tx and $\tx \in \txSet$
+    one of the transactions $\tx_1, \tx_2, \ldots, \tx_{m_j}$ in \cref{eq:proof-pp-set1} wi
     \oa{Check if this is ewnp, due to signature forging.}
 \end{proof}
 
