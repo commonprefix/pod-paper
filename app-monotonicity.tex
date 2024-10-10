@@ -1,0 +1,56 @@
+\section{Remarks on Pod Monotonicity}\label{app:monotonicity}
+We show that a monotone Pod can be obtained from any secure Pod and that monotonicity implies certain specific properties that may be useful for applications.
+
+\begin{remark}
+	Every secure pod can be transformed into a monotone pod if parties are stateful. Let $\round_1$ be the last round when an honest client $\client$ read the pod obtaining view $\podView{\client}{\round_1}$, which is stored as state until $\client$ reads the pod again. At any round $\round_2>\round_1$, if $\client$ reads the pod and obtains $\podView{\client}{\round_2}$, $\client$ can define a view $\overline{\podView{\client}{\round_2}}$ satisfying the properties of pod monotonicity:
+	
+	\begin{enumerate}
+		\item If $\tx$ appears in $\podView{\client}{\round_1}$ with $\tx.\rmin,\tx.\rmax,\tx.\rconf,\tx.\txcert$, then $\tx$ appears in $\overline{\podView{\client}{\round_2}}$ with $\tx.\overline{\rmin}=\rmin,\tx.\overline{\rmax}=\rmax,\tx.\overline{\rconf}=\rconf,\tx.\overline{\txcert}=\txcert$.
+		\item If $\tx$ appears in $\podView{\client}{\round_2}$ with $\tx.\rmin',\tx.\rmax',\tx.\rconf',\tx.\txcert'$ and does not appear in $\podView{\client}{\round_1}$, then $\tx$ appears in $\overline{\podView{\client}{\round_2}}$ with $\tx.\overline{\rmin}=\rmin',\tx.\overline{\rmax}=\rmax',\tx.\overline{\rconf}=\rconf',\tx.\overline{\txcert}=\txcert'$.
+		\item For every $\tx$ that appears in $\podView{\client}{\round_1}.\txSet$ and in  $\podView{\client}{\round_2}.\txSet$ such that $\rmin'\geq \rmin$, $\rmax' \leq \rmax$, $\rconf' \geq \rconf$, update $\tx.\overline{\rmin}=\rmin',\tx.\overline{\rmax}=\rmax',\tx.\overline{\rconf}=\rconf',\tx.\overline{\txcert}=\txcert'$.
+		\item If  $\podView{\client}{\round_2}.\rperf > \podView{\client}{\round_1}.\rperf$, then $\overline{\podView{\client}{\round_2}}.\rperf=\podView{\client}{\round_2}.\rperf $. Otherwise, $\overline{\podView{\client}{\round_2}}.\rperf=\podView{\client}{\round_1}.\rperf $.
+		
+	\end{enumerate}
+\end{remark}
+
+
+% \item{Accountability:}
+% \begin{description}        
+	%     \item [Accountability:]
+	%     If one or more replicas equivocate, then there exist
+	%     views $\podView{\client_1}{\round_1}$ and $\podView{\client_2}{\round_2}$, for some clients $\client_1,\client_2$ and rounds $\round_1, \round_2$ such that $\identify{\podView{\client_1}{\round_1},\podView{\client_2}{\round_2}} \rightarrow \cheaters$ outputs a non-empty set $\cheaters$ of equivocating replicas. If a safety property is violated, $\cheaters$ contains at least $\beta+1$ replicas who have caused the violation.
+	% \end{enumerate}
+
+
+
+
+
+
+
+
+
+In the remarks below, we observe that pod monotonicity implies a number of useful properties about the monotonicity of past perfection and the values $\rmin,\rmax,\rconf$ associated to a transactions in the Pod.
+
+\begin{remark}[Confirmation stickiness]\label{rem:confstick}
+	Properties 2 and 3 of pod monotonicity imply that  for any honest client $\client$ and rounds $\round_1, \round_2 > \round_1$,
+	if $\tx \in \podView{\client}{\round_1}$ and $\tx.\rconf \neq \bot$, then $\tx \in \podView{\client}{\round_2}$ and $\tx.\rconf \neq \bot$.
+\end{remark}
+
+\begin{remark}[Past-perfection stickiness]
+	Property 1 of pod monotonicity imply that the past-perfect round obtained by honest clients can only grow.
+	That is, for any honest client \client and rounds $\round_1, \round_2 \geq \round_1$,
+	it holds that $\podView{\client}{\round_2}.\rperf \geq \podView{\client}{\round_1}.\rperf$.
+\end{remark}
+
+\begin{remark}[Temperature stickiness]
+	Properties 2 and 3 of pod monotonicity imply that if an honest client obtains $\rmin$ and $\rmax$ for \tx in round $\round_1$, and later obtains $\rmin'$ and $\rmax'$ for \tx in round $\round_2 > \round_1$, then $\rmin' \geq \rmin$ and $\rmax' \leq \rmax$.
+\end{remark}
+
+\begin{remark}
+	Observe that the \emph{confirmation stickiness} property in Remark~\ref{rem:confstick} is a specific version of a more general \emph{common subset} property, which would demand the condition for any two honest clients $\client_1, \client_2$. We provide such a property in \Cref{sec:pod-with-propagation}.
+	\Cref{const:pod-core} satisfies the \emph{confirmation stickiness} property.
+	% \emph{ Confirmation monotonicity for honest transactions after $X$:}
+	% For any honest clients $\client_1$, $\client_2$ and rounds $\round_1, \round_2 > \round_1 + X$,
+	% and for any transaction \tx written by an honest client,
+	% if $\tx \in \podView{\client_1}{\round_1}$ and $\tx.\rconf \neq \bot$, then $\tx \in \podView{\client_2}{\round_2}$ and $\tx.\rconf \neq \bot$.
+\end{remark}
