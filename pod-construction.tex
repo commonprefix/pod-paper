@@ -46,26 +46,37 @@ With $\emptyset$ we denote an empty map. \wip{Make sure you add reminders in the
 \input{pod-core-client-code-1}
 
 \begin{construction}\label{const:pod-core}
-We present a pod construction in Algorithms~\ref{alg:client-1}--\ref{alg:pod-core-replica},
-and discuss its main points, first for the client and then for the replica construction, in the following paragraphs.
+We present a pod construction in Algorithms~\ref{alg:client-1}--~\ref{alg:client-statistics}, for the client code, and \ref{alg:pod-core-replica} for the replica code.
+% and discuss its main points, first for the client and then for the replica construction, in the following paragraphs.
 Pod core achieves \emph{accountable safety} (see \Cref{sec:accountable-safety}); the \identify{} function is shown in \Cref{alg:identify}.
+In the remainder of this section we discuss its main points.
 \end{construction}
 
 \dotparagraph{Initialization}
 The state of a client is shown in \Cref{alg:client-1} in lines~\ref{line:client-state-begin}--\ref{line:client-state-end}.
-The client keeps received votes in variable \tsps, which is a map from transactions \tx to a map from replicas \rep to timestamps \tsp.
-% and all received signatures in \sigs, which has similar structure to \tsps.
-The client keeps all associated values for received transactions in \transactions,
-which is a map from transactions \tx to $(\rmin, \rmax, \rconf, \txcert)$,
-such that $\rmin \in \BN, \rmax \in \BN \cup \{\infty\}, \rconf \in \BN \cup \{\bot\}$, and $\txcert \in \zo^*$,
-initialized to $(0, \infty, \bot, \bot)$ for each \tx.
+The state contains \mrt, \nextsn, \tsps, and \Pod.
+Variable \tsps is a map from transactions \tx to a map from replicas \rep to timestamps \tsp.
 The state gets initialized in lines~\ref{line:client-init-start}--\ref{line:client-init-end}.
 At initialization the client also sends a \msgconnect{} message to each replica, which initiates a streaming connection from the replica to the client.
 
 \dotparagraph{Receiving votes}
-A client maintains a connection to each replica and receives votes through \msgrecord{$(\tx, \tsp, \sig, \rep)$} messages (lines~\ref{line:receive-vote-begin}--\ref{line:receive-vote-end}).
-The client first verifies the signature \sig against the public key of the replica that sent the vote.
-If valid, the vote is processed by the \opOnReceiveVote{} function, which we show in \Cref{alg:client-2}.
+A client maintains a connection to each replica and receives votes through \msgrecord{$(\tx, \tsp, \sn, \sig, \rep)$} messages (lines~\ref{line:receive-vote-begin}--\ref{line:receive-vote-end}).
+A vote is processed as follows.
+The client first verifies the signature \sig against the public key of the replica that sent the vote (lines~\ref{line:client-verify-sig-begin}--\ref{line:client-verify-sig-end}). If invalid, the vote is ignored.
+Then the client verifies that the vote contains the next sequence number it expects to receive from replica $\rep_j$ (lines~\ref{line:client-check-sn}--\ref{line:client-check-sn-end}). If this is not the case, then the vote is \emph{backlogged} and given again to the client at a later point (the backlogging functionality is not shown in the pseudocode).
+
+After this, the client performs some sanity checks.
+First, \tsp must be greater or equal to $\mrt_j$, the most recent timestamp returned by replica $\rep_j$ (lines~\ref{line:check-old-ts}-\ref{line:check-old-ts-end}). \wip{continue}
+Second, the replica must have not previously sent a different timestamp for \tx (\cref{line:check-dup-tsp}) .
+If any of these is not the case, the client ignores the vote.
+
+Regarding accountability of these two faults, we remark that they cases constitute \emph{accountable} faults: In the first case, the client can use the message $\msgrecord{(\tx, \tsp, \sn, \sig, \rep_j)}$ and the vote it received when it updated $\mrt[\rep_j]$ to prove that $\rep_j$ has misbehaved. In the second case it can use $\msgrecord{(\tx, \tsp, \sn, \sig, \rep_j)}$ and the previous vote message it has received on \tx.
+A practical implementation of pod can use these facts. The \identify{} function we show in \Cref{alg:identify} can detect such misbehavior. However, in this paper we formalize accountability only for the case when misbehavior violates safety (\Cref{def:accountable-safety}), hence we do not further explore this.
+
+If the checks pass, the client stores \tsp (\cref{line:rec-tsp})
+and updates $\mrt_j$ with \tsp (\cref{line:upd-mrt}).
+
+
 We remark that \opOnReceiveVote{} updates the global state held by the client (in lines \ref{line:client-state-begin}--\ref{line:client-state-end} of \Cref{alg:client-1}).
 
 \input{pod-core-client-code-2}
@@ -82,12 +93,7 @@ The auxiliary data \ppcert contains the vote on the most recent timestamp $\mrt[
 
 \dotparagraph{Updating \rmin and  \rmax, and confirming transactions}
 We now describe how each received vote $(\tx, \tsp, \sig, \rep_j)$ updates the client's local state (function \opOnReceiveVote{} in \Cref{alg:client-2}).
-The client performs some sanity checks.
-First, \tsp must be equal or larger than $\mrt_j$, the most recent timestamp returned by replica $\rep_j$ (\cref{line:check-old-ts}).
-Second, the replica must have not previously sent a different timestamp for \tx (\cref{line:check-dup-tsp}) .
-If any of these is not the case, the client ignores this value and triggers an event, which can be used to provably blame $\rep_j$ (lines \ref{line:raise-old-tsp},\ref{line:raise-dup-tsp}).
-If the checks pass, the client stores \tsp (\cref{line:rec-tsp})
-and updates $\mrt_j$ with \tsp (\cref{line:upd-mrt}).
+
 
 The client then updates the values \rmin (\cref{line:upd-rmin-begin}) and
 \rmax (\cref{line:upd-rmax-begin})
