@@ -1,5 +1,5 @@
-\begin{algorithm}
-    \caption{Protocol \podtm-core (\Cref{const:pod-core}): Client code, part 1.}
+\begin{algorithm}[t]
+    \caption{Protocol \podtm (\Cref{const:pod-core}): Client code, part 1.}
     \label{alg:client-1}
     \begin{algorithmic}[1]
         \State{\textbf{State:}}
@@ -32,31 +32,25 @@
         \Statex
     
         \On{receive \msgrecord{(\tx, \tsp, \sn, \sig, \rep_j)}} \Comment{Received a vote from replica $\rep_j$}\label{line:receive-vote-begin}
-            \If{\textbf{not} \opVerify{$\pk_j, (\tx, \tsp, \sn), \sig$}} \label{line:client-verify-sig-begin}
-                \State{\textbf{return}}
-            \EndIf\label{line:client-verify-sig-end}
-            \If{$\sn \neq \nextsn[\rep_j]$}\label{line:client-check-sn}
-                \State{\textbf{return}}     \Comment{Vote cannot be processed yet, backlog and try again}
-            \EndIf\label{line:client-check-sn-end}
+            \State{\textbf{if not} \opVerify{$\pk_j, (\tx, \tsp, \sn), \sig$} \textbf{then return}} \Comment{Invalid vote} \label{line:client-verify-sig-begin}
+            \State{\textbf{if} $\sn \neq \nextsn[\rep_j]$ \textbf{then return}} \Comment{Vote cannot be processed yet}\label{line:client-check-sn}
+                % \State{\textbf{return}}     \Comment{Vote cannot be processed yet, backlog and try again}
+            % \EndIf\label{line:client-check-sn-end}
             \Let{\nextsn[\rep_j]}{\nextsn[\rep_j] + 1}
-            \If{$\tsp < \mrt[j]$}\label{line:check-old-ts}
+            \State{\textbf{if} $\tsp < \mrt[\rep[j]]$ \textbf{then return}} \Comment{$\rep_j$ sent old timestamp} \label{line:check-old-ts}
                 % \Let{\vote_1}{(\tx, \tsp, \sigma, \rep_j)}
                 % \Let{\vote_2}{\mrt[j].\opGetVote}
                 % \State{\textbf{trigger} \opAccountableFault{$[\vote_1, \vote_2]$}} 
-                \return \Comment{$\rep_j$ sent old timestamp}\label{line:raise-old-tsp}
-            \EndIf\label{line:check-old-ts-end}
-            \Let{\mrt[j]}{\tsp} \label{line:upd-mrt}
-    
-            \If{$\tx = \heartBeat$}
-                \return
-            \EndIf
-    
-            \If{$\tsps[\tx][\rep_j] \neq \bot$ \andl $\tsps[\tx][\rep_j] \neq \tsp$}\label{line:check-dup-tsp}
+                % \return \Comment{$\rep_j$ sent old timestamp}\label{line:raise-old-tsp}
+            % \EndIf\label{line:check-old-ts-end}
+            \Let{\mrt[\rep[j]]}{\tsp} \label{line:upd-mrt}
+            \State{\textbf{if} $\tx = \heartBeat$ \textbf{then return}} \Comment{Do not update \tsps for \heartBeat} \label{line:client-heartbeat-return}
+            \State{\textbf{if} $\tsps[\tx][\rep_j] \neq \bot$ \andl $\tsps[\tx][\rep_j] \neq \tsp$ \textbf{then return}} \Comment{Duplicate timestamp} \label{line:check-dup-tsp}
                 % \Let{\vote_1}{(\tx, \tsp, \sigma, \rep_j)}
                 % \Let{\vote_2}{\tsps[\tx][\rep_j].\opGetVote}
                 % \State{\textbf{trigger} \opAccountableFault{$[\vote_1, \vote_2]$}} 
-                \return \Comment{$\rep_j$ sent dupl. timestamp} \label{line:raise-dup-tsp}
-            \EndIf
+            %     \return \Comment{Dupl. timestamp} \label{line:raise-dup-tsp}
+            % \EndIf
             \Let{\tsps[\tx][\rep_j]}{\tsp} \label{line:rec-tsp}
         \EndOn\label{line:receive-vote-end}
         \Statex 
