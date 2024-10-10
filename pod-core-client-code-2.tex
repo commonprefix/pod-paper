@@ -12,15 +12,15 @@
     
         \Function{$\opreadall{}$}{} \label{line:read-begin}
             \State{$\allTxs \gets \emptyset ;\; \ppcert \gets [ \, ]$}
-            \For{$\tx \in \tsps.\opKeys{}$}
+            \For{$\tx \in \tsps.\opKeys{}$}     \Comment{Loop over all received transactions} \label{line:loop-over-txs}
                 \Let{\rmin}{\opMinPossibleTs{\tx}}\label{line:upd-rmin-begin}
                 \Let{\rmax}{\opMaxPossibleTs{\tx}}\label{line:upd-rmax-begin}
-                \State{$\rconf \gets \bot ;\; \txcert \leftarrow [ \, ] ;\; \txVotes = [ \, ]$}
+                \State{$\rconf \gets \bot ;\; \txcert \leftarrow [ \, ] ;\; \txVotes = [ \, ]$} \label{line:unconfirmed-tx}
                 \If{$| \tsps[\tx].\opValues{} | \geq \alpha$}\label{line:confirm-tx-begin}
                     \For{$\rep_j \in \tsps[\tx].\opValues{}$}
                         \Let{\tsp}{\tsps[\tx][\rep_j]}
                         \Let{\txVotes}{\txVotes \concat \tsp}
-                        \Let{\txcert}{\txcert \concat \tsp.\opGetVote}
+                        \Let{\txcert}{\txcert \concat \tsp.\opGetVote} \label{line:assign-txcert}
                     \EndFor
                     \Let{\rconf}{\opMed{$\txVotes$}}\label{line:assign-median}
                 \EndIf\label{line:confirm-tx-end}

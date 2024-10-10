@@ -55,7 +55,7 @@ A \podtm protocol has the following interface.
 % 	for any transaction $\tx$ that does not appear in $ \txSet$, no honest client will ever observe \tx as confirmed with $\tx.\rconf < \rperf$.
 % \end{definition}
 
-\begin{definition}[View of the\podtm]
+\begin{definition}[View of the \podtm]
     We call \emph{view of the} \podtm the output of \opreadall{}, where \opreadall{} is invoked by client \client and the output is produced at round \round,
     and denote it as \podView{\client}{\round}.
     We remark that \round denotes the round when \opread{} outputs, as the client may have invoked it at an earlier round.
@@ -65,7 +65,7 @@ A \podtm protocol has the following interface.
 \end{definition}
     
 
-\begin{definition}[Secure\podtm]\label{def:podsec}
+\begin{definition}[Secure \podtm]\label{def:podsec}
 A protocol is a \emph{secure} \podtm if it implements the\podtm interface of Definition~\ref{def:podinterface} and satisfies the following liveness and safety properties.
 
 \dotparagraph{1. Liveness properties}
@@ -106,7 +106,7 @@ A protocol is a \emph{secure} \podtm if it implements the\podtm interface of Def
 In the following we define two additional types of properties, \podtm \emph{timeliness} and \podtm \emph{monotonicity}, which can be satisfied independently of the safety and liveness properties of\podtm. Previous work has observed that timeliness is a property orthogonal to safety and liveness of distributed protocols~\cite{DBLP:journals/iacr/TzinasSZ23}.
 
 \begin{definition}[\podtm \parTemp-timeliness for honest transactions]\label{def:pod-timely}
-    A\podtm is \emph{\parTemp-timely} if it is a secure\podtm, as per Definition~\ref{def:podsec}, and the following properties hold for any transaction \tx written by an honest client in round $\round$ (observe that, from the \emph{confirmation within \parConf} property, \tx will become confirmed):
+    A \podtm is \emph{\parTemp-timely} if it is a secure \podtm, as per Definition~\ref{def:podsec}, and the following properties hold for any transaction \tx written by an honest client in round $\round$ (observe that, from the \emph{confirmation within \parConf} property, \tx will become confirmed):
     \begin{enumerate}
         \item $\rconf \in (\round, \round + \parTemp]$
         \item $\rmax \in (\round, \round + \parTemp]$
@@ -115,7 +115,7 @@ In the following we define two additional types of properties, \podtm \emph{time
 \end{definition}
 
 \begin{definition}[\podtm monotonicity]
-A\podtm satisfies \emph{pod monotonicity}, and called a \emph{monotone\podtm}, if it is a secure\podtm, as per Definition~\ref{def:podsec}, and the following properties hold for any rounds $\round_1,\round_2 > \round_1$:
+A \podtm satisfies \emph{pod monotonicity}, and called a \emph{monotone \podtm}, if it is a secure \podtm, as per Definition~\ref{def:podsec}, and the following properties hold for any rounds $\round_1,\round_2 > \round_1$:
 \begin{enumerate}
 	\item (Past-perfection Stickiness) $\podView{\client}{\round_2}.\rperf \geq \podView{\client}{\round_1}.\rperf $;
 	\item (Transaction Stickiness) If  transaction $\tx$ appears in $\podView{\client}{\round_1}.\txSet$, then $\tx$ appears in $\podView{\client}{\round_2}.\txSet$;
@@ -123,7 +123,7 @@ A\podtm satisfies \emph{pod monotonicity}, and called a \emph{monotone\podtm}, i
 \end{enumerate}
 \end{definition}
 
-In Appendix~\ref{app:monotonicity}, we present remarks on how a monotone\podtm can be obtained from any secure\podtm and on specific useful properties implied by monotonicity.
+In Appendix~\ref{app:monotonicity}, we present remarks on how a monotone \podtm can be obtained from any secure \podtm and on specific useful properties implied by monotonicity.
 
 
 

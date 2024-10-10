@@ -38,7 +38,7 @@ We assume that all messages between clients and replicas are concatenated with a
 \end{remark}
 
 \dotparagraph{Pseudocode notation}
-% For a timestamp \tsp, notation $\tsp.\opGetVote$ denotes the vote message from some replica through which a client obtained timestamp \tsp. We abstract away the logic of how $\opGetVote$ is implemented.
+For a timestamp \tsp, notation $\tsp.\opGetVote$ denotes the vote message from some replica through which a client obtained timestamp \tsp. We abstract away the logic of how $\opGetVote$ is implemented.
 Notation $x: a \in A \rightarrow b \in B$ denotes that variable $x$ is a map from elements of type $A$ to elements of type $B$. When obvious from the context, we do not explicitly write the types $A$ or $B$.
 For a map $x$, the operations $x.\opKeys$ and $x.\opValues$ return all keys and all values in $x$, respectively.
 With $\emptyset$ we denote an empty map.
@@ -72,32 +72,36 @@ If any of these is not the case, the client ignores the vote.
 Concluding, for a valid vote the client updates $\mrt[j]$ (\cref{line:upd-mrt}) and $\tsps[\tx][\rep_j]$ (\cref{line:rec-tsp}) with \tsp.
 
 We remark here that both of these cases constitute \emph{accountable} faults: In the first case, the client can use the message $\msgrecord{(\tx, \tsp, \sn, \sig, \rep_j)}$ and the vote it received when it updated $\mrt[\rep_j]$ to prove that $\rep_j$ has misbehaved. In the second case it can use $\msgrecord{(\tx, \tsp, \sn, \sig, \rep_j)}$ and the previous vote message it has received on \tx.
-A practical implementation of pod can use these facts. The \identify{} function we show in \Cref{alg:identify} can detect such misbehavior. However, in this paper we formalize accountability only for the case when it causes a safety violation (\Cref{def:accountable-safety}), hence we do not further explore this.
+A practical implementation of \podtm can use these facts. The \identify{} function we show in \Cref{alg:identify} can detect such misbehavior. However, in this paper we formalize accountability only for the case when it causes a safety violation (\Cref{def:accountable-safety}), hence we do not further explore this.
 
 \input{pod-core-client-code-2}
 
 \dotparagraph{Writing to and reading from pod}
-As per the interface of In order to write a transaction \tx, a client sends a \msgwrite{\tx} message to each replica (lines \ref{line:write-tx-begin}--\ref{line:write-tx-end}).
-As for reading, since the construction is stateful and streaming, the client state contains at all times the latest view the client has of the pod.
-Hence, \opreadall{} (lines~\ref{line:read-begin}--\ref{line:read-end}) only needs to operate on the local state.
-It returns the set of transactions and associated values \transactions that the client has seen so far,
-the current past-perfect round \rperf.
-The auxiliary data \ppcert contains the vote on the most recent timestamp $\mrt[\rep_j]$ received from each replica $\rep_j$.
+As per the interface of \podtm (\Cref{def:podinterface}), clients can interact with it through the \opwrite{\tx} and \opreadall{} functions, which we show in \Cref{alg:client-2}.
+In order to write a transaction \tx, a client sends a \msgwrite{\tx} message to each replica (lines \ref{line:write-tx-begin}--\ref{line:write-tx-end}).
+As for reading (lines \ref{line:read-begin}--\ref{line:read-end}), since the construction is stateful and streaming, the client state contains at all times the latest view the client has of the pod, so \opreadall{} operates on the local state.
+It returns a pod \Pod (\cref{line:return-pod}) with a transaction set \allTxs, containing the transactions the client has received so far (\cref{line:loop-over-txs}) and their associated values,
+a past-perfect round \rperf, and auxiliary data \ppcert.
+We remind that notation $\tsps.\opKeys{}$ on line \cref{line:loop-over-txs} returns all entries in \tsps.
 
 \input{pod-core-client-code-statistics}
 
-\dotparagraph{Updating \rmin and  \rmax, and confirming transactions}
-We now describe how each received vote $(\tx, \tsp, \sig, \rep_j)$ updates the client's local state (function \opOnReceiveVote{} in \Cref{alg:client-2}).
+The associated values \rmin, \rmax, \rconf, \txcert for each transaction, the past-perfect round \rperf, and its auxiliary data \ppcert are computed in the following way.
+For \rmin (\cref{line:upd-rmin-begin}) and \rmax (\cref{line:upd-rmax-begin})
+the client uses the \opMinPossibleTs{} and \opMaxPossibleTs{} functions,
+which we define later. They return the minimum and maximum, respectively, round number that \emph{any client} can ever \emph{confirm} \tx with.
+For \rperf (\cref{line:upd-rperf-begin}) the client uses \opMinPossibleTsForNewTx{}, which returns the smallest round number that \emph{any} client can ever assign to a transaction \emph{not yet seen} by the client.
+The auxiliary data \ppcert contains the vote on the most recent timestamp $\mrt[\rep_j]$ received from each replica $\rep_j$.
 
+A transaction becomes \confirmed (i.e., it gets assigned a confirmation round $\rconf \neq \bot$) when the client receives \alpha votes for \tx from different replicas (line~\ref{line:confirm-tx-begin}).
+Before it becomes confirmed, a transaction has $\rconf = \bot$ and $\txcert = [ \, ]$ (\cref{line:unconfirmed-tx}).
+When confirmed, \rconf is the median of all received timestamps (line~\ref{line:assign-median}),
+and the auxiliary data \txcert contains all the received votes on \tx (line~\ref{line:assign-txcert}).
+% This implies that a transaction is confirmed if and only if $|\txcert| \geq \alpha$.
 
-The client then updates the values \rmin (\cref{line:upd-rmin-begin}) and
-\rmax (\cref{line:upd-rmax-begin})
-using the \opMinPossibleTs{} and \opMaxPossibleTs{} functions,
-which return the minimum and maximum, respectively, possible timestamps that could ever be assigned to \tx by any client.
-It also updates \rperf using \opMinPossibleTsForNewTx{}, which returns the smallest possible timestamp that could ever be assigned to a transaction \emph{not yet seen} by the client (\cref{line:upd-rperf-begin}).
-
+\dotparagraph{Computing the associated values and the past-perfect round}
 Functions \opMinPossibleTs{} and \opMaxPossibleTs{} are shown in \Cref{alg:client-statistics}.
-The former fills a missing vote from replica $\rep_j$ with $\mrt_j$ (\cref{line:fill-vote-lts}),
+The former fills a missing vote from replica $\rep_j$ with $\mrt[\rep_j]$ (\cref{line:fill-vote-lts}),
 the minimum timestamp that can ever be  accepted from $\rep_j$ (smaller values will not pass the check in \cref{line:check-old-ts} of \Cref{alg:client-2}),
 and prepends \beta times the $0$ value (\cref{line:prepend-zero}), pessimistically assuming that up to $\beta$ replicas will try to bias \tx by sending $0$ to other clients as its timestamp.
 The latter fills a missing vote with $\infty$ (\cref{line:fill-vote-inf})
@@ -105,38 +109,27 @@ and appends \beta times the $\infty$ value (\cref{line:apend-infty}), the worst-
 Finally, \opMinPossibleTsForNewTx{} works similarly to \opMinPossibleTs{}, except
 considering timestamps \mrt as the minimum possible for any future transaction.
 
-A transaction becomes \confirmed (i.e., it gets assigned a confirmation round $\rconf \neq \bot$) when the client receives \alpha votes for \tx from different replicas (line~\ref{line:confirm-tx-begin}).
-The assigned \rconf is the median of all received timestamps (line~\ref{line:assign-median}),
-and the auxiliary data \txcert contains all the received votes on \tx (line~\ref{line:assign-txcert}).
-This implies that, in our construction a transaction is confirmed if and only if $|\txcert| \geq \alpha$.
-
 \input{pod-core-replica-code}
 
 \dotparagraph{Replica code}
-The code for a replica is shown in \Cref{alg:pod-core-replica}. The replica maintains the set of all 
-connected clients (\cref{line:rep-init-clients}) and the transaction log \repLog (\cref{line:rep-init-log}),
-which is implemented as a map from transactions \tx to tuples $(\tsp, \sig)$, where \tsp is the timestamp assigned by the replica to \tx and \sig is its signature.
-Both are initially empty.
+The code for a replica is shown in \Cref{alg:pod-core-replica}. The state of a replica (lines \ref{line:rep-state-begin}--\ref{line:rep-state-end}) contains, among others, the transaction log \repLog, which is implemented as a sequence of votes $(\tx, \tsp, \sn, \sigma, \rep_i)$ created by the replica, where \tsp is the timestamp assigned by the replica to \tx, \sn is a sequence number, and \sig is its signature.
 A functionality \opTime{} allows the replica to determine the current round number from its clock.
 When the replica receives a \msgconnect{} message from a client \client, it appends \client to its set of connected clients and sends to \client all entries in \repLog (lines \ref{line:rep-receive-connect-begin}--\ref{line:rep-receive-connect-end}).
 
-The replica handles \msgwrite{\tx} messages as follows. It first checks whether it has already seen \tx, in which case the message is ignored. Otherwise, it assigns it a timestamp \tsp using its local round number (\cref{line:rep-assign-tsp}), it signs the pair $(\tx, \tsp)$ (\cref{line:rep-sign}),
-adds it to \repLog, and sends it via a \msgrecord{(\tx, \tsp, \sig, \rep)} message to all connected clients (\cref{line:send-vote}).
+The replica handles \msgwrite{\tx} messages as follows. It first checks whether it has already seen \tx, in which case the message is ignored. Otherwise, it assigns it a timestamp \tsp using its local round number, the next available sequence number \sn, and signs the message $(\tx, \tsp, \sn)$ (\cref{line:rep-assign-tsp}).
+Observe that correct replicas use incremental sequence numbers for received transactions, and that if a vote has a larger sequence number than a second one, it will have a larger or equal timestamp than the second.
+The replica appends $(\tx, \tsp, \sn, \sig)$ to \repLog, and sends it via a \msgrecord{(\tx, \tsp, \sn, \sig, \rep)} message to all connected clients (\cref{line:send-vote}).
 
 \dotparagraph{Heartbeat messages}
-Clients updates their most-recent timestamp $ \mrt_j$ every time they receive a vote from replica $\rep_j$.
-In case $\rep_j$ has not written any transaction in round \round (simply because no client called \opwrite{} in round \round),
-$\rep_j$ will advance its round number, but clients will not advance $\mrt_j$.
+Clients update their most-recent timestamp $ \mrt[\rep_j]$ every time they receive a vote from replica $\rep_j$ (\cref{line:upd-mrt} in \Cref{alg:client-1}).
+However, in case $\rep_j$ has not written any transaction in round \round (simply because no client called \opwrite{} in round \round),
+$\rep_j$ will advance its round number, but clients will not advance $\mrt[\rep_j]$.
 We use \heartBeat as a dummy transaction, on which replicas send a vote at the end of each round (lines~\ref{line:rep-send-heartbeat-begin}--\ref{line:rep-send-heartbeat-end}),
 with the sole purpose of keeping $\mrt_j$ up-to-date.
 An obvious practical implementation is to send \heartBeat only for rounds when no other transactions were sent.
+When received by a client, a \heartBeat is handled as a vote (i.e., it triggers \cref{line:receive-vote-begin} in \Cref{alg:client-1}), except that we do not check for duplicate \heartBeat votes and do not update any associated values for the heartbeat transaction (see \cref{line:client-heartbeat-return} in \Cref{alg:client-1}).
 
-When a client receives a \heartBeat vote from $\rep_j$ (\cref{line:receive-vote-begin}), it verifies the signature from $\rep_j$ and calls
-\opOnReceiveHeartBeat{}, shown in \Cref{alg:client-2}.
-This function is similar to \opOnReceiveVote{}, except that it does not check for duplicate votes and does not update any associated values for the heartbeat transaction.
-
-
-\begin{algorithm}[pt]
+\begin{algorithm}[]
 \caption{The \identify{} function for Protocol \podtm-core (\Cref{const:pod-core}).}
 \label{alg:identify}
 \begin{algorithmic}[1]
@@ -160,14 +153,14 @@ This function is similar to \opOnReceiveVote{}, except that it does not check fo
 \end{algorithmic}
 \end{algorithm}
 
-\dotparagraph{Detecting misbehavior}
-Clients can detect certain cases of replica misbehavior. When this happens (lines \ref{line:raise-old-tsp}, \ref{line:raise-dup-tsp}, \ref{line:raise-old-heartbeat}) the client stops processing the current vote and triggers an \opAccountableFault{\tran} event, where \tran is a set of messages that can prove the misbehavior through the \identify{} function. 
+% \dotparagraph{Detecting misbehavior}
+% Clients can detect certain cases of replica misbehavior. When this happens (lines \ref{line:raise-old-tsp}, \ref{line:raise-dup-tsp}, \ref{line:raise-old-heartbeat}) the client stops processing the current vote and triggers an \opAccountableFault{\tran} event, where \tran is a set of messages that can prove the misbehavior through the \identify{} function. 
 
 
 \noindent\textbf{Security Analysis:} We formalize the security of Construction~\ref{const:pod-core} in the following theorem, which is proven in Appendix~\ref{app:pod-security}.
 
 \begin{theorem}[Pod security]\label{thm:pod-security}
-	Construction~\ref{const:pod-core}, based on a secure signature scheme, parametrized with $\alpha \geq 4 \beta + 1$ and assuming at most \beta malicious replicas, is a secure pod with \beta-accountable safety (\Cref{def:accountable-safety}), Confirmation within $\parConf = 2 \delta$ and Past-perfection within $\parPerf = \delta$, \ewnp.
+	Construction~\ref{const:pod-core}, based on a secure signature scheme, parametrized with $\alpha \geq 4 \beta + 1$ and assuming at most \beta malicious replicas, is a secure pod with \beta-accountable safety (\Cref{def:accountable-safety}), with Confirmation within $\parConf = 2 \delta$ and Past-perfection within $\parPerf = \delta$, \ewnp.
 \end{theorem}
 
 
