@@ -1,5 +1,5 @@
 \begin{algorithm}
-    \caption{Client code, part 1.}
+    \caption{Protocol \podtm-core (\Cref{const:pod-core}): Client code, part 1.}
     \label{alg:client-1}
     \begin{algorithmic}[1]
         \State{\textbf{State:}}
@@ -9,7 +9,7 @@
             \State{$\mrt : \rep \rightarrow \tsp$}   \Comment{The most recent timestamp returned by each replica}
             \State{$\nextsn : \rep \rightarrow \sn$}   \Comment{The next sequence number expected by each replica}
             \State{$\tsps: \tx \rightarrow ( \rep \rightarrow \tsp)$}     \Comment{Timestamp received for each tx from each replica}
-            \State{$\Pod = (\allTxs, \rperf, \ppcert)$}                   \Comment{The pod observed by the client so far} \label{line:client-state-end}
+            \State{$\Pod = (\allTxs, \rperf, \ppcert)$}                   \Comment{The \podtm observed by the client so far} \label{line:client-state-end}
         % \State{$\sigs: \tx \rightarrow ( \rep \rightarrow \sig)$}     \Comment{The signature received for each transaction from each replica}
         %\rmin \in \BN, \rmax \in \BN \cup \{\infty\}, \rconf \in \BN \cup \{\bot\}, \txcert \in \zo^*
         \Statex

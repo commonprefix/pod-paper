@@ -10,7 +10,7 @@
 
 Recent research has shown that tasks usually realized on top of totally ordered public ledgers do not require total order. For example, the double-spending problem in payments can be solved if each user's set of transactions is totally-ordered. We observe that for some applications not even this property is required. In a distributed auction, an auctioneer reads bids from the ledger at a prescribed \emph{deadline} and announces the winner according to the auction mechanism (\textit{e.g.}, highest bid wins). In this case, the order of bids does not matter as long as the auctioneer cannot censor bids from parties who placed  their bids \emph{before} the deadline.
 
-We present \emph{pod}, a new distributed systems notion that achieves an evolving  \emph{partial order} among transactions with \emph{past-perfection} guarantees.
+We present \podtm, a new distributed systems notion that achieves an evolving  \emph{partial order} among transactions with \emph{past-perfection} guarantees.
 Evolving partial ordering stems from the fact that each transaction written to the system is assigned a non-fixed \emph{timestamp}, which may very within an interval. Hence, transactions written sufficiently far from each other are ordered, while some transactions may appear forever as concurrent.
 Past perfection guarantees that a party who reads the system sees all transactions written before the \emph{past-perfect round}. Moreover, parties cannot deny having seen all transactions up to the past-perfect round.
 

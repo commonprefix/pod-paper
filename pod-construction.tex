@@ -1,4 +1,4 @@
-\section{Pod core}\label{sec:pod-core-const}
+\section{Protocol \podtm-core}\label{sec:pod-core-const}
 % The construction employs the \emph{client gossip} technique. It could be the case that
 % clients perform read operations on the replicas and observe that some of them miss some data, such as client transactions.
 % Client gossip consists in having clients re-broadcast these missing transactions.
@@ -46,9 +46,9 @@ With $\emptyset$ we denote an empty map. \wip{Make sure you add reminders in the
 \input{pod-core-client-code-1}
 
 \begin{construction}\label{const:pod-core}
-We present a pod construction in Algorithms~\ref{alg:client-1}--~\ref{alg:client-statistics}, for the client code, and \ref{alg:pod-core-replica} for the replica code.
+We present \podtm-core, a \podtm construction in Algorithms~\ref{alg:client-1}--~\ref{alg:client-statistics}, for the client code, and \ref{alg:pod-core-replica} for the replica code.
 % and discuss its main points, first for the client and then for the replica construction, in the following paragraphs.
-Pod core achieves \emph{accountable safety} (see \Cref{sec:accountable-safety}); the \identify{} function is shown in \Cref{alg:identify}.
+\podtm-core achieves \emph{accountable safety} (see \Cref{sec:accountable-safety}); the \identify{} function is shown in \Cref{alg:identify}.
 In the remainder of this section we discuss its main points.
 \end{construction}
 
@@ -71,7 +71,7 @@ Second, the replica must have not previously sent a different timestamp for \tx 
 If any of these is not the case, the client ignores the vote.
 
 Regarding accountability of these two faults, we remark that they cases constitute \emph{accountable} faults: In the first case, the client can use the message $\msgrecord{(\tx, \tsp, \sn, \sig, \rep_j)}$ and the vote it received when it updated $\mrt[\rep_j]$ to prove that $\rep_j$ has misbehaved. In the second case it can use $\msgrecord{(\tx, \tsp, \sn, \sig, \rep_j)}$ and the previous vote message it has received on \tx.
-A practical implementation of pod can use these facts. The \identify{} function we show in \Cref{alg:identify} can detect such misbehavior. However, in this paper we formalize accountability only for the case when misbehavior violates safety (\Cref{def:accountable-safety}), hence we do not further explore this.
+A practical implementation of \podtm-core can use these facts. The \identify{} function we show in \Cref{alg:identify} can detect such misbehavior. However, in this paper we formalize accountability only for the case when misbehavior violates safety (\Cref{def:accountable-safety}), hence we do not further explore this.
 
 If the checks pass, the client stores \tsp (\cref{line:rec-tsp})
 and updates $\mrt_j$ with \tsp (\cref{line:upd-mrt}).
@@ -81,9 +81,9 @@ We remark that \opOnReceiveVote{} updates the global state held by the client (i
 
 \input{pod-core-client-code-2}
 
-\dotparagraph{Writing to and reading from pod}
+\dotparagraph{Writing to and reading from \podtm}
 In order to write a transaction \tx, a client sends a \msgwrite{\tx} message to each replica (lines \ref{line:write-tx-begin}--\ref{line:write-tx-end}).
-As for reading, since the construction is stateful and streaming, the client state contains at all times the latest view the client has of the pod.
+As for reading, since the construction is stateful and streaming, the client state contains at all times the latest view the client has of the \podtm.
 Hence, \opreadall{} (lines~\ref{line:read-begin}--\ref{line:read-end}) only needs to operate on the local state.
 It returns the set of transactions and associated values \transactions that the client has seen so far,
 the current past-perfect round \rperf.
@@ -142,7 +142,7 @@ This function is similar to \opOnReceiveVote{}, except that it does not check fo
 
 
 \begin{algorithm}[pt]
-\caption{The \identify{} function for \Cref{const:pod-core}.}
+\caption{The \identify{} function for Protocol \podtm-core (\Cref{const:pod-core}).}
 \label{alg:identify}
 \begin{algorithmic}[1]
     \Function{\identify{\tran}}{}

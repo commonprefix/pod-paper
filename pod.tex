@@ -1,5 +1,5 @@
-\section{Modeling pod} \label{sec:pod-model}
-In this section, we introduce the concept of Pod as a protocol that allows parties to obtain a data structure containing transactions with an evolving partial order obeying liveness and safety properties that capture our goal of past perfection and (accountable) censorship resistance. We introduce the basic definition of a secure Pod protocol with these properties along with extra properties that it may satisfy. In particular, we define the notions of timeliness and monotonicity for a secure Pod, which we will later use for our applications. We first define basic data structures and protocol interfaces used as part of our Pod definition.
+\section{Modeling \podtm} \label{sec:pod-model}
+In this section, we introduce the notion of a \podtm, a distributed protocol that maintains a  data structure containing transactions with an evolving partial order, which can be \emph{read} and \emph{written} to by parties while obeying liveness and safety properties. We introduce the basic definition of a secure \podtm with these properties along with extra properties that it may satisfy. In particular, we define the notions of timeliness and monotonicity for a secure \podtm, which we will later use for our applications. We first define basic data structures and protocol interfaces used as part of our \podtm definition.
 
 \begin{definition}[Transaction and associated values]
     A transaction $\tx \in \zo^*$ is associated with values $\rmin, \rmax, \rconf$, and $\txcert$.
@@ -7,7 +7,7 @@ In this section, we introduce the concept of Pod as a protocol that allows parti
     $\rconf \in \BN \cup \{\bot\}$ the \emph{\confirmed round}, and $\txcert \in \zo^*$ contains some auxiliary data.
     We denote by $\rmax=\infty$ an unbounded maximum round and by $\rconf=\bot$ an undefined \confirmed round.
     For transaction \tx, denote its associated values by $\tx.\rmin, \tx.\rmax, \tx.\rconf$, and $\tx.\txcert$.
-    We remark that the associated values of a transaction change during the execution of a pod protocol.
+    We remark that the associated values of a transaction change during the execution of a \podtm protocol.
 \end{definition}
 
 Looking ahead, \txcert will be a certificate containing signatures and will be used to achieve accountability.
@@ -23,28 +23,28 @@ A \emph{transaction set} $\txSet$ is a set of tuples $(\tx, \rmin, \rmax, \rconf
 \end{definition}
 
 
-\begin{definition}[Pod data structure]
-    A \emph{pod} $\Pod$ is a triple $(\txSet, \rperf, \ppcert)$, where \txSet is a transaction set, \rperf is a round number, called the \emph{past-perfect round},
+\begin{definition}[\podtm data structure]
+    A \podtm $\Pod$ is a triple $(\txSet, \rperf, \ppcert)$, where \txSet is a transaction set, \rperf is a round number, called the \emph{past-perfect round},
     and $\ppcert \in \zo^*$ contains auxiliary data.
 \end{definition}
 
 Looking ahead, and similar to \txcert, \ppcert will be a certificate containing signatures and will be used to achieve accountability.
 Our construction will allow for deriving $\ppcert$ from all certificates $\txcert$ in $\txSet$, but we define $\ppcert$ explicitly for clarity and generality. 
-Moreover, \rperf will imply a completeness property on \txSet, defined by the past-perfection safety property of pod. 
+Moreover, \rperf will imply a completeness property on \txSet, defined by the past-perfection safety property of \podtm. 
 We remark that transactions in \txSet may be \confirmed on unconfirmed.
 
-We now define the Pod protocol interface and associated concepts.
-\begin{definition}[Pod interface]\label{def:podinterface}
-A pod protocol has the following interface.
+We now define the \podtm protocol interface and associated concepts.
+\begin{definition}[\podtm interface]\label{def:podinterface}
+A \podtm protocol has the following interface.
 \begin{itemize}
     \item $\opwrite{\tx} \returns (\rmin, \rmax, \rconf, \txcert)$:
-    It writes a transaction \tx to the pod.
+    It writes a transaction \tx to the \podtm.
 
     \item $\opreadall{} \returns \Pod$:
-    It outputs a pod $\Pod = (\txSet, \rperf, \ppcert)$.
+    It outputs a \podtm $\Pod = (\txSet, \rperf, \ppcert)$.
     % The second output is called an \emph{equivocation-evidence pod} and can be either $\bot$ or $\tilde{\Pod} = (\tilde{\txSet}, \tilde{\rperf}, \tilde{\ppcert})$.
 \end{itemize}
-    We say that a client \emph{reads the pod} when it calls \opread{}.
+    We say that a client \emph{reads the} \podtm when it calls \opread{}.
     If $\tx$ appears in $\txSet$,
     %$(\tx, \rmin, \rmax, \rconf, \txcert) \in \txSet$
      we say that the client \emph{observes} \tx and, if $\tx.\rconf \neq \bot$, we say that the client \emph{observes \tx as \confirmed}.
@@ -55,8 +55,8 @@ A pod protocol has the following interface.
 % 	for any transaction $\tx$ that does not appear in $ \txSet$, no honest client will ever observe \tx as confirmed with $\tx.\rconf < \rperf$.
 % \end{definition}
 
-\begin{definition}[View of the pod]
-    We call \emph{view of the pod} the output of \opreadall{}, where \opreadall{} is invoked by client \client and the output is produced at round \round,
+\begin{definition}[View of the\podtm]
+    We call \emph{view of the} \podtm the output of \opreadall{}, where \opreadall{} is invoked by client \client and the output is produced at round \round,
     and denote it as \podView{\client}{\round}.
     We remark that \round denotes the round when \opread{} outputs, as the client may have invoked it at an earlier round.
     We denote the components of a view as $\podView{\client}{\round}=(\podView{\client}{\round}.\txSet,
@@ -65,8 +65,8 @@ A pod protocol has the following interface.
 \end{definition}
     
 
-\begin{definition}[Secure Pod]\label{def:podsec}
-A protocol is a \emph{secure pod} if it implements the pod interface of Definition~\ref{def:podinterface} and satisfies the following liveness and safety properties.
+\begin{definition}[Secure\podtm]\label{def:podsec}
+A protocol is a \emph{secure} \podtm if it implements the\podtm interface of Definition~\ref{def:podinterface} and satisfies the following liveness and safety properties.
 
 \dotparagraph{1. Liveness properties}
 \begin{description}[leftmargin=*, align=left]
@@ -103,10 +103,10 @@ A protocol is a \emph{secure pod} if it implements the pod interface of Definiti
 \end{definition}
 
 \noindent
-In the following we define two additional types of properties, \emph{pod timeliness} and \emph{pod monotonicity}, which can be satisfied independently of the safety and liveness properties of pod. Previous work has observed that timeliness is a property orthogonal to safety and liveness of distributed protocols~\cite{DBLP:journals/iacr/TzinasSZ23}.
+In the following we define two additional types of properties, \podtm \emph{timeliness} and \podtm \emph{monotonicity}, which can be satisfied independently of the safety and liveness properties of\podtm. Previous work has observed that timeliness is a property orthogonal to safety and liveness of distributed protocols~\cite{DBLP:journals/iacr/TzinasSZ23}.
 
-\begin{definition}[Pod \parTemp-timeliness for honest transactions]\label{def:pod-timely}
-    A pod is \emph{\parTemp-timely} if it is a secure pod, as per Definition~\ref{def:podsec}, and the following properties hold for any transaction \tx written by an honest client in round $\round$ (observe that, from the \emph{confirmation within \parConf} property, \tx will become confirmed):
+\begin{definition}[\podtm \parTemp-timeliness for honest transactions]\label{def:pod-timely}
+    A\podtm is \emph{\parTemp-timely} if it is a secure\podtm, as per Definition~\ref{def:podsec}, and the following properties hold for any transaction \tx written by an honest client in round $\round$ (observe that, from the \emph{confirmation within \parConf} property, \tx will become confirmed):
     \begin{enumerate}
         \item $\rconf \in (\round, \round + \parTemp]$
         \item $\rmax \in (\round, \round + \parTemp]$
@@ -114,8 +114,8 @@ In the following we define two additional types of properties, \emph{pod timelin
     \end{enumerate}
 \end{definition}
 
-\begin{definition}[Pod monotonicity]
-A pod satisfies \emph{pod monotonicity}, and called a \emph{monotone pod}, if it is a secure pod, as per Definition~\ref{def:podsec}, and the following properties hold for any rounds $\round_1,\round_2 > \round_1$:
+\begin{definition}[\podtm monotonicity]
+A\podtm satisfies \emph{pod monotonicity}, and called a \emph{monotone\podtm}, if it is a secure\podtm, as per Definition~\ref{def:podsec}, and the following properties hold for any rounds $\round_1,\round_2 > \round_1$:
 \begin{enumerate}
 	\item (Past-perfection Stickiness) $\podView{\client}{\round_2}.\rperf \geq \podView{\client}{\round_1}.\rperf $;
 	\item (Transaction Stickiness) If  transaction $\tx$ appears in $\podView{\client}{\round_1}.\txSet$, then $\tx$ appears in $\podView{\client}{\round_2}.\txSet$;
@@ -123,7 +123,7 @@ A pod satisfies \emph{pod monotonicity}, and called a \emph{monotone pod}, if it
 \end{enumerate}
 \end{definition}
 
-In Appendix~\ref{app:monotonicity}, we present remarks on how a monotone Pod can be obtained from any secure pod and on specific useful properties implied by monotonicity.
+In Appendix~\ref{app:monotonicity}, we present remarks on how a monotone\podtm can be obtained from any secure\podtm and on specific useful properties implied by monotonicity.
 
 
 
