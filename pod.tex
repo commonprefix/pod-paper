@@ -30,7 +30,7 @@ A \emph{transaction set} $\txSet$ is a set of tuples $(\tx, \rmin, \rmax, \rconf
 
 Looking ahead, and similar to \txcert, \ppcert will be a certificate containing signatures and will be used to achieve accountability.
 Our construction will allow for deriving $\ppcert$ from all certificates $\txcert$ in $\txSet$, but we define $\ppcert$ explicitly for clarity and generality. 
-Moreover, \rperf will imply a completeness property on \txSet, defined by the past-perfection safety property of pod. \oa{Previous sentence is new. I removed the definition of past perfection.}
+Moreover, \rperf will imply a completeness property on \txSet, defined by the past-perfection safety property of pod. 
 We remark that transactions in \txSet may be \confirmed on unconfirmed.
 
 We now define the Pod protocol interface and associated concepts.

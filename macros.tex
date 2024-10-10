@@ -1,3 +1,8 @@
+\newtheorem{innercustomthm}{Theorem}
+\newenvironment{customthm}[1]
+{\renewcommand\theinnercustomthm{#1}\innercustomthm}
+{\endinnercustomthm}
+
 
 \newcommand{\Ledger}{\mathbf{L}}
 \newcommand{\LState}{\mathsf{L}}
