@@ -9,7 +9,7 @@
 % in synchrony for a transaction to reach all replicas. For example, $u = 2 \Delta$ using client gossip or relayers.}
 
 \begin{definition}[Vote] 
-    A \emph{vote} is a tuple $(\tx, \tsp, \sig, \rep)$, where \tx is a transaction, \tsp is a timestamp, \sig is a signature, and  \rep is a replica.
+    A \emph{vote} is a tuple $(\tx, \tsp, \sn, \sig, \rep)$, where \tx is a transaction, \tsp is a timestamp, \sn is a sequence number, \sig is a signature, and  \rep is a replica.
     A vote is \emph{valid} if \sig is a valid signature on message $m = (\tx, \tsp)$ with respect to the public key $\pk_\rep$ of replica \rep.
 \end{definition}
 
@@ -38,10 +38,10 @@ We assume that all messages between clients and replicas are concatenated with a
 \end{remark}
 
 \dotparagraph{Pseudocode notation}
-For a timestamp \tsp, notation $\tsp.\opGetVote$ denotes the vote message from some replica through which a client obtained timestamp \tsp. We abstract away the logic of how $\opGetVote$ is implemented.
-Notation $x: a \in A \rightarrow b \in B$ denotes that variable $x$ is a map from elements of type $A$ to elements of type $B$, for some types $A$ and $B$. When obvious from the context, we do not explicitly write the types $A$ or $B$.
+% For a timestamp \tsp, notation $\tsp.\opGetVote$ denotes the vote message from some replica through which a client obtained timestamp \tsp. We abstract away the logic of how $\opGetVote$ is implemented.
+Notation $x: a \in A \rightarrow b \in B$ denotes that variable $x$ is a map from elements of type $A$ to elements of type $B$. When obvious from the context, we do not explicitly write the types $A$ or $B$.
 For a map $x$, the operations $x.\opKeys$ and $x.\opValues$ return all keys and all values in $x$, respectively.
-With $\emptyset$ we denote an empty map. \wip{Make sure you add reminders in the description of the code.}
+With $\emptyset$ we denote an empty map.
 
 \input{pod-core-client-code-1}
 
@@ -62,28 +62,23 @@ At initialization the client also sends a \msgconnect{} message to each replica,
 \dotparagraph{Receiving votes}
 A client maintains a connection to each replica and receives votes through \msgrecord{$(\tx, \tsp, \sn, \sig, \rep)$} messages (lines~\ref{line:receive-vote-begin}--\ref{line:receive-vote-end}).
 A vote is processed as follows.
-The client first verifies the signature \sig against the public key of the replica that sent the vote (lines~\ref{line:client-verify-sig-begin}--\ref{line:client-verify-sig-end}). If invalid, the vote is ignored.
-Then the client verifies that the vote contains the next sequence number it expects to receive from replica $\rep_j$ (lines~\ref{line:client-check-sn}--\ref{line:client-check-sn-end}). If this is not the case, then the vote is \emph{backlogged} and given again to the client at a later point (the backlogging functionality is not shown in the pseudocode).
+The client first verifies the signature \sig against the public key of the replica that sent the vote (\cref{line:client-verify-sig-begin}). If invalid, the vote is ignored.
+Then the client verifies that the vote contains the next sequence number it expects to receive from replica $\rep_j$ (\cref{line:client-check-sn}). If this is not the case, then the vote is \emph{backlogged} and given again to the client at a later point (the backlogging functionality is not shown in the pseudocode).
 
-After this, the client performs some sanity checks.
-First, \tsp must be greater or equal to $\mrt_j$, the most recent timestamp returned by replica $\rep_j$ (lines~\ref{line:check-old-ts}-\ref{line:check-old-ts-end}). \wip{continue}
-Second, the replica must have not previously sent a different timestamp for \tx (\cref{line:check-dup-tsp}) .
+Then the client checks the vote against previous votes received from $\rep_j$.
+First, \tsp must be greater or equal to $\mrt_j$, the most recent timestamp returned by replica $\rep_j$ (\cref{line:check-old-ts}).
+Second, the replica must have not previously sent a different timestamp for \tx (\cref{line:check-dup-tsp}), except if \tx is a \heartBeat message (hence the check on \cref{line:client-heartbeat-return}).
 If any of these is not the case, the client ignores the vote.
+Concluding, for a valid vote the client updates $\mrt[j]$ (\cref{line:upd-mrt}) and $\tsps[\tx][\rep_j]$ (\cref{line:rec-tsp}) with \tsp.
 
-Regarding accountability of these two faults, we remark that they cases constitute \emph{accountable} faults: In the first case, the client can use the message $\msgrecord{(\tx, \tsp, \sn, \sig, \rep_j)}$ and the vote it received when it updated $\mrt[\rep_j]$ to prove that $\rep_j$ has misbehaved. In the second case it can use $\msgrecord{(\tx, \tsp, \sn, \sig, \rep_j)}$ and the previous vote message it has received on \tx.
-A practical implementation of \podtm-core can use these facts. The \identify{} function we show in \Cref{alg:identify} can detect such misbehavior. However, in this paper we formalize accountability only for the case when misbehavior violates safety (\Cref{def:accountable-safety}), hence we do not further explore this.
-
-If the checks pass, the client stores \tsp (\cref{line:rec-tsp})
-and updates $\mrt_j$ with \tsp (\cref{line:upd-mrt}).
-
-
-We remark that \opOnReceiveVote{} updates the global state held by the client (in lines \ref{line:client-state-begin}--\ref{line:client-state-end} of \Cref{alg:client-1}).
+We remark here that both of these cases constitute \emph{accountable} faults: In the first case, the client can use the message $\msgrecord{(\tx, \tsp, \sn, \sig, \rep_j)}$ and the vote it received when it updated $\mrt[\rep_j]$ to prove that $\rep_j$ has misbehaved. In the second case it can use $\msgrecord{(\tx, \tsp, \sn, \sig, \rep_j)}$ and the previous vote message it has received on \tx.
+A practical implementation of pod can use these facts. The \identify{} function we show in \Cref{alg:identify} can detect such misbehavior. However, in this paper we formalize accountability only for the case when it causes a safety violation (\Cref{def:accountable-safety}), hence we do not further explore this.
 
 \input{pod-core-client-code-2}
 
-\dotparagraph{Writing to and reading from \podtm}
-In order to write a transaction \tx, a client sends a \msgwrite{\tx} message to each replica (lines \ref{line:write-tx-begin}--\ref{line:write-tx-end}).
-As for reading, since the construction is stateful and streaming, the client state contains at all times the latest view the client has of the \podtm.
+\dotparagraph{Writing to and reading from pod}
+As per the interface of In order to write a transaction \tx, a client sends a \msgwrite{\tx} message to each replica (lines \ref{line:write-tx-begin}--\ref{line:write-tx-end}).
+As for reading, since the construction is stateful and streaming, the client state contains at all times the latest view the client has of the pod.
 Hence, \opreadall{} (lines~\ref{line:read-begin}--\ref{line:read-end}) only needs to operate on the local state.
 It returns the set of transactions and associated values \transactions that the client has seen so far,
 the current past-perfect round \rperf.

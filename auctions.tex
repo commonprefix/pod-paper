@@ -38,22 +38,24 @@ The protocol outputs a publically verifiable set of bids with accountable censor
             Moreover, \emph{fair punishment} holds: an honest auctioneer cannot be held accountable for censoring bids, even in asynchronous networks.  \oa{Notice that, even in asynchrony, an honest auctioneer cannot be blamed, in the construction we present.}
             \hue{Bid inclusion: In a synchronous network, all honest bids are included}
         
-            \item[Verifiability:]
-            Given the bag \bag, the result of the auction can be verified.
-            \wip{This is too informal.}
+            \item[Accountable consistency:]
+            For any two honest consumers who have produced a result, either they agree on the result or the auctioneer can be held accountable. %In the proof: If the sycnhronous is synchronous, ...
+            \wip{Only in synchrony.}
             \hue{Single-result: If there are multiple conflicting auction results, the auctioneer can be held accountable}
             % \item[Fair punishment 1:]
             % In synchronous networks (that is, if the network is delay is larger that $\Delta$), an honest auctioneer cannot be held accountable for a termination failure.
             % \hue{Liveness accountability fairness: In a synchronous network, no honest auctioneer can be blamed for a liveness failure. BUT: Liveness accountability unfairness: In asynchronous networks, an honest auctioneer may be blamed for a liveness failure.}
-            \item[Deadline:]
-            No bid submitted after $X$ can appear in \bag.
-            \wip{The current construction cannot achieve this, I think, as a malicious replica can always include a bid any time. Does it fix it if we only keep those bids that appear at least $beta+1$ times?}
+
         \end{description}
 
     \end{enumerate}
 \end{definition}
 
 \subsection{Construction}
+
+\begin{remark}
+    \wip{sub-session id}
+\end{remark}
 
 \begin{construction}\label{const:bidset}
     We show the construction in Algorithms~\ref{alg:bid-set-bidder} and ~\ref{alg:bid-set-auctioneer}.
@@ -75,7 +77,9 @@ The protocol outputs a publically verifiable set of bids with accountable censor
 \end{algorithm}
 
 \begin{algorithm}
-    \caption{Our bid-set construction. It makes use of a \podtm instance \podInst and is parametrized by $\tzero$ and $\Delta$. Code for an auctioneer, run at time $\ttwo = \tzero + 2 \Delta$.}
+
+    \caption{Our bid-set construction. It makes use of a \podtm instance \podInst and is parametrized by $\tzero$ and $\Delta$. Code for an auctioneer, run at time $\ttwo = \tzero + 2 \Delta$. \wip{Start at \tzero.}}
+
     \label{alg:bid-set-auctioneer}
     \begin{algorithmic}[1]
         \Function{\opRunAuction{}}{}
@@ -85,6 +89,7 @@ The protocol outputs a publically verifiable set of bids with accountable censor
             \EndWhile{}
             \Let{\bag}{\{\tx \mid (\tx, \cdot, \cdot, \cdot, \cdot) \in \txSet\}}
             \State{\textbf{output event} \opResult{\bag, \ppcert}}
+            \State{\podInst.\opwrite{}} \opResult{\bag, \ppcert} %plus \sig Run by \tzero + 2 \Delta. Observer expects by \tzero + 3 \Delta. If \tzero + 3 \Delta becomes pp and no result, output \emptyset
         \EndFunction
 \end{algorithmic}
 \end{algorithm}
@@ -99,7 +104,7 @@ The protocol outputs a publically verifiable set of bids with accountable censor
                 \Let{(\tx, \tsp, \sig, \rep_j)}{\vote}
                 \Let{\txVotesPerf}{\txVotesPerf \concat \tsp}
                 \If{\opVerify{$\pk_j, (\tx, \tsp), \sig$} = 0 }
-                    \State{\textbf{return} $\true$}
+                    \State{\textbf{return} $\false$}
                 \EndIf{}
             \EndFor{}\label{line:bidset-identify-votes-end}
             

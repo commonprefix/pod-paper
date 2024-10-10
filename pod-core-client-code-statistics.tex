@@ -9,7 +9,7 @@
             \If{$\tsps[\tx][\rep_j] \neq \bot$}
                 \Let{\txVotesMin}{\txVotesMin \concat [\tsps[\tx][\rep_j]]}
             \Else
-                \Let{\txVotesMin}{\txVotesMin \concat [\mrt_j]} \label{line:fill-vote-lts}
+                \Let{\txVotesMin}{\txVotesMin \concat [\mrt[\rep_j]]} \label{line:fill-vote-lts}
             \EndIf
         \EndFor\label{line:assing-missing-min-end}
         \State{\text{sort \txVotesMin in increasing order}}
