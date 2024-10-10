@@ -1,17 +1,20 @@
 \begin{abstract}
-    The fact that payments can be done in a distributed system without consensus has been recognized in the last years, and it has affected the design of several new blockchain networks.
-    The core idea is that the so-called double-spending problem can be solved without agreeing in a total order for all transactions in the system. Instead, it is enough if the transactions of each user are totally-ordered.
+    %The fact that payments can be done in a distributed system without consensus has been recognized in the last years, and it has affected the design of several new blockchain networks.
+    %The core idea is that the so-called double-spending problem can be solved without agreeing in a total order for all transactions in the system. Instead, it is enough if the transactions of each user are totally-ordered.
 
-    In this paper we observe that for some applications not even that property is required.
-    The most common example is running auctions on top of a distributed system: at a prespecified \emph{deadline}, an auctioneer reads the bids from the system, runs the auction protocol, and announces the auction winner.
-    Indeed, the bids of each user need not be ordered.
-    What is instead require is that the auctioneer can not censor bids that have been written to the system.
-    More specifically, honest bidders must be able to publicly prove that their bids were placed in the system \emph{before} the deadline.
+    %In this paper we observe that for some applications not even that property is required.
+   % The most common example is running auctions on top of a distributed system: at a prespecified \emph{deadline}, an auctioneer reads the bids from the system, runs the auction protocol, and announces the auction winner.
+    %Indeed, the bids of each user need not be ordered.
+    %What is instead require is that the auctioneer can not censor bids that have been written to the system.
+    %More specifically, honest bidders must be able to publicly prove that their bids were placed in the system \emph{before} the deadline.
 
-    We present \emph{pod}, a new notion for distributed systems that achieves \emph{partial ordering} among transactions and \emph{past-perfection} guarantees.
-    Partial ordering stems from the fact that each transaction written to the system is assigned a non-fixed \emph{timestamp} and an interval in which this timestamp may wiggle. Hence, transactions written sufficiently far from each other are ordered, while some transactions may appear forever as concurrent.
-    Past perfection means that a party that reads the system is guaranteed to see all transactions written to the system by a specific time, called the \emph{past-perfect round}. Moreover, the parties cannot deny having seen all transactions up to the past-perfect round.
+Recent research has shown that systems usually implemented on top of totally ordered public ledgers do not actually require total order. In the case of payment, the double-spending problem can be solved if each user's set of transactions is totally-ordered. We observe that for certain applications not even this property is required. For example, when using a distributed system to run auctions, an auctioneer reads the bids from the system at a prescribed \emph{deadline} and announces the winner according to the auction mechanism (\textit{e.g.}, highest bid wins). In this case, the order of bids does not matter if the auctioneer cannot censor bids from parties who placed  their bids \emph{before} the deadline.
 
-    The efficiency gain that results from this simple observation is tremendous. The protocol we propose is executed by a number of \emph{replicas} and \emph{clients} in a way that minimizes interaction among these parties. In particular, neither replicas nor clients communicate among each other, and clients read/write transactions by directly communicating with each replica. In this setting, replicas can be kept accountable, in the sense that replicas violating safety guarantees can be publicly identified. Based on this protocol, we show how to realize applications such as payments and auctions with censorship resistance.
-    \bd{We should keep the abstract more concise...}
+We present \emph{pod}, a new notion for distributed systems that achieves an evolving  \emph{partial order} among transactions with \emph{past-perfection} guarantees.
+Evolving partial ordering stems from the fact that each transaction written to the system is assigned a non-fixed \emph{timestamp} and an interval within which this timestamp may vary. Hence, transactions written sufficiently far from each other are ordered, while some transactions may appear forever as concurrent.
+Past perfection means that a party who reads the system is guaranteed to see all transactions written before the \emph{past-perfect round}. Moreover, the parties cannot deny having seen all transactions up to the past-perfect round.
+
+The efficiency gain that results from this simple observation is tremendous. The protocol we propose is executed by a number of \emph{replicas} and \emph{clients} in a way that %minimizes interaction among these parties. In particular, 
+neither replicas nor clients communicate among each other, and clients read/write transactions by directly communicating with each replica. In this setting, replicas are accountable, \textit{i.e.}, replicas violating safety guarantees can be publicly identified. Building on this protocol, we  realize applications such as payments and auctions with accountable censorship resistance.
+    
 \end{abstract}
