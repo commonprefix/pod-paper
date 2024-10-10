@@ -1,5 +1,5 @@
-\section{Security of Pod Core}\label{app:pod-security}
-In order to prove Theorem~\ref{thm:pod-security} and establish the security of Construction~\ref{const:pod-core}, we first prove some useful intermediate results.
+\section{Security of  \podtm-core}\label{app:pod-security}
+In order to prove Theorem~\ref{thm:pod-security} and establish the security of Protocol \podtm-core shown Construction~\ref{const:pod-core}, we first prove some useful intermediate results.
 
 \begin{lemma}\label{lem:assign-min-max}
 	Regarding \Cref{alg:client-statistics}, we have the following.
@@ -49,10 +49,10 @@ In order to prove Theorem~\ref{thm:pod-security} and establish the security of C
 
 \noindent
 
-The following theorem proves that \Cref{const:pod-core} satisfies the security definition of pod. We prove it through a series of lemmas.
+The following theorem proves that \Cref{const:pod-core} satisfies the security definition of \podtm. We prove it through a series of lemmas.
 
-\begin{customthm}{\ref{thm:pod-security}}[Pod security]
-	Construction~\ref{const:pod-core} based on a secure signature scheme, parametrized with $\alpha \geq 4 \beta + 1$ and assuming at most \beta malicious replicas, is a secure pod with \beta-accountable safety (\Cref{def:accountable-safety}), Confirmation within $\parConf = 2 \delta$ and Past-perfection within $\parPerf = \delta$, \ewnp.
+\begin{customthm}{\ref{thm:pod-security}}[\podtm security]
+	Construction~\ref{const:pod-core} based on a secure signature scheme, parametrized with $\alpha \geq 4 \beta + 1$ and assuming at most \beta malicious replicas, is a secure \podtm with \beta-accountable safety (\Cref{def:accountable-safety}), Confirmation within $\parConf = 2 \delta$ and Past-perfection within $\parPerf = \delta$, \ewnp.
 	\end{customthm}
 \begin{proof}
 	In Lemmas~\ref{lem:pod-confirmation}--\ref{lem:pod-accountable-safety}.
@@ -94,7 +94,7 @@ The following theorem proves that \Cref{const:pod-core} satisfies the security d
 	\Cref{const:pod-core} satisfies the \emph{past-perfection} safety property.
 \end{lemma}
 \begin{proof}
-	Assume an honest client $\client$ at round $\round > 0$ reads the pod and obtains $(\txSet, \rperf, \ppcert)$.
+	Assume an honest client $\client$ at round $\round > 0$ reads the \podtm and obtains $(\txSet, \rperf, \ppcert)$.
 	% such that $\tx \not \in \txSet$, for some $\tx \in \zo^*$.
 	Let $\allreps_1$ be the set of replicas $\rep_i$ for which $\client$ stores at round $\round$ an $\mrt_i \geq \rperf$.
 	From \Cref{lem:assign-min-max} (\rperf is computed as the timestamp at index $\lfloor \alpha / 2 \rfloor - \beta$ of sorted \mrt) there exist at least $n - \lfloor a/2 \rfloor + \beta$ such replicas, hence $|R_1| \geq n - \lfloor a/2 \rfloor + \beta$. 
@@ -108,7 +108,7 @@ The following theorem proves that \Cref{const:pod-core} satisfies the security d
 	%
 	where $m_i$ is the smallest sequence number for which $\tsp_{i, m_i} \geq \rperf$.
 	
-	Assume another client $\client'$ at some round $\round' > 0$ outputs a pod $(\txSet', \cdot, \cdot)$,
+	Assume another client $\client'$ at some round $\round' > 0$ outputs a \podtm $(\txSet', \cdot, \cdot)$,
 	such that $(\tx, \cdot, \cdot, \rconf, \txcert) \in \txSet'$ and $\rconf < \rperf$ (where \rperf is the past-perfect round observed by $\client$).
 	For $\client'$ to output a confirmation round $\rconf < \rperf$, it must have received timestamps $\tsp_i$ on \tx, such that $\tsp_i < \rperf$, from at least $\lfloor \alpha/2 \rfloor + 1$ (because \rconf is computed as the median of at least \alpha votes).
 	Let $\allreps_2$ be the set of these replicas, with $|\allreps_2| \geq \lfloor \alpha/2 \rfloor + 1$.
@@ -167,8 +167,8 @@ The following theorem proves that \Cref{const:pod-core} satisfies the security d
 	
 	\noindent
 	\emph{Proof:}
-	Assume an honest client $\client$ at round $\round > 0$ reads the pod and obtains $(\txSet, \rperf, \ppcert)$, such that $\tx \not \in \txSet$, for some $\tx \in \zo^*$,
-	and another client $\client'$ outputs a pod $(\txSet', \cdot, \cdot)$,
+	Assume an honest client $\client$ at round $\round > 0$ reads the \podtm and obtains $(\txSet, \rperf, \ppcert)$, such that $\tx \not \in \txSet$, for some $\tx \in \zo^*$,
+	and another client $\client'$ outputs a \podtm $(\txSet', \cdot, \cdot)$,
 	such that $(\tx, \cdot, \cdot, \rconf, \txcert) \in \txSet'$ and $\rconf < \rperf$,
 	thereby violating the past-perfection property for \tx.
 	We resume the proof of \Cref{lem:pod-pp-safety}. There, we constructed the sets $\allreps_1, \allreps_2$,

@@ -19,17 +19,17 @@ Hence, a cheating client might lose liveness~\cite{DBLP:conf/aft/BaudetDS20,DBLP
 % All these protocols are tailor-made for payment systems or for specific blockchains and cannot be used for general distributed applications.
 
 \dotparagraph{Auctions}
-Pod does not offer the source-order property.
+\podtm does not offer the source-order property.
 It is possible that a \opread{} operation returns $\tx_1$ before $\tx_2$,
 while another returns $\tx_2$ before $\tx_1$, even for $\tx_1$, $\tx_2$ written by the same honest client, as the \confirmed round of a transaction is allowed to wiggle.
-Hence, pod cannot be directly used for payments.
-However, payments can be implemented on top of pod by including a client sequence number in the user transaction,
+Hence, \podtm cannot be directly used for payments.
+However, payments can be implemented on top of \podtm by including a client sequence number in the user transaction,
 similar to how previous works~\cite{DBLP:conf/aft/BaudetDS20,DBLP:journals/dc/GuerraouiKMPS22} achieve the source-order property.
 
-On the other hand, pod offers a \emph{past-perfection} property:
+On the other hand, \podtm offers a \emph{past-perfection} property:
 a \opread{} operation outputs a timestamp \rperf, and it is \emph{guaranteed}
 that the output of \opread{} contains all transactions that can ever be confirmed with a timestamp smaller than \rperf in the view of any reading client, regardless of the network conditions.
-This implies that reading clients (such as an auctioneer) cannot claim not having received a transaction when reading the pod, as this is detectable by any other client who reads the pod.
+This implies that reading clients (such as an auctioneer) cannot claim not having received a transaction when reading the \podtm, as this is detectable by any other client who reads the \podtm.
 To the best of our knowledge, previous work in the consensusless literature has not considered or achieved this property,
 hence it cannot readily support applications like auctions.
 

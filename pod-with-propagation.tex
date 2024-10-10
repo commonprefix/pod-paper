@@ -1,4 +1,4 @@
-\section{Pod with transaction propagation} \label{sec:pod-with-propagation}
+\section{\podtm with transaction propagation} \label{sec:pod-with-propagation}
 In the construction of \Cref{sec:pod-core-const}, replicas do not communicate with each other.
 In this section we introduce and additional property, \emph{Common subset after \parAgr}, and describe a construction that satisfies it.
 
@@ -14,7 +14,7 @@ In this section we introduce and additional property, \emph{Common subset after 
     That is, for any honest clients $\client_1$, $\client_2$ and rounds $\round_1, \round_2 > \round_1 + \parAgr$,
     if $\tx \in \podView{\client_1}{\round_1}$ and $\tx.\rconf \neq \bot$, then $\tx \in \podView{\client_2}{\round_2}$ and $\tx.\rconf \neq \bot$.
 \end{definition}
-Observe that the \emph{confirmation agreement after \parAgr} property generalizes the \emph{confirmation monotonicity} property of \emph{pod core} (\Cref{sec:pod-model}) for views of two honest clients $\client_1$, $\client_2$.
+Observe that the \emph{confirmation agreement after \parAgr} property generalizes the \emph{confirmation monotonicity} property of Protocol \podtm-core (\Cref{sec:pod-model}) for views of two honest clients $\client_1$, $\client_2$.
 
 % \begin{definition}
 %     \item[Pending-confirmation soundness:]
@@ -22,7 +22,7 @@ Observe that the \emph{confirmation agreement after \parAgr} property generalize
 % \end{definition}
     
 
-\begin{construction}[Pod with transaction propagation]\label{cons:pod-with-prop}
+\begin{construction}[\podtm with transaction propagation]\label{cons:pod-with-prop}
     \oa{If we have time, describe in words (no pseudocode).}
     In order to satisfy the \emph{common subset} property,
     the construction requires a transaction propagation mechanism, that ensures that all honest replicas see the same set of transactions,

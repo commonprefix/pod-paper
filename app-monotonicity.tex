@@ -1,8 +1,8 @@
-\section{Remarks on Pod Monotonicity}\label{app:monotonicity}
-We show that a monotone Pod can be obtained from any secure Pod and that monotonicity implies certain specific properties that may be useful for applications.
+\section{Remarks on \podtm Monotonicity}\label{app:monotonicity}
+We show that a monotone \podtm can be obtained from any secure \podtm and that monotonicity implies certain specific properties that may be useful for applications.
 
 \begin{remark}
-	Every secure pod can be transformed into a monotone pod if parties are stateful. Let $\round_1$ be the last round when an honest client $\client$ read the pod obtaining view $\podView{\client}{\round_1}$, which is stored as state until $\client$ reads the pod again. At any round $\round_2>\round_1$, if $\client$ reads the pod and obtains $\podView{\client}{\round_2}$, $\client$ can define a view $\overline{\podView{\client}{\round_2}}$ satisfying the properties of pod monotonicity:
+	Every secure \podtm can be transformed into a monotone \podtm if parties are stateful. Let $\round_1$ be the last round when an honest client $\client$ read the \podtm obtaining view $\podView{\client}{\round_1}$, which is stored as state until $\client$ reads the \podtm again. At any round $\round_2>\round_1$, if $\client$ reads the \podtm and obtains $\podView{\client}{\round_2}$, $\client$ can define a view $\overline{\podView{\client}{\round_2}}$ satisfying the properties of \podtm monotonicity:
 	
 	\begin{enumerate}
 		\item If $\tx$ appears in $\podView{\client}{\round_1}$ with $\tx.\rmin,\tx.\rmax,\tx.\rconf,\tx.\txcert$, then $\tx$ appears in $\overline{\podView{\client}{\round_2}}$ with $\tx.\overline{\rmin}=\rmin,\tx.\overline{\rmax}=\rmax,\tx.\overline{\rconf}=\rconf,\tx.\overline{\txcert}=\txcert$.
@@ -29,21 +29,21 @@ We show that a monotone Pod can be obtained from any secure Pod and that monoton
 
 
 
-In the remarks below, we observe that pod monotonicity implies a number of useful properties about the monotonicity of past perfection and the values $\rmin,\rmax,\rconf$ associated to a transactions in the Pod.
+In the remarks below, we observe that \podtm monotonicity implies a number of useful properties about the monotonicity of past perfection and the values $\rmin,\rmax,\rconf$ associated to a transactions in the \podtm.
 
 \begin{remark}[Confirmation stickiness]\label{rem:confstick}
-	Properties 2 and 3 of pod monotonicity imply that  for any honest client $\client$ and rounds $\round_1, \round_2 > \round_1$,
+	Properties 2 and 3 of \podtm monotonicity imply that  for any honest client $\client$ and rounds $\round_1, \round_2 > \round_1$,
 	if $\tx \in \podView{\client}{\round_1}$ and $\tx.\rconf \neq \bot$, then $\tx \in \podView{\client}{\round_2}$ and $\tx.\rconf \neq \bot$.
 \end{remark}
 
 \begin{remark}[Past-perfection stickiness]
-	Property 1 of pod monotonicity imply that the past-perfect round obtained by honest clients can only grow.
+	Property 1 of \podtm monotonicity imply that the past-perfect round obtained by honest clients can only grow.
 	That is, for any honest client \client and rounds $\round_1, \round_2 \geq \round_1$,
 	it holds that $\podView{\client}{\round_2}.\rperf \geq \podView{\client}{\round_1}.\rperf$.
 \end{remark}
 
 \begin{remark}[Temperature stickiness]
-	Properties 2 and 3 of pod monotonicity imply that if an honest client obtains $\rmin$ and $\rmax$ for \tx in round $\round_1$, and later obtains $\rmin'$ and $\rmax'$ for \tx in round $\round_2 > \round_1$, then $\rmin' \geq \rmin$ and $\rmax' \leq \rmax$.
+	Properties 2 and 3 of \podtm monotonicity imply that if an honest client obtains $\rmin$ and $\rmax$ for \tx in round $\round_1$, and later obtains $\rmin'$ and $\rmax'$ for \tx in round $\round_2 > \round_1$, then $\rmin' \geq \rmin$ and $\rmax' \leq \rmax$.
 \end{remark}
 
 \begin{remark}
