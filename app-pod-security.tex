@@ -240,7 +240,9 @@ The following theorem proves that \Cref{const:pod-core} satisfies the security d
 
 
 \begin{theorem}[$\parTemp$-timeliness for honest transactions]
+	\sloppy{
 	\Cref{const:pod-core}, parametrized with $\alpha \geq 4 \beta + 1$, satisfies \emph{\parTemp-timeliness for honest transactions}, as per \Cref{def:pod-timely}, for $\parTemp = \delta$.
+	}
 \end{theorem}
 \begin{proof}
 	Assume an honest client \client calls \opwrite{\tx} at round \round.
