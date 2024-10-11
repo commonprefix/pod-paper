@@ -1,25 +1,25 @@
 \section{Preliminaries}
 \input{model.tex}
 
-\subsection{Digital signatures}
-
-\begin{definition}[Digital signature scheme]\label{def:sig}
-    A digital signature scheme is a triple of algorithms satisfying the EUF-CMA definition of~\cite{GMR88} as defined below:
-    \begin{itemize}[leftmargin = *]
-    	\item 
-    	$\textsl{KeyGen}(1^{\kappa})$: The key generation algorithm takes as input a security parameter $\kappa$ and outputs a secret key $\sk$ and a public key $\pk$.
-        \item
-            $\opSign{\sk, m} \rightarrow \sig$:
-            The signing algorithm takes as input a private key
-            \sk and a message $m \in \zo^*$ and returns a signature $\sig$.
-        \item 
-            $\opVerify{\pk, m, \sig} \rightarrow b \in \zo$:
-            The verification algorithm takes as input a public
-            key $\pk$, a message $m$, and a signature $\sig$, and outputs a bit $b\in \zo$.
-    \end{itemize}
-\end{definition}
-
-We say \sig is a \emph{valid} signature on $m$ with respect to \pk if $\opVerify{pk, m, \sig} = 1$.
+%\subsection{Digital signatures}
+%
+%\begin{definition}[Digital signature scheme]\label{def:sig}
+%    A digital signature scheme is a triple of algorithms satisfying the EUF-CMA definition of~\cite{GMR88} as defined below:
+%    \begin{itemize}[leftmargin = *]
+%    	\item 
+%    	$\textsl{KeyGen}(1^{\kappa})$: The key generation algorithm takes as input a security parameter $\kappa$ and outputs a secret key $\sk$ and a public key $\pk$.
+%        \item
+%            $\opSign{\sk, m} \rightarrow \sig$:
+%            The signing algorithm takes as input a private key
+%            \sk and a message $m \in \zo^*$ and returns a signature $\sig$.
+%        \item 
+%            $\opVerify{\pk, m, \sig} \rightarrow b \in \zo$:
+%            The verification algorithm takes as input a public
+%            key $\pk$, a message $m$, and a signature $\sig$, and outputs a bit $b\in \zo$.
+%    \end{itemize}
+%\end{definition}
+%
+%We say \sig is a \emph{valid} signature on $m$ with respect to \pk if $\opVerify{pk, m, \sig} = 1$.
 
 %A digital signature scheme satisfies the \emph{correctness} and \emph{unforgeability} properties.
 %For all possible keypairs $(\sk, \pk)$ returned by the key-generation algorithm,
@@ -42,13 +42,13 @@ Taking a similar approach as Neu, Tas, and Tse~\cite[Def. 4]{FC:NeuTasTse22}, we
     following conditions hold except with negligible probability.
     \begin{description}
         \item[Correctness:] If safety is violated, then there exists a partial transcript \tran, such that $\identify{\tran} \rightarrow \cheaters$ and $|\cheaters| > \beta$ and all replicas in \cheaters are adversarial.
-        \item[No-framing:] For any partial transcript \tran that can be produced during an execution of the protocol, the output of $\identify{\tran}$ does not contain honest replicas.
+        \item[No-framing:] For any partial transcript \tran produced during an execution of the protocol, the output of $\identify{\tran}$ does not contain honest replicas.
     \end{description}
 \end{definition}
 
 \begin{remark}
-    In order to keep the definition simple, we have defined the transcript based on messages sent by \emph{all} replicas.
+    For the sake of simplicity, we have defined the transcript based on messages sent by \emph{all} replicas.
     We can also define a \emph{local transcript} as the set of messages observed by a single party.
-    As will become evident from the implementation of \identify{}, adversarial behavior can be identified from the local transcript of a single or a pair of parties.
-    This optimization can be used in the implementation of a protocol.
+    As will become evident from the implementation of \identify{}, in practice, adversarial behavior can be identified from the local transcript of a single or a pair of parties.
+    %This optimization can be used in the implementation of a protocol.
 \end{remark}
