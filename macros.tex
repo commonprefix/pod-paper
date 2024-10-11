@@ -71,7 +71,7 @@
 \newcommand{\opgetdeps}[1]{\op{get\_deps(#1)}\xspace}
 \newcommand{\opbcast}[1]{\op{broadcast(#1)}\xspace}
 \newcommand{\opdel}[1]{\op{deliver(#1)}\xspace}
-\newcommand{\opSign}[1]{\op{Sign(#1)}\xspace}
+\newcommand{\opSign}[1]{\ensuremath{\op{Sign(#1)}\xspace}}
 \newcommand{\opVerify}[1]{\op{Verify(#1)}\xspace}
 \newcommand{\opmin}[1]{\op{min(#1)}\xspace}
 \newcommand{\opmax}[1]{\op{max(#1)}\xspace}
@@ -186,6 +186,7 @@
 \newcommand{\msgreadresp}[1]{\msg{read-resp}{ #1}}
 \newcommand{\msgconnect}{\msg{connect}{}}
 \newcommand{\msgrecord}[1]{\msg{vote}{ #1}}
+\newcommand{\msgbidresult}[1]{\msg{bidResult}{ #1}}
 
 \let\oldalpha\alpha
 \renewcommand{\alpha}{\ensuremath{\oldalpha}\xspace}
@@ -206,7 +207,8 @@
 \newcommand{\opBid}[1]{\op{bid(#1)}\xspace}
 \newcommand{\opResult}[1]{\op{result(#1)}\xspace}
 \newcommand{\opSubmitBid}[1]{\op{submitBid(#1)}\xspace}
-\newcommand{\opRunAuction}[1]{\op{runAuction(#1)}\xspace}
+\newcommand{\opRunAuction}[1]{\op{readBids(#1)}\xspace}
+\newcommand{\opReadResult}[1]{\op{readResult(#1)}\xspace}
 \newcommand{\bid}{\ensuremath{b}\xspace}
 \newcommand{\podInst}{\textit{pod}\xspace}
 
