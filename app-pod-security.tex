@@ -229,7 +229,7 @@ The following theorem proves that \Cref{const:pod-core} satisfies the security d
 	For the case client $\client_1$ outputs some \rmax and client $\client_2$ outputs $\rconf \geq \rmax$ for \tx, similar arguments apply.
 	As explained in the proof of \Cref{lem:bounds-safety}, $\client_2$ has received at least $\lfloor \alpha / 2 \rfloor$ or $\lfloor \alpha / 2 \rfloor + 1$ votes on \tx with timestamp larger than \rmax,
 	and (from \Cref{lem:assign-min-max}) at least $n - \alpha + \lfloor \alpha / 2 \rfloor + \beta$ replicas have sent to $\client_1$ a vote on \tx with a timestamp smaller or equal than \rmax.
-	As before, the replicas in the intersection of these two sets have sent conflicting votes for some sequnce numbers.
+	As before, the replicas in the intersection of these two sets have sent conflicting votes for some sequence numbers.
 	
 	\dotparagraph{3}
 	The \identify{} function never outputs honest replicas.

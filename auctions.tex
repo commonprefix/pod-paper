@@ -72,7 +72,7 @@ If the network is synchronous and the auctioneer honest, the condition in \cref{
 \begin{theorem}[Bidset security]\label{thm:bidset-construction-secure}
 Assuming a synchronous network where $\delta \leq \Delta$,
 protocol \bidsettm-core (Construction~\ref{const:bidset}) instantiated with a digital signature and a  secure \podtm protocol that satisfies the \emph{past-perfection within $\parPerf = \delta$}, \emph{confirmation within $\parConf=2\delta$} and \emph{$\delta$-timeliness} properties, is a secure \bidsettm protocol satisfying \emph{termination within $\parAuctionTerm = 3\Delta + \delta$}.
-It satisfies accountable safety with a function \identifyAuctioneer{} function that identifies a malicious auctioneer.
+It satisfies accountable safety with an \identifyAuctioneer{} function that identifies a malicious auctioneer.
 \end{theorem}
 \begin{proof} The proof and \identifyAuctioneer{} are shown in Appendix~\ref{app:bidsetsec}.
 \end{proof}
