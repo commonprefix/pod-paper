@@ -76,7 +76,7 @@ The following theorem proves that \Cref{const:pod-core} satisfies the security d
 	Assume an honest client \client at round \round has view $\podView{c}{\round}$.
 	From \Cref{lem:rperf-value-of-honest}, there exists some honest replica $\rep_j$, such that the most-recent timestamp $\mrt_j$ that $\rep_j$ has sent to \client satisfies $\podView{c}{\round}.\rperf \geq \mrt_j$.
 	Now, all honest replicas $\rep_j$ send at least one heartbeat message per round (line~\ref{line:rep-send-vote-heartbeat})
-	and an honest client updates $\mrt_j$ when it receives a vote (lines~\ref{line:rec-tsp} and \ref{line:update-mrt-heartbeat}). 
+	and an honest client updates $\mrt[\rep_j]$ when it receives a vote (lines~\ref{line:rec-tsp} and \ref{line:update-mrt-heartbeat}). 
 	Since messages from honest replicas arrive within $\delta$ rounds, client \client will have $\mrt_j \geq \round - \delta$ for all honest replicas $\rep_j$.
 	All together, $\podView{c}{\round}.\rperf \geq \round - \delta$.
 \end{proof}
