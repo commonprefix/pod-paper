@@ -77,7 +77,7 @@ The \identify{} function we show in \Cref{alg:identify} can detect such misbehav
 
 \input{pod-core-pseudocode/pod-core-client-code-1}
 
-\dotparagraph{Writing to and reading from pod}
+\dotparagraph{Writing to and reading from \podtm}
 Protocol \podtm-core implements functions \opwrite{\tx} and \opreadall{} (\Cref{def:podinterface})functions as shown in \Cref{alg:client-2}.
 In order to write a transaction \tx, a client sends \msgwrite{\tx} to each replica (lines \ref{line:write-tx-begin}--\ref{line:write-tx-end}).
 Since the construction is stateful and streaming, the client state contains at all times the latest view the client has of the \podtm, \opreadall{} operates on the local state (lines \ref{line:read-begin}--\ref{line:read-end}).
@@ -146,7 +146,7 @@ When received by a client, a \heartBeat is handled as a vote (i.e., it triggers 
 \noindent\textbf{Security Analysis:} We formalize the security of Construction~\ref{const:pod-core} in the following theorem, which is proven in Appendix~\ref{app:pod-security}. We show the \identify{} function for \podtm-core in Appendix~\ref{app:pod-security} as well.
 
 \begin{theorem}[Pod-core security]\label{thm:pod-security}
-	Pod-core (Construction~\ref{const:pod-core}), instantiated with a secure signature scheme, parametrized with $\alpha \geq 4 \beta + 1$ and assuming at most \beta malicious replicas, is a secure pod with \beta-accountable safety (\Cref{def:accountable-safety}), with Confirmation within $\parConf = 2 \delta$ and Past-perfection within $\parPerf = \delta$, \ewnp.
+	Pod-core (Construction~\ref{const:pod-core}), instantiated with a secure signature scheme, parametrized with $\alpha \geq 4 \beta + 1$ and assuming at most \beta malicious replicas, is a secure \podtm with \beta-accountable safety (\Cref{def:accountable-safety}), with Confirmation within $\parConf = 2 \delta$ and Past-perfection within $\parPerf = \delta$, \ewnp.
 \end{theorem}
 
 
