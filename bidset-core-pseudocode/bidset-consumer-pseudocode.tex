@@ -3,15 +3,14 @@
     \label{alg:bid-set-consumer}
     \begin{algorithmic}[1]
         \Function{\opReadResult{}}{}
-            \Let{(\txSet, \rperf, \ppcert)}{\podInst.\opreadall{}}
-            \While{$\rperf \leq \tzero + 3 \Delta$}\label{line:bidset-wait-pp-consumer}
+            \Loop{}\label{line:bidset-wait-pp-consumer}
                 \Let{(\txSet, \rperf, \ppcert)}{\podInst.\opreadall{}}
-            \EndWhile{}
-            \If{$\exists (\tx, \cdot, \cdot, \rconf, \cdot) \in \txSet$, \textbf{s.t.} $\tx = \msgbidresult{(\bag, \bidcert, \sigma)}$ \andl $\rconf \leq \tzero + 3 \Delta$} \label{line:bidset-find-confirmed-tx}
-                \State{\textbf{output event} \opResult{\bag, \bidcert}}
-            \Else{}
-                \State{\textbf{output event} \opResult{$\emptyset$, \bidcert}}
-            \EndIf\wip{take a look}
+                    \If{$\exists (\tx, \cdot, \cdot, \rconf, \cdot) \in \txSet$ \textbf{:} $\tx = \msgbidresult{(\bag, \bidcert, \sigma)}$ \andl $\rconf \leq \tzero + 3 \Delta$} \label{line:bidset-find-confirmed-tx}
+                    \State{\textbf{output event} \opResult{\bag, \bidcert}}
+                \ElsIf{$\rperf > \tzero + 3 \Delta$}\label{line:bidset-read-result-pp}
+                    \State{\textbf{output event} \opResult{$\emptyset$, \bidcert}}
+                \EndIf
+            \EndLoop
         \EndFunction 
     \end{algorithmic}
     \end{algorithm}

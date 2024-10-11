@@ -49,8 +49,8 @@ We now present \bidsettm-core, a \bidsettm construction that uses \podtm-core to
     \end{remark}
 
 \begin{construction}[\bidsettm-core]\label{const:bidset}
-    At time \tzero, the parties start running the corresponding code.
-    A bidder runs \opSubmitBid{} (\Cref{alg:bid-set-bidder}), the auctioneer runs \opRunAuction{} (\Cref{alg:bid-set-auctioneer}), and a consumer runs \opReadResult{} (\Cref{alg:bid-set-consumer}), in order to output the $\opResult{\bag, \bidcert}$ event.
+    At time \tzero, the parties start running the code shown in Algorithms~\ref{alg:bid-set-bidder}--\ref{alg:bid-set-consumer}.
+    % A bidder runs \opSubmitBid{} (\Cref{alg:bid-set-bidder}), the auctioneer runs \opRunAuction{} (\Cref{alg:bid-set-auctioneer}), and a consumer runs \opReadResult{} (\Cref{alg:bid-set-consumer}), in order to output the $\opResult{\bag, \bidcert}$ event.
     The construction uses an integer $\Delta$ (looking ahead, we will prove security in synchrony, i.e., the actual network delay $\delta$ does not exceed $\Delta$).
     It also employees a pre-appointed \emph{auctioneer}, which is a party responsible to read the pod and write back to it, once a specific condition is met. This can be, for example, one of the replicas running the \podtm protocol.
 \end{construction}
@@ -60,18 +60,19 @@ We now present \bidsettm-core, a \bidsettm construction that uses \podtm-core to
 \input{bidset-core-pseudocode/bidset-auctioneer-pseudocode.tex}
 
 A bidder submits a bid by writing it on \podtm-core (\Cref{alg:bid-set-bidder}) at round \tzero.
-The auctioneer (\Cref{alg:bid-set-auctioneer}) waits until the pod returns a past-perfect round larger than $\tzero + \Delta$ (\cref{line:bidset-wait-pp}). The \emph{confirmation within $\parConf=\delta$} property of \podtm-core, given that $\delta \leq \Delta$, ensures that the bids of honest parties will become confirmed by $\tzero + \Delta$, and the \emph{accountable past-perfection safety} guarantees that a malicious auctioneer cannot exclude them from the bag in \cref{line:bidset-create-bag}. The auctioneer concludes by signing its bag and \bidcert (which can be used as evidence, in case of a safety violation) and writing a \msgbidresult{(\bag, \bidcert, \sigma)} transaction on \podInst.
+The auctioneer (\Cref{alg:bid-set-auctioneer}) waits until the pod returns a past-perfect round larger than $\tzero + \Delta$ (\cref{line:bidset-wait-pp}). The \emph{$\delta-timeliness$ property} property of \podtm-core, given that $\delta \leq \Delta$, ensures that the bids of honest parties will have a confirmation round at most $\tzero + \Delta$, and the \emph{accountable past-perfection safety} guarantees that a malicious auctioneer cannot exclude them from the bag in \cref{line:bidset-create-bag}. The auctioneer concludes by signing the bid-set \bag and \bidcert (which can be used as evidence, in case of a safety violation) and writing a \msgbidresult{(\bag, \bidcert, \sigma)} transaction on \podInst.
 As an intuition on how \bidsettm-core achieves its properties, observe that \cref{line:bidset-wait-pp} of \Cref{alg:bid-set-auctioneer} becomes true in the view of auctioneer by round $\tzero + \Delta + \delta$ (from the \emph{past-perfection within $\parPerf=\delta$} property of \podtm-core),
-hence an honest auctioneer will have executed \cref{line:bidset-write-bag} by time $\tzero + 2 \Delta$.
+hence \Cref{alg:bid-set-auctioneer} for an honest auctioneer terminates by that round.
+Observe also that the transaction \msgbidresult{(\bag, \bidcert, \sigma)} becomes confirmed in the view of all honest clients by round $\tzero + \Delta + 3\delta$ (from the \emph{confirmation within $\parConf=2\delta$} property), and it will have a confirmed round $\rconf \leq \tzero + \Delta + 2\delta$ (from the \emph{$\delta$-timeliness} property).
 
 \input{bidset-core-pseudocode/bidset-consumer-pseudocode.tex}
 
-The code for a consumer is shown in \Cref{alg:bid-set-consumer}. The consumer waits until the pod returns a past-perfect round larger than $\tzero + 3\Delta$ (\cref{line:bidset-wait-pp}).
-When this happens, the consumer looks for a \emph{confirmed} transaction \msgbidresult{(\bag, \bidcert, \sigma)} in \txSet (\cref{line:bidset-find-confirmed-tx}) and outputs the bid-set \bag it the \opResult{} event.
-If such a transaction is not found in \txSet, the consumer outputs an empty bidset.
-For intuition, observe that the transaction \msgbidresult{(\bag, \bidcert, \sigma)}, written at round at most $\tzero + 2 \Delta$ by an honest auctioneer, becomes confirmed on \podtm-core by round $\tzero + 2 \Delta + \delta$ (from the \emph{confirmation within $\parConf=\delta$} property), i.e., it will satisfy $\rconf \leq \tzero + 3 \Delta$.
-An honest auctioneer observes this rounds as past-perfect by time $\tzero + 3 \Delta + \delta$.
-All together, in synchronous networks honest consumers output \bag as the bid-set, hence \bidsettm-core satisfies the \emph{consistency} property, and they do so by time $\tzero + 3\Delta + \delta$, hence \bidsettm-core achieves \emph{termination within $\parAuctionTerm=3\Delta + \delta$}.
+The code for a consumer is shown in \Cref{alg:bid-set-consumer}. The consumer waits until one of the following two conditions is met. 
+First, a \emph{confirmed} transaction \msgbidresult{(\bag, \bidcert, \sigma)} appears in \txSet , for which $\rconf \leq \tzero + 3 \Delta$ (\cref{line:bidset-find-confirmed-tx}), in which case it outputs the bid-set \bag it the \opResult{} event.
+Second, a round higher than $\tzero + 3 \Delta$ becomes past-perfect in \podtm (\cref{line:bidset-read-result-pp}), in which case it outputs an empty bid-set.
+
+Observe that, from the \emph{past-perfection within $\parPerf=\delta$} property of \podtm-core, the condition in \cref{line:bidset-read-result-pp} will become true at latest at round $\tzero + 3 \Delta + \delta$, hence \bidsettm-core achieves \emph{termination within $\parAuctionTerm=3\Delta + \delta$}.
+If the network is synchronous and the auctioneer honest, the condition in \cref{line:bidset-find-confirmed-tx} becomes true at round at most $\tzero + \Delta + 3\delta$ for an honest consumer, hence it outputs \bag as the bid-set, hence \bidsettm-core satisfies the \emph{consistency} property.
 
 \begin{theorem}[Bidset security]\label{thm:bidset-construction-secure}
 Assuming a synchronous network (that is, $\delta \leq \Delta$),
