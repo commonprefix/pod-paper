@@ -1,0 +1,16 @@
+\begin{algorithm}
+    \caption{\bidsettm-core: Code for the auctioneer. It uses a \podtm instance \podInst, and $\sk_a$ denotes the secret key of the auctioneer.}
+    \label{alg:bid-set-auctioneer}
+    \begin{algorithmic}[1]
+        \Function{\opRunAuction{}}{}
+            \Let{(\txSet, \rperf, \ppcert)}{\podInst.\opreadall{}}
+            \While{$\rperf \leq \tzero + \Delta$}\label{line:bidset-wait-pp}
+                \Let{(\txSet, \rperf, \ppcert)}{\podInst.\opreadall{}}
+            \EndWhile{}
+            \State{$\bag \gets \{\tx \mid (\tx, \cdot, \cdot , \cdot, \cdot) \in \txSet\}  ;\; \bidcert \gets \ppcert$}\label{line:bidset-create-bag}
+            \Let{\sigma}{\opSign{$\sk_a, (\bag, \bidcert)$}}
+            \Let{\tx}{\msgbidresult{(\bag, \bidcert, \sigma)}}\label{line:bidset-write-bag}
+            \State{\podInst.\opwrite{\tx}} %Run by \tzero + 2 \Delta. 
+        \EndFunction
+\end{algorithmic}
+\end{algorithm}
