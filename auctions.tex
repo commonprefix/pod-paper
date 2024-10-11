@@ -1,6 +1,6 @@
 \section{Auctions on \podtm through the \bidsettm protocol}\label{sec:auctions}
 In this section we show how an arbitrary auction protocol can be run on top of \podtm.
-To this purpose we first define \bidsettm, a primitive for collecting a set of bids, which guarantees accountable censorship resistance and consistency among honest readers\.
+To this purpose we first define \bidsettm, a primitive for collecting a set of bids, which guarantees accountable censorship resistance and consistency among honest readers.
 We then show a \bidsettm construction that uses \podtm, which an auctioneer can use to run the auction protocol.
 
 \begin{definition}[The \bidsettm protocol]\label{def:auction-framework}
@@ -75,12 +75,19 @@ All together, in synchronous networks honest consumers output \bag as the bid-se
 
 \begin{theorem}[Bidset security]\label{thm:bidset-construction-secure}
 Assuming a synchronous network (that is, $\delta \leq \Delta$),
-the \bidsettm-core protocol (Construction~\ref{const:bidset}), instantiated with a secure \podtm protocol that satisfies the \emph{past-perfection within $\parPerf = \delta$} and \emph{$\delta$-timeliness} properties, is a secure \bidsettm protocol satisfying \emph{termination within $\parAuctionTerm = 3\Delta$}.
+the \bidsettm-core protocol (Construction~\ref{const:bidset}), instantiated with a secure \podtm protocol that satisfies the \emph{past-perfection within $\parPerf = \delta$} and \emph{$\delta$-timeliness} properties, is a secure \bidsettm protocol satisfying \emph{termination within $\parAuctionTerm = 3\Delta + \delta$}.
 It satisfies accountable safety using the \identifyAuctioneer{} function of \Cref{alg:identify-bidset}, which identifies a malicious auctioneer.
 \end{theorem}
 \begin{proof}
 In Lemmas \ref{lem:bidset-termination}--\ref{lem:bidset-accountability}. The function for identifying a malicious auctioneer is shown in \Cref{alg:identify-bidset}.
 \end{proof}
+
+\begin{remark}
+    \wip{reread}
+    The protocol uses one step where we wait for $\Delta$.
+    This is due to the fact that the set of bidders is not known, and we give them sufficient time.
+    If this set is known, the protocol can be made fully responsive in the optimistic case where all bidders and the auctioneer are honest.
+\end{remark}
 
 \dotparagraph{Auctions on the bid-set}
 \wip{Say something}

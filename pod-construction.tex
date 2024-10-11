@@ -129,35 +129,12 @@ with the sole purpose of keeping $\mrt_j$ up-to-date.
 An obvious practical implementation is to send \heartBeat only for rounds when no other transactions were sent.
 When received by a client, a \heartBeat is handled as a vote (i.e., it triggers \cref{line:receive-vote-begin} in \Cref{alg:client-1}), except that we do not check for duplicate \heartBeat votes and do not update any associated values for the heartbeat transaction (see \cref{line:client-heartbeat-return} in \Cref{alg:client-1}).
 
-\begin{algorithm}[]
-\caption{The \identify{} function for Protocol \podtm-core (\Cref{const:pod-core}).}
-\label{alg:identify}
-\begin{algorithmic}[1]
-    \Function{\identify{\tran}}{}
-        \Let{\cheaters}{\emptyset}
-        % \For{$ \msgrecord{(\tx_1, \tsp_1, \sn_1, \sig_1, \rep_1)},\; \msgrecord{(\tx_2, \tsp_2, \sn_2, \sig_2, \rep_2)} \in \tran$}
-        \For{$ \msgrecord{(\tx_1, \tsp_1, \sn_1, \sig_1, \rep_1)} \in \tran$}
-            \If{\textbf{not} \opVerify{$\pk_1, (\tx_1, \tsp_1, \sn_1), \sig_1$}}
-                \State{\textbf{continue}}
-            \EndIf
-            \For{$ \msgrecord{(\tx_2, \tsp_2, \sn_2, \sig_2, \rep_2)} \in \tran$}
-                \If{\textbf{not} \opVerify{$\pk_2, (\tx_2, \tsp_2, \sn_2), \sig_2$}}
-                    \State{\textbf{continue}}
-                \EndIf
-                \If{$\rep_1  = \rep_2 \textbf { and } \sn_1 = \sn_2 \textbf { and } (\tx_1 \neq \tx_2 \textbf { or } \tsp_1 \neq \tsp_2)$ }\label{line:identify-cheat}
-                    \Let{\cheaters}{\cheaters \cup \{\rep_1\}}
-                \EndIf
-            \EndFor
-        \EndFor
-    \EndFunction
-\end{algorithmic}
-\end{algorithm}
 
 % \dotparagraph{Detecting misbehavior}
 % Clients can detect certain cases of replica misbehavior. When this happens (lines \ref{line:raise-old-tsp}, \ref{line:raise-dup-tsp}, \ref{line:raise-old-heartbeat}) the client stops processing the current vote and triggers an \opAccountableFault{\tran} event, where \tran is a set of messages that can prove the misbehavior through the \identify{} function. 
 
 
-\noindent\textbf{Security Analysis:} We formalize the security of Construction~\ref{const:pod-core} in the following theorem, which is proven in Appendix~\ref{app:pod-security}.
+\noindent\textbf{Security Analysis:} We formalize the security of Construction~\ref{const:pod-core} in the following theorem, which is proven in Appendix~\ref{app:pod-security}. We show the \identify{} function for \podtm-core in Appendix~\ref{app:pod-security} as well.
 
 \begin{theorem}[Pod-core security]\label{thm:pod-security}
 	Pod-core (Construction~\ref{const:pod-core}), instantiated with a secure signature scheme, parametrized with $\alpha \geq 4 \beta + 1$ and assuming at most \beta malicious replicas, is a secure pod with \beta-accountable safety (\Cref{def:accountable-safety}), with Confirmation within $\parConf = 2 \delta$ and Past-perfection within $\parPerf = \delta$, \ewnp.

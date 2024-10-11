@@ -1,0 +1,24 @@
+\begin{algorithm}[]
+    \caption{The \identify{} function for Protocol \podtm-core (\Cref{const:pod-core}).}
+    \label{alg:identify}
+    \begin{algorithmic}[1]
+        \Function{\identify{\tran}}{}
+            \Let{\cheaters}{\emptyset}
+            % \For{$ \msgrecord{(\tx_1, \tsp_1, \sn_1, \sig_1, \rep_1)},\; \msgrecord{(\tx_2, \tsp_2, \sn_2, \sig_2, \rep_2)} \in \tran$}
+            \For{$ \msgrecord{(\tx_1, \tsp_1, \sn_1, \sig_1, \rep_1)} \in \tran$}
+                \If{\textbf{not} \opVerify{$\pk_1, (\tx_1, \tsp_1, \sn_1), \sig_1$}}
+                    \State{\textbf{continue}}
+                \EndIf
+                \For{$ \msgrecord{(\tx_2, \tsp_2, \sn_2, \sig_2, \rep_2)} \in \tran$}
+                    \If{\textbf{not} \opVerify{$\pk_2, (\tx_2, \tsp_2, \sn_2), \sig_2$}}
+                        \State{\textbf{continue}}
+                    \EndIf
+                    \If{$\rep_1  = \rep_2 \textbf { and } \sn_1 = \sn_2 \textbf { and } (\tx_1 \neq \tx_2 \textbf { or } \tsp_1 \neq \tsp_2)$ }\label{line:identify-cheat}
+                        \Let{\cheaters}{\cheaters \cup \{\rep_1\}}
+                    \EndIf
+                \EndFor
+            \EndFor
+        \EndFunction
+    \end{algorithmic}
+    \end{algorithm}
+    
