@@ -9,12 +9,13 @@
 \usepackage[T1]{fontenc}
 \fi
 % \usepackage{algorithmic}
-\usepackage{graphicx}
-\usepackage{textcomp}
+%\usepackage{graphicx}
+%\usepackage{textcomp}
 \usepackage{xspace}
-\usepackage[table,xcdraw,dvipsnames]{xcolor}
-\usepackage{tikz}
-
+%\usepackage[table,xcdraw,dvipsnames]{xcolor}
+\usepackage{xcolor}
+%\usepackage{tikz}
+\usepackage{hyperref}
 \usepackage{amsmath}
 % \let\proof\relax
 % \let\endproof\relax
@@ -22,23 +23,35 @@
 \iflncs
   \usepackage{amssymb}
 \fi
-\iftwocolumn
+%\iftwocolumn
 	\usepackage{amsthm}
-\fi
-\PassOptionsToPackage{hyphens}{url}\usepackage{hyperref}
-\usepackage{bookmark}
+%\fi
+%\usepackage{etoolbox}
+%
 % \usepackage{hyperref}
 \usepackage{mathtools}
-\usepackage{listings}
+%\usepackage{listings}
 \usepackage{import}
-\usepackage{algorithm}
-\usepackage{algpseudocode}
-\usepackage{varwidth}
-\usepackage[]{enumitem}
-\usepackage{thmtools}
-\usepackage{thm-restate}
-\usepackage[bottom]{footmisc}
+\usepackage{subcaption}
+\usepackage{algorithm,algpseudocode}
+%\usepackage{xr-hyper}
+%\usepackage{varwidth}
+\usepackage{enumitem}
+%\usepackage{thmtools}
+%\usepackage{thm-restate}
+%\usepackage[bottom]{footmisc}
+\usepackage{bookmark}
 \usepackage{cleveref}
+
+%Fix weird issue with clever referencing lines in multiple algorithms
+\makeatletter
+\newcounter{algorithmicH}% New algorithmic-like hyperref counter
+\let\oldalgorithmic\algorithmic
+\renewcommand{\algorithmic}{%
+	\stepcounter{algorithmicH}% Step counter
+	\oldalgorithmic}% Do what was always done with algorithmic environment
+\renewcommand{\theHALG@line}{ALG@line.\thealgorithmicH.\arabic{ALG@line}}
+\makeatother
 
 \hyphenation{block-chain}
 \hyphenation{block-chains}
@@ -51,7 +64,7 @@
 \hyphenation{de-cen-tral-ized}
 \hyphenation{de-cen-tral-ize}
 
-\usepackage{subcaption}
+
 
 \iftwocolumn
 \g@addto@macro{\UrlBreaks}{\UrlOrds}
@@ -121,8 +134,8 @@
 % [1]{\textbf{operator #1}}
 % [0]{\textbf{end operator}}
 
-\usepackage[]{xcolor}
-\usepackage{color}
+%\usepackage[]{xcolor}
+%\usepackage{color}
 
 \newcommand{\anote}[1]{{\color{magenta}[Andrew:{#1}]}}
 \newcommand{\aknote}[1]{{\color{magenta}[Aggelos:{#1}]}}
@@ -134,39 +147,39 @@
 \newcommand{\downchain}{\negthickspace\downarrow\,}
 
 %code options with \lstlisting
-\lstset{frame=tb,
-  showstringspaces=false,
-  columns=flexible,
-  basicstyle=\ttfamily,
-  keywordstyle=\color{blue},
-  commentstyle=\color{dkgreen},
-  stringstyle=\color{mauve},
-  breaklines=true,
-  breakatwhitespace=true,
-  tabsize=3,
-  escapeinside={(*@}{@*)},
-  frame=n
-}
-\lstdefinestyle{numbers}{numbers=left, stepnumber=1, numberstyle=\tiny, numbersep=10pt}
-\let\origthelstnumber\thelstnumber
-\makeatletter
-\newcommand*\Suppressnumber{%
-  \lst@AddToHook{OnNewLine}{%
-    \let\thelstnumber\relax%
-     \advance\c@lstnumber-\@ne\relax%
-    }%
-}
-
-\newcommand*\Reactivatenumber{%
-  \lst@AddToHook{OnNewLine}{%
-   \let\thelstnumber\origthelstnumber%
-   \advance\c@lstnumber\@ne\relax}%
-}
-
-\renewcommand\subsubsection{\@startsection{subsubsection}{3}{\z@}%
-                      {-18\p@ \@plus -4\p@ \@minus -4\p@}%
-                      {0.5em \@plus 0.22em \@minus 0.1em}%
-                      {\normalfont\normalsize\bfseries\boldmath}}
+%\lstset{frame=tb,
+%  showstringspaces=false,
+%  columns=flexible,
+%  basicstyle=\ttfamily,
+%  keywordstyle=\color{blue},
+%  commentstyle=\color{dkgreen},
+%  stringstyle=\color{mauve},
+%  breaklines=true,
+%  breakatwhitespace=true,
+%  tabsize=3,
+%  escapeinside={(*@}{@*)},
+%  frame=n
+%}
+%\lstdefinestyle{numbers}{numbers=left, stepnumber=1, numberstyle=\tiny, numbersep=10pt}
+%\let\origthelstnumber\thelstnumber
+%\makeatletter
+%\newcommand*\Suppressnumber{%
+%  \lst@AddToHook{OnNewLine}{%
+%    \let\thelstnumber\relax%
+%     \advance\c@lstnumber-\@ne\relax%
+%    }%
+%}
+%
+%\newcommand*\Reactivatenumber{%
+%  \lst@AddToHook{OnNewLine}{%
+%   \let\thelstnumber\origthelstnumber%
+%   \advance\c@lstnumber\@ne\relax}%
+%}
+%
+%\renewcommand\subsubsection{\@startsection{subsubsection}{3}{\z@}%
+%                      {-18\p@ \@plus -4\p@ \@minus -4\p@}%
+%                      {0.5em \@plus 0.22em \@minus 0.1em}%
+%                      {\normalfont\normalsize\bfseries\boldmath}}
 
 %eliminate section numbering from \subsection
 %\renewcommand{\thesubsection}{\arabic{subsection}}
@@ -174,33 +187,37 @@
 %page style set to plain
 %pagestyle{plain}
 
-\ifccs
+
+
+
+
+%\ifccs
 % \iftwocolumn
 %     \newtheorem{theorem}{Theorem}[section]
 %     \newtheorem{corollary}{Corollary}[theorem]
 %     \newtheorem{lemma}[theorem]{Lemma}
 %
-     \theoremstyle{remark}
-     \newtheorem*{remark}{Remark}
-
-     \newtheorem*{theorem*}{Theorem}
+%     \theoremstyle{remark}
+%     \newtheorem*{remark}{Remark}
+%
+%     \newtheorem*{theorem*}{Theorem}
 %
 %     \theoremstyle{definition}
 %     \newtheorem{definition}{Definition}[section]
 % \fi
-\fi
+%\fi
 
-\usepackage{amsthm} 
-\newtheoremstyle{construction-style}% name
-  {\topsep}%      Space above
-  {\topsep}%      Space below
-  {\normalfont}% Body font
-  {}%         Indent amount (empty = no indent, \parindent = para indent)
-  {\bfseries}% Thm head font
-  {.}%        Punctuation after thm head
-  { }%     Space after thm head: " " = normal space; \newline = linebreak
-  {\thmname{#1}\thmnumber{ #2}\thmnote{ (\bfseries #3)}}%    Thm head spec
-\theoremstyle{construction-style}
+
+%\newtheoremstyle{construction-style}% name
+%  {\topsep}%      Space above
+%  {\topsep}%      Space below
+%  {\normalfont}% Body font
+%  {}%         Indent amount (empty = no indent, \parindent = para indent)
+%  {\bfseries}% Thm head font
+%  {.}%        Punctuation after thm head
+%  { }%     Space after thm head: " " = normal space; \newline = linebreak
+%  {\thmname{#1}\thmnumber{ #2}\thmnote{ (\bfseries #3)}}%    Thm head spec
+%\theoremstyle{construction-style}
 \newtheorem{construction}{Construction}
 
 \crefformat{construction}{#2construction #1#3}
