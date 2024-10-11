@@ -66,8 +66,12 @@ hence an honest auctioneer will have executed \cref{line:bidset-write-bag} by ti
 
 \input{bidset-core-pseudocode/bidset-consumer-pseudocode.tex}
 
-The code for a consumer is shown in \Cref{alg:bid-set-consumer}. The consumer waits until the pod returns a past-perfect round larger than $\tzero + \Delta$ (\cref{line:bidset-wait-pp})
-As intuition, observe that the transaction \msgbidresult{(\bag, \bidcert, \sigma)}, written by round $\tzero + 2 \Delta$ by an honest auctioneer, becomes confirmed on \podtm-core by round $\tzero + 2 \Delta + \delta$, hence it will be get assigned $\rconf \leq \tzero + 3 \Delta$.
+The code for a consumer is shown in \Cref{alg:bid-set-consumer}. The consumer waits until the pod returns a past-perfect round larger than $\tzero + 3\Delta$ (\cref{line:bidset-wait-pp}).
+When this happens, the consumer looks for a \emph{confirmed} transaction \msgbidresult{(\bag, \bidcert, \sigma)} in \txSet (\cref{line:bidset-find-confirmed-tx}) and outputs the bid-set \bag it the \opResult{} event.
+If such a transaction is not found in \txSet, the consumer outputs an empty bidset.
+For intuition, observe that the transaction \msgbidresult{(\bag, \bidcert, \sigma)}, written at round at most $\tzero + 2 \Delta$ by an honest auctioneer, becomes confirmed on \podtm-core by round $\tzero + 2 \Delta + \delta$ (from the \emph{confirmation within $\parConf=\delta$} property), i.e., it will satisfy $\rconf \leq \tzero + 3 \Delta$.
+An honest auctioneer observes this rounds as past-perfect by time $\tzero + 3 \Delta + \delta$.
+All together, in synchronous networks honest consumers output \bag as the bid-set, hence \bidsettm-core satisfies the \emph{consistency} property, and they do so by time $\tzero + 3\Delta + \delta$, hence \bidsettm-core achieves \emph{termination within $\parAuctionTerm=3\Delta + \delta$}.
 
 \begin{theorem}[Bidset security]\label{thm:bidset-construction-secure}
 Assuming a synchronous network (that is, $\delta \leq \Delta$),
