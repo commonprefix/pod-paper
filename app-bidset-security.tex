@@ -1,4 +1,4 @@
-\section{Security of \bidsettm-core}
+\section{Security of \bidsettm-core}\label{app:bidsetsec}
 
 % \begin{lemma}\label{lem:bidset-tx-confirmed}
 %     A bid submitted by an honest bidder gets confirmed by round $\tone = \tzero + 2 \delta$.
@@ -13,6 +13,18 @@
 % \begin{proof}
 %     It follows from the \emph{past-perfection within $\parPerf = \delta$} property of \podtm.
 % \end{proof}
+
+In this section, we recall and prove Theorem \ref{thm:bidsetsec}.
+
+\begin{customthm}{thm:bidset-construction-secure}[Bidset security]\label{thm:bidset-construction-secure}
+	Assuming a synchronous network (that is, $\delta \leq \Delta$),
+	the \bidsettm-core protocol (Construction~\ref{const:bidset}), instantiated with a secure \podtm protocol that satisfies the \emph{past-perfection within $\parPerf = \delta$} and \emph{$\delta$-timeliness} properties, is a secure \bidsettm protocol satisfying \emph{termination within $\parAuctionTerm = 3\Delta + \delta$}.
+	It satisfies accountable safety using the \identifyAuctioneer{} function of \Cref{alg:identify-bidset}, which identifies a malicious auctioneer.
+\end{customthm}
+\begin{proof}
+	In Lemmas \ref{lem:bidset-termination}--\ref{lem:bidset-accountability}. The function for identifying a malicious auctioneer is shown in \Cref{alg:identify-bidset}.
+\end{proof}
+
 
 \begin{lemma}[Termination within \parAuctionTerm]\label{lem:bidset-termination}
     Under the assumptions of \Cref{thm:bidset-construction-secure}, \Cref{const:bidset} satisfies \emph{termination within $\parAuctionTerm = \tzero + \Delta + \delta$}. \wip{check again}

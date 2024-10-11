@@ -10,7 +10,7 @@ We define \podtm Monotonicity as an intermediate notion that stands between a si
 	\end{enumerate}
 \end{definition}
 
-We now observe that a monotone \podtm can be obtained from any secure \podtm and that monotonicity implies certain specific properties that may be useful for applications.
+We now observe that a monotone \podtm can be obtained from any secure \podtm and that monotonicity implies certain specific properties that may be useful for applications. In particular, our \podtm-core protocol naturally satisfies this property.
 
 \begin{remark}
 	Every secure \podtm can be transformed into a monotone \podtm if parties are stateful. Let $\round_1$ be the last round when an honest client $\client$ read the \podtm obtaining view $\podView{\client}{\round_1}$, which is stored as state until $\client$ reads the \podtm again. At any round $\round_2>\round_1$, if $\client$ reads the \podtm and obtains $\podView{\client}{\round_2}$, $\client$ can define a view $\overline{\podView{\client}{\round_2}}$ satisfying the properties of \podtm monotonicity:
@@ -58,7 +58,8 @@ In the remarks below, we observe that \podtm monotonicity implies a number of us
 \end{remark}
 
 \begin{remark}
-	Observe that the \emph{confirmation stickiness} property in Remark~\ref{rem:confstick} is a specific version of a more general \emph{common subset} property, which would demand the condition for any two honest clients $\client_1, \client_2$. We provide such a property in \Cref{sec:pod-with-propagation}.
+	Observe that the \emph{confirmation stickiness} property in Remark~\ref{rem:confstick} is a specific version of a more general \emph{common subset} property, which would demand the condition for any two honest clients $\client_1, \client_2$. 
+	%We provide such a property in \Cref{sec:pod-with-propagation}.
 	\Cref{const:pod-core} satisfies the \emph{confirmation stickiness} property.
 	% \emph{ Confirmation monotonicity for honest transactions after $X$:}
 	% For any honest clients $\client_1$, $\client_2$ and rounds $\round_1, \round_2 > \round_1 + X$,

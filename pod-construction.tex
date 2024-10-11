@@ -60,7 +60,7 @@ The state gets initialized in lines~\ref{line:client-init-start}--\ref{line:clie
 At initialization the client also sends a \msgconnect{} message to each replica, which initiates a streaming connection from the replica to the client.
 
 
-\vspace{-3mm}
+%\vspace{-3mm}
 \dotparagraph{Receiving votes}
 A client maintains a connection to each replica and receives votes through \msgrecord{(\tx, \tsp, \sn, \sig, \rep_j)} messages (lines~\ref{line:receive-vote-begin}--\ref{line:receive-vote-end}).
 When a vote is received from replica $\rep_j$, the client first verifies the signature \sig under$\rep_j$'s public key (\cref{line:client-verify-sig-begin}). If invalid, the vote is ignored.
@@ -78,7 +78,7 @@ The \identify{} function we show in \Cref{alg:identify} can detect such misbehav
 \input{pod-core-pseudocode/pod-core-client-code-1}
 
 \dotparagraph{Writing to and reading from \podtm}
-Protocol \podtm-core implements functions \opwrite{\tx} and \opreadall{} (\Cref{def:podinterface})functions as shown in \Cref{alg:client-2}.
+Protocol \podtm-core implements functions \opwrite{\tx} and \opreadall{} (\Cref{def:podinterface}) functions as shown in \Cref{alg:client-2}.
 In order to write a transaction \tx, a client sends \msgwrite{\tx} to each replica (lines \ref{line:write-tx-begin}--\ref{line:write-tx-end}).
 Since the construction is stateful and streaming, the client state contains at all times the latest view the client has of the \podtm, \opreadall{} operates on the local state (lines \ref{line:read-begin}--\ref{line:read-end}).
 It returns a \podtm \Pod (\cref{line:return-pod}) with a transaction set \allTxs, containing the transactions the client has received so far (\cref{line:loop-over-txs}) and their associated values,
@@ -115,9 +115,9 @@ considering timestamps \mrt as the minimum possible for any future transaction.
 
 \input{pod-core-pseudocode/pod-core-client-code-statistics}
 
-
-\dotparagraph{Replica code}
-The code for a replica is shown in \Cref{alg:pod-core-replica}. The state of a replica (lines \ref{line:rep-state-begin}--\ref{line:rep-state-end}) contains, among others, the transaction log \repLog, which is implemented as a sequence of votes $(\tx, \tsp, \sn, \sigma, \rep_i)$ created by the replica, where \tsp is the timestamp assigned by the replica to \tx, \sn is a sequence number, and \sig is its signature.
+\vspace{-5mm}
+\dotparagraph{Replica code (\Cref{alg:pod-core-replica})}
+The state of a replica (lines \ref{line:rep-state-begin}--\ref{line:rep-state-end}) contains, among others, the transaction log \repLog, which is implemented as a sequence of votes $(\tx, \tsp, \sn, \sigma, \rep_i)$ created by the replica, where \tsp is the timestamp assigned by the replica to \tx, \sn is a sequence number, and \sig is its signature.
 A functionality \opTime{} allows the replica to determine the current round number.
 When the replica receives a \msgconnect{} message from a client \client, it appends \client to its set of connected clients and sends to \client all entries in \repLog (lines \ref{line:rep-receive-connect-begin}--\ref{line:rep-receive-connect-end}).
 

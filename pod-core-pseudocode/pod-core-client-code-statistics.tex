@@ -1,4 +1,4 @@
-\begin{algorithm}[]
+\begin{algorithm}[h!]
     \caption{Protocol \podtm-core (\Cref{const:pod-core}): Client code, part 3, computing \rmin, \rmax, \rconf allowing up to \beta equivocations. %\wip{Do we have time to write this for omission faults too?}
     }
     \label{alg:client-statistics}
@@ -17,7 +17,7 @@
         \return \opMed{$\txVotesMin[:\alpha]$}
     \EndFunction
     \Statex
-
+\vspace{-1mm}
     \Function{\opMaxPossibleTs{\tx}}{}\label{line:fn-compute-max-begin}
         \Let{\txVotesMax}{[\,]}
         \For{$\rep_j \in \allreps$}\label{line:assing-missing-max-begin}
@@ -32,14 +32,14 @@
         \return \opMed{$\txVotesMax[-\alpha:]$}
     \EndFunction\label{line:fn-compute-max-end}
     \Statex
-
+\vspace{-1mm}
     \Function{\opMinPossibleTsForNewTx{}}{}\label{line:fn-compute-pp-begin}
         \Let{\txVotesPerf}{\mrt}
         \State{\text{sort \txVotesPerf in increasing order}}
         \Let{\txVotesPerf}{ [ 0, \stackrel{\beta \text{ times}}{\ldots}, 0 ] \concat \txVotesPerf}
         \return \opMed{$\txVotesPerf[:\alpha]$}
     \EndFunction\label{line:fn-compute-pp-end}
-
+\vspace{-1mm}
     \Statex
     \Function{\opMed{Y}}{}\label{}
         \return $Y[\lfloor \,|Y|/2 \, \rfloor]$
