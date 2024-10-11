@@ -1,0 +1,97 @@
+\section{Security of \bidsettm-core}
+
+% \begin{lemma}\label{lem:bidset-tx-confirmed}
+%     A bid submitted by an honest bidder gets confirmed by round $\tone = \tzero + 2 \delta$.
+% \end{lemma}
+% \begin{proof}
+%     It follows from the property \emph{confirmation within $\parConf=2\delta$} of pod.
+% \end{proof}
+
+% \begin{lemma}\label{lem:bidset-past-perfect}
+%     The round \ttwo becomes past-perfect in the view of an honest auctioneer by round $\tthree = \ttwo + \delta$.
+% \end{lemma}
+% \begin{proof}
+%     It follows from the \emph{past-perfection within $\parPerf = \delta$} property of \podtm.
+% \end{proof}
+
+\begin{lemma}[Termination within \parAuctionTerm]\label{lem:bidset-termination}
+    Under the assumptions of \Cref{thm:bidset-construction-secure}, \Cref{const:bidset} satisfies \emph{termination within $\parAuctionTerm = \tzero + \Delta + \delta$}. \wip{check again}
+\end{lemma}
+\begin{proof}
+    \oa{Idea: Even if the auctioneer is malicious, the result will be a default.}
+    The auctioneer starts running \opRunAuction{} at time \ttwo. From the \emph{past-perfection within $\parPerf$} property of \podtm, for $\parPerf = \delta$, the condition of line~\ref{line:bidset-wait-pp} becomes true by round $\ttwo + \delta$.
+\end{proof}
+
+\begin{lemma}[Censorship resistance]\label{lem:bidset-censorship}
+    Under the assumptions of \Cref{thm:bidset-construction-secure}, \Cref{const:bidset} satisfies the \emph{censorship resistance} property.
+\end{lemma}
+\begin{proof}   
+    Assume the auctioneer is honest, and an honest bidder calls \opSubmitBid{\bid} at time \tzero. We will show that $\bid \in \bag$.
+    First, the \podtm view $\podView{\auc}{\round}$ of the auctioneer \auc on the round \round when it constructs \bag satisfies $\podView{\auc}{\round}.\rperf > \ttwo$. 
+    Second, from the \emph{confirmation within \parConf} property of \podtm, the transaction containing \bid becomes confirmed, and from the \emph{\parTemp-timeliness} property of \podtm, it gets a confirmation round $\rconf \leq \tzero + \parTemp$. For $\parTemp = \delta$, and since $\delta \leq \Delta$, we get that $\rconf \leq \ttwo$.
+    Hence, from the past-perfection safety property of \podtm we get that $\bid \in \podView{\auc}{\round}$, and, since the auctioneer is honest, $\bid \in \bag$.
+\end{proof}
+
+\begin{lemma}[Consistency]\label{lem:bidset-consistencys}
+    Under the assumptions of \Cref{thm:bidset-construction-secure}, \Cref{const:bidset} satisfies the \emph{consistency} property.
+\end{lemma}
+
+\begin{lemma}[Accountable safety]\label{lem:bidset-accountability}
+\end{lemma}
+\begin{proof}
+    We now \wip{}
+    \dotparagraph{1} For violations of censorship-resistance:
+    Assume an honest bidder calls \opSubmitBid{\bid} at time \tzero, the network is synchronous, and \bid is censored. 
+    Following the same reasoning as above, the transaction \tx containing \bid becomes confirmed with $\rconf \leq \ttwo$, and any honest party can observe $(\tx, \rconf, \cdot, \cdot, \txcert)$ in their view of the \podtm, where \txcert is the auxiliary data associated by \tx, as returned by \podtm.
+    We will show that how the auctioneer can be made accountable, assuming that \podInst is an instance of \Cref{const:pod-core}, and that \Cref{const:pod-core} is a secure \podtm protocol.
+    Following \Cref{sec:accountable-safety}, we show an \identifyAuctioneer{\txcert, (\bag, \ppcert)} function (\Cref{alg:identify-bidset}), that, on input \txcert and the bag \bag and auxiliary data \ppcert, returned by the auctioneer in \opResult{\bag, \ppcert}, outputs $\true$ when safety is violated due to misbehavior of the auctioneer (i.e., it identifies the auctioneer as malicious), and $\false$ if the auctioneer is honest.
+    \Cref{alg:identify-bidset} performs the following checks:
+    
+    \emph{Check 1}: Verify whether the votes that the auctioneer has included in \ppcert are valid votes, obtained from the replicas that run the instance \podInst (lines~\cref{line:bidset-identify-votes-begin}-\cref{line:bidset-identify-votes-end}). If this is not the case, the auctioneer has misbehaved.
+
+    \emph{Check 2}: Compute the \rperf from the timestamps found in the votes in \ppcert (lines~\ref{line:bidset-identify-rperf-begin}-\ref{line:bidset-identify-rperf-end}). This \rperf must be at least \ttwo.
+    
+    \emph{Check 3}: Verify whether \txcert contains \alpha valid votes on the same transaction \tx, produced by the replicas running \podInst, and compute \rconf as the median of the timestamps in \txcert.
+
+    \dotparagraph{3} A honest auctioneer cannot be framed:
+    Finally, we show that an honest auctioneer cannot be framed.
+    If the auctioneer has followed \Cref{alg:bid-set-auctioneer}, then \ppcert will contain valid votes, as output by the \opreadall{} function of \Cref{const:pod-core}, hence \emph{Check 1} will pass.
+    Moreover, an honest auctioneer waits until the past-perfect round returned by the \podtm is larger than \ttwo, hence \emph{Check 2} will pass.
+    Regarding \emph{Check 3}, observe that
+    % any \txcert that is deemed valid by \identifyAuctioneer{} contains \alpha votes, hence at least $\alpha-\beta$ votes from valid replicas. Moreover,
+    for \identifyAuctioneer{} to compute $\rconf \leq \ttwo$, \txcert must contain at least $\lfloor \alpha/2 \rfloor + 1$ votes on \tx with a timestamp smaller or equal than \ttwo, and at least $\lfloor \alpha/2 \rfloor + 1 - \beta$ of them must be from honest replicas. Call this set $\allreps'$.
+    The honest auctioneer, in order to output a past-perfect round greater than \ttwo, must have received timestamps greater than \ttwo by at least $n - \lfloor a/2 \rfloor + \beta$ replicas (from \Cref{lem:assign-min-max}).
+    By counting arguments, at least one of these timestamps must be from one of the honest replicas in $\allreps'$, and, since honest replicas do not omit transactions, that replica will have sent a vote on \tx to the auctioneer. Hence, the auctioneer will include that \tx in \bag.
+    \wip{Can this be derived directly from the past-perfection property of \podtm? }
+\end{proof}
+
+
+\begin{algorithm}
+    \caption{The \identifyAuctioneer{} function for \Cref{const:bidset}, instantiated with an instance of \podtm-core (\Cref{const:pod-core}) as \podInst, run by a set of replicas $\allreps = \{\rep_1, \cdots, \rep_n\}$ with public keys $\{\pk1, \cdots, \pk_n \}$, and using the \opMed{} operation defined by \Cref{const:pod-core}. It identifies a malicious auctioneer by returning $\true$.}
+    \label{alg:identify-bidset}
+    \begin{algorithmic}[1]
+        \Function{\identify{\txcert, (\bag, \ppcert)}}{}
+            \Let{\txVotesPerf}{[ \, ]}
+            \For{$\vote \in \ppcert$} \label{line:bidset-identify-votes-begin}
+                \Let{(\tx, \tsp, \sig, \rep_j)}{\vote}
+                \Let{\txVotesPerf}{\txVotesPerf \concat \tsp}
+                \If{\opVerify{$\pk_j, (\tx, \tsp), \sig$} = 0 }
+                    \State{\textbf{return} $\false$}
+                \EndIf{}
+            \EndFor{}\label{line:bidset-identify-votes-end}
+            
+            \State{\text{sort \txVotesPerf in increasing order}} \label{line:bidset-identify-rperf-begin}
+            \Let{\txVotesPerf}{ [ 0, \stackrel{\beta \text{ times}}{\ldots}, 0 ] \concat \txVotesPerf}
+            \Let{\rperf}{\opMed{$\txVotesPerf[:\alpha]$}}
+            \If{$\rperf \leq \ttwo$}
+                \State{\textbf{return} $\true$}
+            \EndIf \label{line:bidset-identify-rperf-end}
+            \State{\wip{Verify validity of \txcert: contains \alpha votes, check all sigs, check that votes are on the same \tx}} \label{line:bidset-identify-inclusion-begin}
+            \Let{\tx}{\text{\wip{the common transaction in all votes in \txcert}}}
+            \Let{\rconf}{\text{\wip{the median of all votes in \txcert}}}
+            \If{$\rconf \leq \ttwo \textbf{ and } \tx \not \in \bag$}
+                \State{\textbf{return} $\true$}
+            \EndIf \label{line:bidset-identify-inclusion-end}
+        \EndFunction
+\end{algorithmic}
+\end{algorithm}

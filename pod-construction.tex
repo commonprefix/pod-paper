@@ -159,8 +159,8 @@ When received by a client, a \heartBeat is handled as a vote (i.e., it triggers 
 
 \noindent\textbf{Security Analysis:} We formalize the security of Construction~\ref{const:pod-core} in the following theorem, which is proven in Appendix~\ref{app:pod-security}.
 
-\begin{theorem}[Pod security]\label{thm:pod-security}
-	Construction~\ref{const:pod-core}, based on a secure signature scheme, parametrized with $\alpha \geq 4 \beta + 1$ and assuming at most \beta malicious replicas, is a secure pod with \beta-accountable safety (\Cref{def:accountable-safety}), with Confirmation within $\parConf = 2 \delta$ and Past-perfection within $\parPerf = \delta$, \ewnp.
+\begin{theorem}[Pod-core security]\label{thm:pod-security}
+	Pod-core (Construction~\ref{const:pod-core}), instantiated with a secure signature scheme, parametrized with $\alpha \geq 4 \beta + 1$ and assuming at most \beta malicious replicas, is a secure pod with \beta-accountable safety (\Cref{def:accountable-safety}), with Confirmation within $\parConf = 2 \delta$ and Past-perfection within $\parPerf = \delta$, \ewnp.
 \end{theorem}
 
 
