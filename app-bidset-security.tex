@@ -15,16 +15,16 @@
 % \end{proof}
 
 
-% In this section, we recall and prove \Cref{thm:bidset-construction-secure}.
+In this section, we recall and prove \Cref{thm:bidset-construction-secure}.
 
-% \begin{customthm}{thm:bidset-construction-secure}[Bidset security]\label{thm:bidset-construction-secure}
-% 	Assuming a synchronous network (that is, $\delta \leq \Delta$),
-% 	the \bidsettm-core protocol (Construction~\ref{const:bidset}), instantiated with a secure \podtm protocol that satisfies the \emph{past-perfection within $\parPerf = \delta$} and \emph{$\delta$-timeliness} properties, is a secure \bidsettm protocol satisfying \emph{termination within $\parAuctionTerm = 3\Delta + \delta$}.
-% 	It satisfies accountable safety using the \identifyAuctioneer{} function of \Cref{alg:identify-bidset}, which identifies a malicious auctioneer.
-% \end{customthm}
-% \begin{proof}
-% 	In Lemmas \ref{lem:bidset-termination}--\ref{lem:bidset-accountability}. The function for identifying a malicious auctioneer is shown in \Cref{alg:identify-bidset}.
-% \end{proof}
+\begin{customthm}{\ref{thm:bidset-construction-secure}}[Bidset security]
+    Assuming a synchronous network where $\delta \leq \Delta$,
+    protocol \bidsettm-core (Construction~\ref{const:bidset}) instantiated with a digital signature and a secure \podtm protocol that satisfies the \emph{past-perfection within $\parPerf = \delta$}, \emph{confirmation within $\parConf=2\delta$} and \emph{$\delta$-timeliness} properties, is a secure \bidsettm protocol satisfying \emph{termination within $\parAuctionTerm = 3\Delta + \delta$}.
+    It satisfies accountable safety with a function \identifyAuctioneer{} function that identifies a malicious auctioneer.
+\end{customthm}
+\begin{proof}
+	In Lemmas \ref{lem:bidset-termination}--\ref{lem:bidset-accountability}. The function for identifying a malicious auctioneer is shown in \Cref{alg:identify-bidset}.
+\end{proof}
 
 In this section we prove \Cref{thm:bidset-construction-secure} through Lemmas \ref{lem:bidset-termination}--\ref{lem:bidset-accountability}. The function for identifying a malicious auctioneer is shown in \Cref{alg:identify-bidset}.
 
