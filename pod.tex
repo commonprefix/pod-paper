@@ -1,5 +1,7 @@
 \section{Modeling \podtm} \label{sec:pod-model}
-In this section, we introduce the notion of a \podtm, a distributed protocol that maintains a  data structure containing transactions with an evolving partial order, which can be \emph{read} and \emph{written} to by parties while obeying liveness and safety properties. We introduce the basic definition of a secure \podtm with these properties along with extra properties that it may satisfy. In particular, we define the notions of timeliness and monotonicity for a secure \podtm, which we will later use for our applications. We first define basic data structures and protocol interfaces used as part of our \podtm definition.
+In this section, we introduce the notion of a \podtm, a distributed protocol that maintains a data structure in which replicas maintain transactions with an evolving partial order, which can be \emph{read} and \emph{written} by clients.
+We first define basic data structures and the interface of a \podtm.
+We then introduce the basic definition of a secure \podtm and its security properties, as well as some additional properties that it may satisfy, which we will later use for our applications. In particular, we define the notions of \emph{timeliness} and \emph{monotonicity} for a secure \podtm.
 
 \begin{definition}[Transaction and associated values]
     A transaction $\tx \in \zo^*$ is associated with values $\rmin, \rmax, \rconf$, and $\txcert$.
@@ -23,7 +25,7 @@ A \emph{transaction set} $\txSet$ is a set of tuples $(\tx, \rmin, \rmax, \rconf
 \end{definition}
 
 
-\begin{definition}[\podtm data structure]
+\begin{definition}[the \podtm data structure]
     A \podtm $\Pod$ is a triple $(\txSet, \rperf, \ppcert)$, where \txSet is a transaction set, \rperf is a round number, called the \emph{past-perfect round},
     and $\ppcert \in \zo^*$ contains auxiliary data.
 \end{definition}
@@ -34,7 +36,7 @@ Moreover, \rperf will imply a completeness property on \txSet, defined by the pa
 We remark that transactions in \txSet may be \confirmed on unconfirmed.
 
 %We now define the \podtm protocol interface and associated concepts.
-\begin{definition}[\podtm interface]\label{def:podinterface}
+\begin{definition}[interface of a \podtm]\label{def:podinterface}
 A \podtm protocol has the following interface.
 \begin{itemize}
     \item $\opwrite{\tx} \returns (\rmin, \rmax, \rconf, \txcert)$:
@@ -68,9 +70,11 @@ A \podtm protocol has the following interface.
 \begin{definition}[Secure \podtm]\label{def:podsec}
 A protocol is a \emph{secure} \podtm if it implements the\podtm interface of Definition~\ref{def:podinterface} and satisfies the following liveness and safety properties.
 
+\vspace{-3mm}
 \dotparagraph{1. Liveness properties}
 \begin{description}[leftmargin=*, align=left]
-	\item[Confirmation within \parConf:]
+	\vspace{-2mm}
+    \item[Confirmation within \parConf:]
 	Transactions become \confirmed after at most \parConf rounds.
 	That is, if an honest client $\client$ writes a transaction \tx at round \round, then for any honest client $\client'$ (including $\client=\client'$) it holds that $\tx \in \podView{\client'}{\round + \parConf}$ and $\tx.\rconf \neq \bot$.
 	% \item[Confirmation within \parConf:]
@@ -84,10 +88,10 @@ A protocol is a \emph{secure} \podtm if it implements the\podtm interface of Def
 	it holds that $\podView{c}{\round}.\rperf \geq \round - \parPerf$.
 \end{description}
 
-
+\vspace{-3mm}
 \dotparagraph{2. Safety properties}
 \begin{description}[left=0pt,itemindent=0pt]   
-	
+	\vspace{-2mm}
 	\item[Past-perfection:]
 	Let \client be an honest client with view $\podView{\client}{\round}$ at round $\round$.
 	Then, for any transaction $\tx \in \zo^*$ that becomes confirmed in view $\podView{\client'}{\round'}$, where $\client'$ is an honest client and $\round' \geq 0$ is a round, with confirmed round $\rconf$, it holds that, if $\rconf < \podView{\client}{\round}.\rperf$ then $\tx \in \podView{\client}{\round}$.
