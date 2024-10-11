@@ -14,27 +14,28 @@ We denote the concatenation of sequences $L_1$ and $L_2$ by $L_1 \concat L_2$.
 
 \subsection{Execution Model}\label{sec:system}
 
-\dotparagraph{Parties and failure model}
-We consider two types of parties, $n$ \emph{replicas} $\replicas=\{\replicas_1,\ldots,\replicas_n\}$ and an unlimited number of \emph{clients}. Parties are \emph{stateful}, \textit{i.e.}, store \emph{state} (\textit{i.e.}, data) between executions of different algorithms.
+\dotparagraph{\textbf{Parties}}
+We consider $n$ \emph{replicas} $\replicas=\{\replicas_1,\ldots,\replicas_n\}$ and an unlimited number of \emph{clients}. Parties are \emph{stateful}, \textit{i.e.}, store \emph{state} between executions of different algorithms.
 We assume that replicas are known to all parties and that their public keys (for which they have the corresponding secret key) are registered in a Public Key Infrastructure (PKI).
 The clients do not participate in the PKI. 
-We call a party -- replica or client -- \emph{honest}, if it follows the protocol, and \emph{malicious} otherwise.
-Malicious parties can be Byzantine, \textit{i.e.}, deviate arbitrarily from the protocol. We assume \emph{static corruptions}, that is, the set of malicious replicas is decided before the execution starts and remains constant.
+\vspace{-3mm}
+\dotparagraph{\textbf{Adversarial Model}}We call a party (replica or client) \emph{honest}, if it follows the protocol, and \emph{malicious} otherwise.
+Malicious parties are Byzantine, \textit{i.e.}, deviate arbitrarily from the protocol. We assume \emph{static corruptions},  \textit{i.e.}, the set of malicious replicas is decided before the execution starts and remains constant.
 The adversary has access to the internal state and secret keys of all malicious parties.
 We denote by $\beta \in [0,n]$ the \emph{resilience threshold}, i.e.,  number of malicious replicas in an execution, and
 by $\alpha \in [0,n]$ the \emph{confirmation threshold}.
-Our constructions will impose limits on \alpha and \beta, but we make no honesty assumptions on clients.
+Our constructions assume limits on \alpha and \beta, but make no honesty assumptions on clients.
 %\vspace{-3mm}
 %\dotparagraph{Stateful clients} A stateful client is a party who stores \emph{state} (\textit{i.e.}, data) between executions of different algorithms.
 \vspace{-3mm}
-\dotparagraph{Modeling time}
+\dotparagraph{\textbf{Modeling time}}
 % We assume that parties have clocks allowing them to determine the physical time.
 % For any two honest parties, their clocks can be at most time $\phi$ apart.
 % For simplicity, our analysis will assume \emph{synchronized clocks}, that is, $\phi = 0$.
 Time proceeds in discrete \emph{rounds}.
 We assume that parties know the current round. A \emph{timestamp} is a round number assigned to an event, \textit{e.g.}, receiving or sending a message. We assume that all honest parties probabilistic do any polynomial time computation and send any messages required by the protocol at every round (although message delivery is not guaranteed).
 \vspace{-3mm}
-\dotparagraph{Modeling network}
+\dotparagraph{\textbf{Modeling network}}
 We denote by $\delta \in \CN$ the actual delay (measured in number of rounds) it takes to deliver a message between two honest parties,
 a number which is \emph{finite} but \emph{unknown} to all parties.
 We denote by $\Delta \in \CN$ an upper bound on this delay, \textit{i.e.}, $\delta \leq \Delta$, which is also \emph{finite}.
@@ -43,7 +44,7 @@ In the \emph{synchronous} model, $\Delta$ is \emph{known} to all processes.
 In the \emph{asynchronous} model, $\Delta$ is \emph{unknown} but still finite, \textit{i.e.}, all messages are eventually delivered.
 In both cases, messages are delivered in an order chosen by the adversary. Notice that our protocol is \emph{responsive}, meaning that its liveness guarantees only depend on the actual network delay $\delta$ and the protocols do not rely on knowledge of $\Delta$.
 \vspace{-3mm}
-\dotparagraph{Digital Signatures:} We assume that replicas authenticate their messages by means of explicit digital signatures. A digital signature scheme is a triple of algorithms satisfying the EUF-CMA definition of~\cite{GMR88} as defined below:
+\dotparagraph{\textbf{Digital Signatures:}} We assume that replicas authenticate their messages by means of explicit digital signatures. A digital signature scheme is a triple of algorithms satisfying the EUF-CMA definition of~\cite{GMR88} as defined below:
 		\begin{itemize}
 	    	\item $\textsl{KeyGen}(1^{\kappa})$: The key generation algorithm takes as input a security parameter $\kappa$ and outputs a secret key $\sk$ and a public key $\pk$.
 	        \item
