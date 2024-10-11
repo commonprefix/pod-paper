@@ -103,7 +103,7 @@ A protocol is a \emph{secure} \podtm if it implements the\podtm interface of Def
 \end{definition}
 
 \noindent
-In the following we define two additional types of properties, \podtm \emph{timeliness} and \podtm \emph{monotonicity}, which can be satisfied independently of the safety and liveness properties of\podtm. Previous work has observed that timeliness is a property orthogonal to safety and liveness of distributed protocols~\cite{DBLP:journals/iacr/TzinasSZ23}.
+In the following we define two additional types of properties, \podtm \emph{timeliness} and \podtm \emph{monotonicity}, which can be satisfied independently of the safety and liveness properties of\podtm. Previous work has observed that timeliness is a property orthogonal to safety and liveness of distributed protocols~\cite{EPRINT:TziSriZin23}.
 
 \begin{definition}[\podtm \parTemp-timeliness for honest transactions]\label{def:pod-timely}
     A \podtm is \emph{\parTemp-timely} if it is a secure \podtm, as per Definition~\ref{def:podsec}, and the following properties hold for any transaction \tx written by an honest client in round $\round$ (observe that, from the \emph{confirmation within \parConf} property, \tx will become confirmed):
