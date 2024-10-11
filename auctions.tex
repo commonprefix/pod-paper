@@ -73,7 +73,7 @@ Second, a round higher than $\tzero + 3 \Delta$ becomes past-perfect in \podtm (
 
 Observe that, from the \emph{past-perfection within $\parPerf=\delta$} property of \podtm-core, the condition in \cref{line:bidset-read-result-pp} will become true at latest at round $\tzero + 3 \Delta + \delta$, hence \bidsettm-core achieves \emph{termination within $\parAuctionTerm=3\Delta + \delta$}.
 If the network is synchronous and the auctioneer honest, the condition in \cref{line:bidset-find-confirmed-tx} becomes true at round at most $\tzero + \Delta + 3\delta$ for an honest consumer, hence it outputs \bag as the bid-set, hence \bidsettm-core satisfies the \emph{consistency} property.
-
+``''
 \begin{theorem}[Bidset security]\label{thm:bidset-construction-secure}
 Assuming a synchronous network (that is, $\delta \leq \Delta$),
 the \bidsettm-core protocol (Construction~\ref{const:bidset}), instantiated with a secure \podtm protocol that satisfies the \emph{past-perfection within $\parPerf = \delta$} and \emph{$\delta$-timeliness} properties, is a secure \bidsettm protocol satisfying \emph{termination within $\parAuctionTerm = 3\Delta + \delta$}.
