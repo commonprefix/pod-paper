@@ -44,7 +44,7 @@ In the \emph{synchronous} model, $\Delta$ is \emph{known} to all processes.
 In the \emph{asynchronous} model, $\Delta$ is \emph{unknown} but still finite, \textit{i.e.}, all messages are eventually delivered.
 In both cases, messages are delivered in an order chosen by the adversary. Notice that our protocol is \emph{responsive}, meaning that its liveness guarantees only depend on the actual network delay $\delta$ and the protocols do not rely on knowledge of $\Delta$.
 \vspace{-3mm}
-\dotparagraph{\textbf{Digital Signatures:}} We assume that replicas authenticate their messages by means of explicit digital signatures. A digital signature scheme is a triple of algorithms satisfying the EUF-CMA definition of~\cite{GMR88} as defined below:
+\dotparagraph{\textbf{Digital Signatures:}} We assume that replicas (and auctioneers in \bidsettm-core) authenticate their messages with digital signatures. A digital signature scheme is a triple of algorithms satisfying the EUF-CMA security~\cite{GMR88} as defined below:
 		\begin{itemize}
 	    	\item $\textsl{KeyGen}(1^{\kappa})$: The key generation algorithm takes as input a security parameter $\kappa$ and outputs a secret key $\sk$ and a public key $\pk$.
 	        \item
