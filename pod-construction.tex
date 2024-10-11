@@ -74,9 +74,9 @@ If both checks pass, the client updates $\mrt[j]$ (\cref{line:upd-mrt}) and $\ts
 The \identify{} function we show in \Cref{alg:identify} can detect such misbehavior. However, in this paper we formalize accountability only when there is a safety violation (\Cref{def:accountable-safety}), hence we do not further explore this.
 
 
-
+%\vspace{-5mm}
 \input{pod-core-pseudocode/pod-core-client-code-1}
-
+%\vspace{-7mm}
 \dotparagraph{Writing to and reading from \podtm}
 Protocol \podtm-core implements functions \opwrite{\tx} and \opreadall{} (\Cref{def:podinterface}) functions as shown in \Cref{alg:client-2}.
 In order to write a transaction \tx, a client sends \msgwrite{\tx} to each replica (lines \ref{line:write-tx-begin}--\ref{line:write-tx-end}).
