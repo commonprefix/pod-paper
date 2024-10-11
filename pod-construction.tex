@@ -43,7 +43,7 @@ Notation $x: a \in A \rightarrow b \in B$ denotes that variable $x$ is a map fro
 For a map $x$, the operations $x.\opKeys$ and $x.\opValues$ return all keys and all values in $x$, respectively.
 With $\emptyset$ we denote an empty map.
 
-\input{pod-core-client-code-1}
+\input{pod-core-pseudocode/pod-core-client-code-1}
 
 \begin{construction}\label{const:pod-core}
 We present \podtm-core, a \podtm construction in Algorithms~\ref{alg:client-1}--~\ref{alg:client-statistics}, for the client code, and \ref{alg:pod-core-replica} for the replica code.
@@ -74,7 +74,7 @@ Concluding, for a valid vote the client updates $\mrt[j]$ (\cref{line:upd-mrt}) 
 We remark here that both of these cases constitute \emph{accountable} faults: In the first case, the client can use the message $\msgrecord{(\tx, \tsp, \sn, \sig, \rep_j)}$ and the vote it received when it updated $\mrt[\rep_j]$ to prove that $\rep_j$ has misbehaved. In the second case it can use $\msgrecord{(\tx, \tsp, \sn, \sig, \rep_j)}$ and the previous vote message it has received on \tx.
 A practical implementation of \podtm can use these facts. The \identify{} function we show in \Cref{alg:identify} can detect such misbehavior. However, in this paper we formalize accountability only for the case when it causes a safety violation (\Cref{def:accountable-safety}), hence we do not further explore this.
 
-\input{pod-core-client-code-2}
+\input{pod-core-pseudocode/pod-core-client-code-2}
 
 \dotparagraph{Writing to and reading from pod}
 As per the interface of \podtm (\Cref{def:podinterface}), clients can interact with it through the \opwrite{\tx} and \opreadall{} functions, which we show in \Cref{alg:client-2}.
@@ -84,7 +84,7 @@ It returns a pod \Pod (\cref{line:return-pod}) with a transaction set \allTxs, c
 a past-perfect round \rperf, and auxiliary data \ppcert.
 We remind that notation $\tsps.\opKeys{}$ on line \cref{line:loop-over-txs} returns all entries in \tsps.
 
-\input{pod-core-client-code-statistics}
+\input{pod-core-pseudocode/pod-core-client-code-statistics}
 
 The associated values \rmin, \rmax, \rconf, \txcert for each transaction, the past-perfect round \rperf, and its auxiliary data \ppcert are computed in the following way.
 For \rmin (\cref{line:upd-rmin-begin}) and \rmax (\cref{line:upd-rmax-begin})
@@ -109,7 +109,7 @@ and appends \beta times the $\infty$ value (\cref{line:apend-infty}), the worst-
 Finally, \opMinPossibleTsForNewTx{} works similarly to \opMinPossibleTs{}, except
 considering timestamps \mrt as the minimum possible for any future transaction.
 
-\input{pod-core-replica-code}
+\input{pod-core-pseudocode/pod-core-replica-code}
 
 \dotparagraph{Replica code}
 The code for a replica is shown in \Cref{alg:pod-core-replica}. The state of a replica (lines \ref{line:rep-state-begin}--\ref{line:rep-state-end}) contains, among others, the transaction log \repLog, which is implemented as a sequence of votes $(\tx, \tsp, \sn, \sigma, \rep_i)$ created by the replica, where \tsp is the timestamp assigned by the replica to \tx, \sn is a sequence number, and \sig is its signature.

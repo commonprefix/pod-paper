@@ -1,0 +1,18 @@
+\begin{algorithm}
+    \caption{\bidsettm-core: Code for a consumer. It uses a \podtm instance \podInst.}
+    \label{alg:bid-set-consumer}
+    \begin{algorithmic}[1]
+        \Function{\opReadResult{}}{}
+            \Let{(\txSet, \rperf, \ppcert)}{\podInst.\opreadall{}}
+            \While{$\rperf \leq \tzero + 3 \Delta$}\label{line:bidset-wait-pp-consumer}
+                \Let{(\txSet, \rperf, \ppcert)}{\podInst.\opreadall{}}
+            \EndWhile{}
+            \If{$\exists (\tx, \cdot, \cdot, \rconf, \cdot) \in \txSet$, \textbf{s.t.} $\tx = \msgbidresult{(\bag, \bidcert, \sigma)}$ \andl $\rconf \neq \bot$}
+                \State{\textbf{output event} \opResult{\bag, \bidcert}}
+            \Else{}
+                \State{\textbf{output event} \opResult{$\emptyset$, \bidcert}}
+            \EndIf
+        \EndFunction 
+    \end{algorithmic}
+    \end{algorithm}
+    
