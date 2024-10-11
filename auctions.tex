@@ -79,9 +79,8 @@ It satisfies accountable safety with a function \identifyAuctioneer{} function t
 
 \begin{remark}
     Observe that \bidsettm-core terminates within $\parAuctionTerm = 3\Delta + \delta$ in the worst case, but, if the auctioneer is honest, then it terminates within $\parAuctionTerm = \Delta + 3\delta$.
-    Moreover, the protocol is not responsive because \Cref{alg:bid-set-auctioneer} waits for a fixed $\Delta$ interval.
-    This step could be optimized if the set of bidders is known (i.e., by requiring them to register for the auction).
-    In that case the protocol can be made optimistically responsive, in the case where all bidders and the auctioneer are honest.
+    Moreover, \bidsettm-core is not responsive because \Cref{alg:bid-set-auctioneer} waits for a fixed $\Delta$ interval.
+    This step can be optimized if the set of bidders is known (i.e., by requiring them to pre-register), which allows for the protocol to be made optimistically responsive when all bidders and the auctioneer are honest.
 \end{remark}
 
 \dotparagraph{\textbf{Auctions using \bidsettm}} Building on a \bidsettm protocol, it is trivial to construct single-shot first price and second price open auctions: 1. Bidders place their open bids $\bid$ by calling \opSubmitBid{\bid}; 2. Consumers determine the winner by calling \opReadResult{} to obtain $\bag$ and outputting either the first or second highest bid. We conjecture that single-short sealed bid auction protocols such as those of~~\cite{trustee,seal,ACNS:DavGenPou22,CCS:TAFWBM23,chitra_et_al:LIPIcs.AFT.2024.19,cryptoeprint:2024/1011} can also be instantiated on top of a \bidsettm protocol. Intuitively, this holds because such protocols first agree on a set of sealed bids and then execute extra steps to determiner the winner. However, a formal analysis of sealed-bid auction protocols based on \bidsettm is left as future work.
