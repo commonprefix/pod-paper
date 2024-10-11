@@ -1,5 +1,16 @@
 \section{Remarks on \podtm Monotonicity}\label{app:monotonicity}
-We show that a monotone \podtm can be obtained from any secure \podtm and that monotonicity implies certain specific properties that may be useful for applications.
+We define \podtm Monotonicity as an intermediate notion that stands between a simple secure \podtm and a $\theta$-timely \podtm. The property of \podtm Monotonicity requires that, as time advances, $\rmin$ does not decrease, $\rmax$ does not increase and confirmed transactions remain confirmed.
+
+\begin{definition}[\podtm monotonicity]
+	A \podtm satisfies \emph{pod monotonicity}, and called a \emph{monotone \podtm}, if it is a secure \podtm, as per Definition~\ref{def:podsec}, and the following properties hold for any rounds $\round_1,\round_2 > \round_1$:
+	\begin{enumerate}
+		\item (Past-perfection Stickiness) $\podView{\client}{\round_2}.\rperf \geq \podView{\client}{\round_1}.\rperf $;
+		\item (Transaction Stickiness) If  transaction $\tx$ appears in $\podView{\client}{\round_1}.\txSet$, then $\tx$ appears in $\podView{\client}{\round_2}.\txSet$;
+		\item (Temperature Stickiness) For every $\tx$ that appears in $\podView{\client}{\round_1}.\txSet$ with $\rmin,\rmax,\rconf$ and appears in  $\podView{\client}{\round_2}.\txSet$ with $\rmin',\rmax',\rconf'$,  it holds that $\rmin'\geq \rmin$, $\rmax' \leq \rmax$, $\rconf' \geq \rconf$.
+	\end{enumerate}
+\end{definition}
+
+We now observe that a monotone \podtm can be obtained from any secure \podtm and that monotonicity implies certain specific properties that may be useful for applications.
 
 \begin{remark}
 	Every secure \podtm can be transformed into a monotone \podtm if parties are stateful. Let $\round_1$ be the last round when an honest client $\client$ read the \podtm obtaining view $\podView{\client}{\round_1}$, which is stored as state until $\client$ reads the \podtm again. At any round $\round_2>\round_1$, if $\client$ reads the \podtm and obtains $\podView{\client}{\round_2}$, $\client$ can define a view $\overline{\podView{\client}{\round_2}}$ satisfying the properties of \podtm monotonicity:

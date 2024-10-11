@@ -10,7 +10,7 @@ In this section, we introduce the notion of a \podtm, a distributed protocol tha
     We remark that the associated values of a transaction change during the execution of a \podtm protocol.
 \end{definition}
 
-Looking ahead, \txcert will be a certificate containing signatures and will be used to achieve accountability.
+In \podtm-core, \txcert will contain digital signatures used to achieve accountability.
 
 \begin{definition}[Confirmed transaction]
     A transaction with confirmed round \rconf is called \emph{\confirmed} if $\rconf \neq \bot$, and \emph{unconfirmed} otherwise.
@@ -28,12 +28,12 @@ A \emph{transaction set} $\txSet$ is a set of tuples $(\tx, \rmin, \rmax, \rconf
     and $\ppcert \in \zo^*$ contains auxiliary data.
 \end{definition}
 
-Looking ahead, and similar to \txcert, \ppcert will be a certificate containing signatures and will be used to achieve accountability.
+In \podtm-core, \ppcert will also contain signatures used to achieve accountability.
 Our construction will allow for deriving $\ppcert$ from all certificates $\txcert$ in $\txSet$, but we define $\ppcert$ explicitly for clarity and generality. 
 Moreover, \rperf will imply a completeness property on \txSet, defined by the past-perfection safety property of \podtm. 
 We remark that transactions in \txSet may be \confirmed on unconfirmed.
 
-We now define the \podtm protocol interface and associated concepts.
+%We now define the \podtm protocol interface and associated concepts.
 \begin{definition}[\podtm interface]\label{def:podinterface}
 A \podtm protocol has the following interface.
 \begin{itemize}
@@ -103,7 +103,9 @@ A protocol is a \emph{secure} \podtm if it implements the\podtm interface of Def
 \end{definition}
 
 \noindent
-In the following we define two additional types of properties, \podtm \emph{timeliness} and \podtm \emph{monotonicity}, which can be satisfied independently of the safety and liveness properties of\podtm. Previous work has observed that timeliness is a property orthogonal to safety and liveness of distributed protocols~\cite{EPRINT:TziSriZin23}.
+In the following we define an additional property of \podtm \emph{timeliness}
+% and \podtm \emph{monotonicity}
+, which can be satisfied independently of the safety and liveness properties of\podtm. Previous work has observed that timeliness is a property orthogonal to safety and liveness of distributed protocols~\cite{EPRINT:TziSriZin23}.
 
 \begin{definition}[\podtm \parTemp-timeliness for honest transactions]\label{def:pod-timely}
     A \podtm is \emph{\parTemp-timely} if it is a secure \podtm, as per Definition~\ref{def:podsec}, and the following properties hold for any transaction \tx written by an honest client in round $\round$ (observe that, from the \emph{confirmation within \parConf} property, \tx will become confirmed):
@@ -114,16 +116,9 @@ In the following we define two additional types of properties, \podtm \emph{time
     \end{enumerate}
 \end{definition}
 
-\begin{definition}[\podtm monotonicity]
-A \podtm satisfies \emph{pod monotonicity}, and called a \emph{monotone \podtm}, if it is a secure \podtm, as per Definition~\ref{def:podsec}, and the following properties hold for any rounds $\round_1,\round_2 > \round_1$:
-\begin{enumerate}
-	\item (Past-perfection Stickiness) $\podView{\client}{\round_2}.\rperf \geq \podView{\client}{\round_1}.\rperf $;
-	\item (Transaction Stickiness) If  transaction $\tx$ appears in $\podView{\client}{\round_1}.\txSet$, then $\tx$ appears in $\podView{\client}{\round_2}.\txSet$;
-	\item (Temperature Stickiness) For every $\tx$ that appears in $\podView{\client}{\round_1}.\txSet$ with $\rmin,\rmax,\rconf$ and appears in  $\podView{\client}{\round_2}.\txSet$ with $\rmin',\rmax',\rconf'$,  it holds that $\rmin'\geq \rmin$, $\rmax' \leq \rmax$, $\rconf' \geq \rconf$.
-\end{enumerate}
-\end{definition}
 
-In Appendix~\ref{app:monotonicity}, we present remarks on how a monotone \podtm can be obtained from any secure \podtm and on specific useful properties implied by monotonicity.
+
+In Appendix~\ref{app:monotonicity}, we define the property of \podtm \emph{Monotonicity} and show that it can be obtained from any secure \podtm protocol with stateful clients.
 
 
 

@@ -8,6 +8,8 @@
 % \oa{TODO: Mention that we can use client gossip, gossiping, or relayers to achieve totality. We denote by $u$ the (average) time it takes
 % in synchrony for a transaction to reach all replicas. For example, $u = 2 \Delta$ using client gossip or relayers.}
 
+Before we present protocol \podtm-core, we define basic concepts and structures.
+
 \begin{definition}[Vote] 
     A \emph{vote} is a tuple $(\tx, \tsp, \sn, \sig, \rep)$, where \tx is a transaction, \tsp is a timestamp, \sn is a sequence number, \sig is a signature, and  \rep is a replica.
     A vote is \emph{valid} if \sig is a valid signature on message $m = (\tx, \tsp)$ with respect to the public key $\pk_\rep$ of replica \rep.
@@ -26,7 +28,7 @@
 % Given a certificate \txcert for \tx, we use $\txcert.\tx$, $\txcert.\rmin$, $\txcert.\rmax$, and $\txcert.\rconf$ to refer to \tx and the values associated with it.
 
 \begin{remark}[Processing votes in order]
-    The construction requires that clients process votes from each replica in the same order, namely in order of increasing timestamps. For this we employ \emph{sequence numbers}. Each replica maintains a sequence number, which it increments and includes every time it assigns a timestamp to a transaction.
+    We require that clients process votes from each replica in the same order, namely in order of increasing timestamps. For this we employ \emph{sequence numbers}. Each replica maintains a sequence number, which it increments and includes every time it assigns a timestamp to a transaction.
 \end{remark}
 
 \begin{remark}[Implicit session identifiers]
