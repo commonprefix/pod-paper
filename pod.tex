@@ -70,11 +70,8 @@ A \podtm protocol has the following interface.
 \begin{definition}[Secure \podtm]\label{def:podsec}
 A protocol is a \emph{secure} \podtm if it implements the\podtm interface of Definition~\ref{def:podinterface} and satisfies the following liveness and safety properties.
 
-\vspace{-3mm}
-\dotparagraph{1. Liveness properties}
-\begin{description}[leftmargin=*, align=left]
-	\vspace{-2mm}
-    \item[Confirmation within \parConf:]
+\begin{description}[leftmargin=1mm]
+    \item[(Liveness) Confirmation within \parConf:]
 	Transactions become \confirmed after at most \parConf rounds.
 	That is, if an honest client $\client$ writes a transaction \tx at round \round, then for any honest client $\client'$ (including $\client=\client'$) it holds that $\tx \in \podView{\client'}{\round + \parConf}$ and $\tx.\rconf \neq \bot$.
 	% \item[Confirmation within \parConf:]
@@ -82,17 +79,12 @@ A protocol is a \emph{secure} \podtm if it implements the\podtm interface of Def
 	% \item[Availability after \parLive:]
 	% If an honest client writes a transaction \tx at round \round, then for any honest client $\client$, it holds that $\tx \in \podView{c}{\round + \parLive}$ and $\tx.\rconf \neq \bot$.
 	
-	\item[Past-perfection within \parPerf:]
+	\item[(Liveness) Past-perfection within \parPerf:]
 	Rounds become past-perfect after at most $\parPerf$ rounds. 
 	That is, for any honest client \client and round $\round \geq \parPerf$,
 	it holds that $\podView{c}{\round}.\rperf \geq \round - \parPerf$.
-\end{description}
 
-\vspace{-3mm}
-\dotparagraph{2. Safety properties}
-\begin{description}[left=0pt,itemindent=0pt]   
-	\vspace{-2mm}
-	\item[Past-perfection:]
+	\item[(Safety) Past-perfection:]
 	Let \client be an honest client with view $\podView{\client}{\round}$ at round $\round$.
 	Then, for any transaction $\tx \in \zo^*$ that becomes confirmed in view $\podView{\client'}{\round'}$, where $\client'$ is an honest client and $\round' \geq 0$ is a round, with confirmed round $\rconf$, it holds that, if $\rconf < \podView{\client}{\round}.\rperf$ then $\tx \in \podView{\client}{\round}$.
 	% For any honest client \client and round $\round$,
@@ -100,8 +92,7 @@ A protocol is a \emph{secure} \podtm if it implements the\podtm interface of Def
 	
 	%\item[Generalized ledger safety:]
 	%The numbers $\rmin, \rmax$, and $\rconf$ for a transaction \tx satisfy the following:
-	
-	\item[Confirmation bounds:] For any honest clients $\client_1,\client_2$, if $\client_1$ observes $\tx$ with $\rmin$ and $\rmax$ and $\client_2$ observes \tx as \confirmed with confirmation round $\rconf'$, then $\rmin \leq \rconf' \leq \rmax$.
+	\item[(Safety) Confirmation bounds:] For any honest clients $\client_1,\client_2$, if $\client_1$ observes $\tx$ with $\rmin$ and $\rmax$ and $\client_2$ observes \tx as \confirmed with confirmation round $\rconf'$, then $\rmin \leq \rconf' \leq \rmax$.
 
 \end{description}
 \end{definition}

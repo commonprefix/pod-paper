@@ -1,11 +1,11 @@
 \begin{algorithm}[h!]
-    \caption{Protocol \podtm-core (\Cref{const:pod-core}): Code for a replica $\rep_i$.}
+    \caption{Protocol \podtm-core (\Cref{const:pod-core}): Code for a replica $\rep_i$, where \sk denotes its secret signing key.}
     \label{alg:pod-core-replica}
     \begin{algorithmic}[1]
         % \State{\textbf{State:}}
-        \State{\sk}                 \Comment{The secret key of the replica, used for signing} \label{line:rep-state-begin}
+        % \State{\sk}                 \Comment{The secret key of the replica, used for signing} 
+        \State{$\allClients$ }      \Comment{\text{The set of all connected clients}}\label{line:rep-state-begin}
         \State{\nextsn}             \Comment{\text{The next sequence number to assign to votes}}
-        \State{$\allClients$ }      \Comment{\text{The set of all connected clients}}
         \State{$\repLog$}           \Comment{\text{The transaction log or the replica}}
         % \State{$\repLog : \tx \rightarrow (\tsp, \sn, \sig)$}  \Comment{\text{The transaction log or the replica}}
         \State{\opTime{}}           \Comment{\text{A function that returns the wall time of the replica}} \label{line:rep-state-end}
