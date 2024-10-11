@@ -10,7 +10,7 @@
                 \ElsIf{$\rperf > \tzero + 3 \Delta$}\label{line:bidset-read-result-pp}
                     \State{\textbf{output event} \opResult{$\emptyset$, \bidcert}}
                 \EndIf
-            \EndLoop
+            \EndLoop\label{line:bidset-consumer-loop-end}
         \EndFunction 
     \end{algorithmic}
     \end{algorithm}
