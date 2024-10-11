@@ -3,7 +3,6 @@
 \dotparagraph{Consensusless payments}
 Recent literature has recognized the redundancy of consensus for implementing asset-transfer systems~\cite{DBLP:journals/dc/GuerraouiKMPS22}.
 Such schemes have been described in theory~\cite{DBLP:journals/corr/abs-1909-10926, DBLP:conf/dsn/CollinsGKKMPPST20} and deployed in the real world~\cite{DBLP:conf/aft/BaudetDS20}.
-
 The insight is that total transaction order is not required in the case that each account is controlled by one client.
 Instead, a partial order is sufficient, ensuring that, if transactions $\tx_1$ and $\tx_2$ are created by the same client, then every party outputs them in the same order.
 This requirement was first formalized by Guerraoui~\etal~\cite{DBLP:journals/dc/GuerraouiKMPS22}, called the \emph{source-order property}.\footnote{Observe that this is weaker than the FIFO property, as it allows the output order to be different from the order in which the sender sent the transactions.}
@@ -19,14 +18,14 @@ Hence, a cheating client might lose liveness~\cite{DBLP:conf/aft/BaudetDS20,DBLP
 % All these protocols are tailor-made for payment systems or for specific blockchains and cannot be used for general distributed applications.
 
 \dotparagraph{Auctions}
-\podtm does not offer the source-order property.
-It is possible that a \opread{} operation returns $\tx_1$ before $\tx_2$,
-while another returns $\tx_2$ before $\tx_1$, even for $\tx_1$, $\tx_2$ written by the same honest client, as the \confirmed round of a transaction is allowed to wiggle.
-Hence, \podtm cannot be directly used for payments.
-However, payments can be implemented on top of \podtm by including a client sequence number in the user transaction,
-similar to how previous works~\cite{DBLP:conf/aft/BaudetDS20,DBLP:journals/dc/GuerraouiKMPS22} achieve the source-order property.
-
-On the other hand, \podtm offers a \emph{past-perfection} property:
+% A \podtm does not offer the source-order property.
+% It is possible that a \opread{} operation returns $\tx_1$ before $\tx_2$,
+% while another returns $\tx_2$ before $\tx_1$, even for $\tx_1$, $\tx_2$ written by the same honest client, as the \confirmed round of a transaction is allowed to wiggle.
+% Hence, \podtm cannot be directly used for payments.
+% However, payments can be implemented on top of \podtm by including a client sequence number in the user transaction,
+% similar to how previous works~\cite{DBLP:conf/aft/BaudetDS20,DBLP:journals/dc/GuerraouiKMPS22} achieve the source-order property.
+% On the other hand, 
+A \podtm primitive offers a \emph{past-perfection} property:
 a \opread{} operation outputs a timestamp \rperf, and it is \emph{guaranteed}
 that the output of \opread{} contains all transactions that can ever be confirmed with a timestamp smaller than \rperf in the view of any reading client, regardless of the network conditions.
 This implies that reading clients (such as an auctioneer) cannot claim not having received a transaction when reading the \podtm, as this is detectable by any other client who reads the \podtm.
