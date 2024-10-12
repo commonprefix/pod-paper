@@ -49,10 +49,10 @@ In order to prove Theorem~\ref{thm:pod-security} and establish the security of P
 
 \noindent
 
-The following theorem proves that \Cref{const:pod-core} satisfies the security definition of \podtm. We prove it through a series of lemmas.
+We now recall Theorem~\ref{thm:pod-security}, which formally states that \Cref{const:pod-core} satisfies the security definition of \podtm (\Cref{def:podsec}) with accountable safety (\Cref{def:accountable-safety}). We prove it through a series of lemmas.
 
 \begin{customthm}{\ref{thm:pod-security}}[\podtm security]
-	Construction~\ref{const:pod-core} based on a secure signature scheme, parametrized with $\alpha \geq 4 \beta + 1$ and assuming at most \beta malicious replicas, is a secure \podtm with \beta-accountable safety (\Cref{def:accountable-safety}), Confirmation within $\parConf = 2 \delta$ and Past-perfection within $\parPerf = \delta$, \ewnp.
+	In the asynchronous model with actual network delay $\delta$ (but unknown delay upper bound), assuming at most \beta malicious replicas, \podtm-core (Construction~\ref{const:pod-core}), instantiated with a secure signature scheme and parameterized with $\alpha \geq 4 \beta + 1$, is a responsive secure \podtm (\Cref{def:podsec}) with Confirmation within $\parConf = 2 \delta$ and Past-perfection within $\parPerf = \delta$, satisfying the property of \beta-accountable safety (\Cref{def:accountable-safety}), \ewnp.
 	\end{customthm}
 \begin{proof}
 	In Lemmas~\ref{lem:pod-confirmation}--\ref{lem:pod-accountable-safety}.

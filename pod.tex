@@ -25,7 +25,7 @@ A \emph{transaction set} $\txSet$ is a set of tuples $(\tx, \rmin, \rmax, \rconf
 \end{definition}
 
 
-\begin{definition}[the \podtm data structure]
+\begin{definition}[\podtm data structure]
     A \podtm $\Pod$ is a triple $(\txSet, \rperf, \ppcert)$, where \txSet is a transaction set, \rperf is a round number, called the \emph{past-perfect round},
     and $\ppcert \in \zo^*$ contains auxiliary data.
 \end{definition}
@@ -36,7 +36,7 @@ Moreover, \rperf will imply a completeness property on \txSet, defined by the pa
 We remark that transactions in \txSet may be \confirmed on unconfirmed.
 
 %We now define the \podtm protocol interface and associated concepts.
-\begin{definition}[interface of a \podtm]\label{def:podinterface}
+\begin{definition}[Interface of a \podtm]\label{def:podinterface}
 A \podtm protocol has the following interface.
 \begin{itemize}
     \item $\opwrite{\tx}$:
@@ -112,7 +112,7 @@ In the following we define an additional property of \podtm \emph{timeliness}, w
 
 
 
-In Appendix~\ref{app:monotonicity}, we define the weaker property of \podtm \emph{Monotonicity} and show that it can be obtained from any secure \podtm protocol with stateful clients.
+In Appendix~\ref{app:monotonicity}, we define the property of \podtm \emph{Monotonicity} and show that it can be obtained from any secure \podtm protocol with stateful clients.
 
 
 

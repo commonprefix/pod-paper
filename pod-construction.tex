@@ -120,9 +120,9 @@ considering timestamps \mrt as the minimum possible for any future transaction.
 The state of a replica (lines \ref{line:rep-state-begin}--\ref{line:rep-state-end}) contains, among others, the transaction log \repLog, which is implemented as a sequence of votes $(\tx, \tsp, \sn, \sigma, \rep_i)$ created by the replica, where \tsp is the timestamp assigned by the replica to \tx, \sn is a sequence number, and \sig is its signature.
 A functionality \opTime{} allows the replica to determine the current round number.
 When the replica receives a \msgconnect{} message from a client \client, it appends \client to its set of connected clients and sends to \client all entries in \repLog (lines \ref{line:rep-receive-connect-begin}--\ref{line:rep-receive-connect-end}).
-
+\vspace{-5mm}
 \input{pod-core-pseudocode/pod-core-replica-code}
-
+\vspace{-5mm}
 
 
 
@@ -146,7 +146,7 @@ When received by a client, a \heartBeat is handled as a vote (i.e., it triggers 
 \noindent\textbf{Security Analysis:} We formalize the security of Construction~\ref{const:pod-core} in the following theorem, which is proven in Appendix~\ref{app:pod-security}. We show the \identify{} function for \podtm-core in Appendix~\ref{app:pod-security} as well.
 % \vspace{-2mm}
 \begin{theorem}[Pod-core security]\label{thm:pod-security}
-	Pod-core (Construction~\ref{const:pod-core}), instantiated with a secure signature scheme, parametrized with $\alpha \geq 4 \beta + 1$ and assuming at most \beta malicious replicas, is a secure \podtm with \beta-accountable safety (\Cref{def:accountable-safety}), with Confirmation within $\parConf = 2 \delta$ and Past-perfection within $\parPerf = \delta$, \ewnp.
+	In the asynchronous model with actual network delay $\delta$ (but unknown delay upper bound), assuming at most \beta malicious replicas, \podtm-core (Construction~\ref{const:pod-core}), instantiated with a secure signature scheme and parameterized with $\alpha \geq 4 \beta + 1$, is a responsive secure \podtm (\Cref{def:podsec}) with Confirmation within $\parConf = 2 \delta$ and Past-perfection within $\parPerf = \delta$, satisfying the property of \beta-accountable safety (\Cref{def:accountable-safety}), \ewnp.
 \end{theorem}
 
 

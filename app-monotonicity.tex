@@ -1,12 +1,12 @@
-\section{Remarks on \podtm monotonicity}\label{app:monotonicity}
+\section{Definition of \podtm monotonicity}\label{app:monotonicity}
 We define \emph{\podtm monotonicity} as an intermediate notion that stands between a simple secure \podtm and a $\theta$-timely \podtm. The property of \podtm monotonicity requires that, as time advances, $\rmin$ does not decrease, $\rmax$ does not increase and confirmed transactions remain confirmed.
 
 \begin{definition}[\podtm monotonicity]
 	A \podtm satisfies \emph{pod monotonicity}, and called a \emph{monotone \podtm}, if it is a secure \podtm, as per Definition~\ref{def:podsec}, and the following properties hold for any rounds $\round_1,\round_2 > \round_1$:
 	\begin{enumerate}
-		\item (Past-perfection Stickiness) $\podView{\client}{\round_2}.\rperf \geq \podView{\client}{\round_1}.\rperf $;
-		\item (Transaction Stickiness) If  transaction $\tx$ appears in $\podView{\client}{\round_1}.\txSet$, then $\tx$ appears in $\podView{\client}{\round_2}.\txSet$;
-		\item (Temperature Stickiness) For every $\tx$ that appears in $\podView{\client}{\round_1}.\txSet$ with $\rmin,\rmax,\rconf$ and appears in  $\podView{\client}{\round_2}.\txSet$ with $\rmin',\rmax',\rconf'$,  it holds that $\rmin'\geq \rmin$, $\rmax' \leq \rmax$, $\rconf' \geq \rconf$.
+		\item (Past-perfection Monotonicity) $\podView{\client}{\round_2}.\rperf \geq \podView{\client}{\round_1}.\rperf $;
+		\item (Transaction Monotonicity) If  transaction $\tx$ appears in $\podView{\client}{\round_1}.\txSet$, then $\tx$ appears in $\podView{\client}{\round_2}.\txSet$;
+		\item (Confirmation Bounds Monotonicity) For every $\tx$ that appears in $\podView{\client}{\round_1}.\txSet$ with $\rmin,\rmax,\rconf$ and appears in  $\podView{\client}{\round_2}.\txSet$ with $\rmin',\rmax',\rconf'$,  it holds that $\rmin'\geq \rmin$, $\rmax' \leq \rmax$, $\rconf' \geq \rconf$.
 	\end{enumerate}
 \end{definition}
 
@@ -42,25 +42,25 @@ We now observe that a monotone \podtm can be obtained from any secure \podtm and
 
 In the remarks below, we observe that \podtm monotonicity implies a number of useful properties about the monotonicity of past perfection and the values $\rmin,\rmax,\rconf$ associated to a transaction in the \podtm.
 
-\begin{remark}[Confirmation stickiness]\label{rem:confstick}
+\begin{remark}[Confirmation Monotonicity]\label{rem:confstick}
 	Properties 2 and 3 of \podtm monotonicity imply that  for any honest client $\client$ and rounds $\round_1, \round_2 > \round_1$,
 	if $\tx \in \podView{\client}{\round_1}$ and $\tx.\rconf \neq \bot$, then $\tx \in \podView{\client}{\round_2}$ and $\tx.\rconf \neq \bot$.
 \end{remark}
 
-\begin{remark}[Past-perfection stickiness]
-	Property 1 of \podtm monotonicity imply that the past-perfect round obtained by honest clients can only grow.
-	That is, for any honest client \client and rounds $\round_1, \round_2 \geq \round_1$,
-	it holds that $\podView{\client}{\round_2}.\rperf \geq \podView{\client}{\round_1}.\rperf$.
-\end{remark}
+%\begin{remark}[Past-perfection Monotonicity]
+%	Property 1 of \podtm monotonicity imply that the past-perfect round obtained by honest clients can only grow.
+%	That is, for any honest client \client and rounds $\round_1, \round_2 \geq \round_1$,
+%	it holds that $\podView{\client}{\round_2}.\rperf \geq \podView{\client}{\round_1}.\rperf$.
+%\end{remark}
 
-\begin{remark}[Temperature stickiness]
-	Properties 2 and 3 of \podtm monotonicity imply that if an honest client obtains $\rmin$ and $\rmax$ for \tx in round $\round_1$, and later obtains $\rmin'$ and $\rmax'$ for \tx in round $\round_2 > \round_1$, then $\rmin' \geq \rmin$ and $\rmax' \leq \rmax$.
+\begin{remark}[Strong Confirmation Bounds Monotonicity]
+	Properties 2 and 3 of \podtm monotonicity imply that if an honest client obtains $\rmin$ and $\rmax$ for \tx in round $\round_1$, then the same client will later obtain $\rmin'$ and $\rmax'$ for \tx in round $\round_2 > \round_1$ such thati $\rmin' \geq \rmin$ and $\rmax' \leq \rmax$.
 \end{remark}
 
 \begin{remark}
-	Observe that the \emph{confirmation stickiness} property in Remark~\ref{rem:confstick} is a specific version of a more general \emph{common subset} property, which would demand the condition for any two honest clients $\client_1, \client_2$. 
+	Observe that the \emph{confirmation monotonicity} property in Remark~\ref{rem:confstick} is a specific version of a more general \emph{common subset} property, which would demand the condition for any two honest clients $\client_1, \client_2$. 
 	%We provide such a property in \Cref{sec:pod-with-propagation}.
-	\Cref{const:pod-core} satisfies the \emph{confirmation stickiness} property.
+	\Cref{const:pod-core} satisfies the \emph{confirmation monotonicity} property.
 	% \emph{ Confirmation monotonicity for honest transactions after $X$:}
 	% For any honest clients $\client_1$, $\client_2$ and rounds $\round_1, \round_2 > \round_1 + X$,
 	% and for any transaction \tx written by an honest client,
