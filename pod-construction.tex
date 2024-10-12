@@ -130,7 +130,7 @@ When the replica receives a \msgconnect{} message from a client \client, it appe
 When it receives  \msgwrite{\tx}. a replica first checks whether it has already seen \tx, in which case the message is ignored. Otherwise, it assigns \tx a timestamp \tsp equal its local round number and the next available sequence number \sn, and signs the message $(\tx, \tsp, \sn)$ (\cref{line:rep-assign-tsp}).
 Honest replicas use incremental sequence numbers for each transaction, so if a vote has a larger sequence number than another vote, it will have a larger or equal timestamp than the other.
 The replica appends $(\tx, \tsp, \sn, \sig)$ to \repLog, and sends it via a \msgrecord{(\tx, \tsp, \sn, \sig, \rep)} message to all connected clients (\cref{line:send-vote}).
-\vspace{-1mm}
+\vspace{-2mm}
 \dotparagraph{Heartbeat messages}
 Clients update their most-recent timestamp $ \mrt[\rep_j]$ every time they receive a vote from replica $\rep_j$ (\cref{line:upd-mrt} in \Cref{alg:client-1}).
 However, in case $\rep_j$ has not written any transaction in round \round (simply because no client called \opwrite{} in round \round),
@@ -144,7 +144,7 @@ When received by a client, a \heartBeat is handled as a vote (i.e., it triggers 
 
 \vspace{1mm}
 \noindent\textbf{Security Analysis:} We formalize the security of Construction~\ref{const:pod-core} in the following theorem, which is proven in Appendix~\ref{app:pod-security}. We show the \identify{} function for \podtm-core in Appendix~\ref{app:pod-security} as well.
-
+\vspace{-2mm}
 \begin{theorem}[Pod-core security]\label{thm:pod-security}
 	Pod-core (Construction~\ref{const:pod-core}), instantiated with a secure signature scheme, parametrized with $\alpha \geq 4 \beta + 1$ and assuming at most \beta malicious replicas, is a secure \podtm with \beta-accountable safety (\Cref{def:accountable-safety}), with Confirmation within $\parConf = 2 \delta$ and Past-perfection within $\parPerf = \delta$, \ewnp.
 \end{theorem}
