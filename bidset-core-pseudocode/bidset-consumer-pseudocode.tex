@@ -8,7 +8,7 @@
                     \If{$\exists (\tx, \cdot, \cdot, \rconf, \cdot) \in \txSet$ \textbf{:} $\tx = \msgbidresult{(\bag, \bidcert, \sigma)}$ \andl $\rconf \leq \tzero + 3 \Delta$} \label{line:bidset-find-confirmed-tx}
                     \State{\textbf{output event} \opResult{\bag, \bidcert}}
                 \ElsIf{$\rperf > \tzero + 3 \Delta$}\label{line:bidset-read-result-pp}
-                    \State{\textbf{output event} \opResult{$\emptyset$, \bidcert}}
+                    \State{\textbf{output event} \opResult{$\emptyset$, \ppcert}}
                 \EndIf
             \EndLoop\label{line:bidset-consumer-loop-end}
         \EndFunction 

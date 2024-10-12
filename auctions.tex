@@ -20,8 +20,8 @@ In this section, we construct single-shot distributed auctions based on top of \
             % Moreover, \emph{fair punishment} holds: an honest auctioneer cannot be held accountable for censoring bids, even in asynchronous networks.
             % \oa{Notice that, even in asynchrony, an honest auctioneer cannot be blamed, in the construction we present.}
             
-            \item[(Safety) Consistency:]
-            If two honest consumers generate events \opResult{$\bag_1, \cdot$} and \opResult{$\bag_2, \cdot$}, then $\bag_1 = \bag_2$.
+            \item[(Safety) Weak consistency:]
+            If two honest consumers generate events \opResult{$\bag_1, \cdot$} and \opResult{$\bag_2, \cdot$}, such that $\bag_1 \neq \emptyset$ and $\bag_2 \neq \emptyset$, then $\bag_1 = \bag_2$.
             % \hue{Single-result: If there are multiple conflicting auction results, the auctioneer can be held accountable}
             % \oa{Only in synchrony.}
 

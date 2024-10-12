@@ -8,7 +8,7 @@
                 \Let{(\txSet, \rperf, \ppcert)}{\podInst.\opreadall{}}
             \EndWhile{}
             \State{$\bag \gets \{\tx \mid (\tx, \cdot, \cdot , \cdot, \cdot) \in \txSet\}  ;\; \bidcert \gets \ppcert$}\label{line:bidset-create-bag}
-            \Let{\sigma}{\opSign{$\sk_a, (\bag, \bidcert)$}}
+            \Let{\sigma}{\opSign{$\sk_a, (\bag, \bidcert)$}} \label{line:bidset-auctioneer-sign}
             \Let{\tx}{\msgbidresult{(\bag, \bidcert, \sigma)}}\label{line:bidset-write-bag}
             \State{\podInst.\opwrite{\tx}} %Run by \tzero + 2 \Delta. 
         \EndFunction
