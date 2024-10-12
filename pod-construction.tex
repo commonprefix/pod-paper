@@ -12,7 +12,7 @@ Before we present protocol \podtm-core, we define basic concepts and structures.
 
 \begin{definition}[Vote] 
     A \emph{vote} is a tuple $(\tx, \tsp, \sn, \sig, \rep)$, where \tx is a transaction, \tsp is a timestamp, \sn is a sequence number, \sig is a signature, and  \rep is a replica.
-    A vote is \emph{valid} if \sig is a valid signature on message $m = (\tx, \tsp)$ with respect to the public key $\pk_\rep$ of replica \rep.
+    A vote is \emph{valid} if \sig is a valid signature on message $m = (\tx, \tsp, \sn)$ with respect to the public key $\pk_\rep$ of replica \rep.
 \end{definition}
 
 % \begin{definition}[\Confirmed transaction]\label{def:rec-tx}
@@ -48,7 +48,7 @@ With $\emptyset$ we denote an empty map.
 \begin{construction}\label{const:pod-core}
 We present \podtm-core, a \podtm construction in Algorithms~\ref{alg:client-1}--~\ref{alg:client-statistics}, for the client code, and \ref{alg:pod-core-replica} for the replica code.
 % and discuss its main points, first for the client and then for the replica construction, in the following paragraphs.
-\podtm-core achieves \emph{accountable safety} (see \Cref{sec:accountable-safety}) with an \identify{} function described in \Cref{alg:identify}.
+It achieves \emph{accountable safety} (see \Cref{sec:accountable-safety}) with an \identify{} function described in \Cref{alg:identify}.
 In the remainder of this section we discuss how \podtm-core achieves its properties.
 \end{construction}
 
@@ -63,15 +63,15 @@ At initialization the client also sends a \msgconnect{} message to each replica,
 %\vspace{-3mm}
 \dotparagraph{Receiving votes}
 A client maintains a connection to each replica and receives votes through \msgrecord{(\tx, \tsp, \sn, \sig, \rep_j)} messages (lines~\ref{line:receive-vote-begin}--\ref{line:receive-vote-end}).
-When a vote is received from replica $\rep_j$, the client first verifies the signature \sig under$\rep_j$'s public key (\cref{line:client-verify-sig-begin}). If invalid, the vote is ignored.
-Then the client verifies that the vote contains the next sequence number it expects to receive from replica $\rep_j$ (\cref{line:client-check-sn}). If this is not the case, then the vote is \emph{backlogged} and given again to the client at a later point (the backlogging functionality is not shown in the pseudocode).
+When a vote is received from replica $\rep_j$, the client first verifies the signature \sig under $\rep_j$'s public key (\cref{line:client-verify-sig-begin}). If invalid, the vote is ignored.
+Then the client verifies that the vote contains the next sequence number it expects to receive from replica $\rep_j$ (\cref{line:client-check-sn}). If this is not the case, the vote is \emph{backlogged} and given again to the client at a later point (the backlogging functionality is not shown in the pseudocode).
 
 The client checks the vote against previous votes received from $\rep_j$.
 First, \tsp must be greater or equal to $\mrt_j$, the most recent timestamp returned by replica $\rep_j$ (\cref{line:check-old-ts}).
 Second, the replica must have not previously sent a different timestamp for \tx (\cref{line:check-dup-tsp}), except if \tx is a \heartBeat (as checked on \cref{line:client-heartbeat-return}).
-If both checks pass, the client updates $\mrt[j]$ (\cref{line:upd-mrt}) and $\tsps[\tx][\rep_j]$ (\cref{line:rec-tsp}) with \tsp. If any of these checks fail, the client ignores the vote, since both of these cases constitute \emph{accountable} faults:.In the first case, the client can use the message $\msgrecord{(\tx, \tsp, \sn, \sig, \rep_j)}$ and the vote it received when it updated $\mrt[\rep_j]$ to prove that $\rep_j$ has misbehaved. In the second case ,it can use $\msgrecord{(\tx, \tsp, \sn, \sig, \rep_j)}$ and the previous vote it has received for \tx.
+If both checks pass, the client updates $\mrt[j]$ (\cref{line:upd-mrt}) and $\tsps[\tx][\rep_j]$ (\cref{line:rec-tsp}) with \tsp. If any of these checks fail, the client ignores the vote, since both of these cases constitute \emph{accountable} faults: In the first case, the client can use the message $\msgrecord{(\tx, \tsp, \sn, \sig, \rep_j)}$ and the vote it received when it updated $\mrt[\rep_j]$ to prove that $\rep_j$ has misbehaved. In the second case, it can use $\msgrecord{(\tx, \tsp, \sn, \sig, \rep_j)}$ and the previous vote it has received for \tx.
 %A practical implementation of \podtm can use these facts. 
-The \identify{} function we show in \Cref{alg:identify} can detect such misbehavior. However, in this paper we formalize accountability only when there is a safety violation (\Cref{def:accountable-safety}), hence we do not further explore this.
+The \identify{} function we show in \Cref{alg:identify} can detect such misbehavior. However, in this paper we formalize accountability conditioned on safety being violated (\Cref{def:accountable-safety}), hence we do not further explore this.
 
 
 %\vspace{-5mm}
@@ -144,7 +144,7 @@ When received by a client, a \heartBeat is handled as a vote (i.e., it triggers 
 
 \vspace{1mm}
 \noindent\textbf{Security Analysis:} We formalize the security of Construction~\ref{const:pod-core} in the following theorem, which is proven in Appendix~\ref{app:pod-security}. We show the \identify{} function for \podtm-core in Appendix~\ref{app:pod-security} as well.
-\vspace{-2mm}
+% \vspace{-2mm}
 \begin{theorem}[Pod-core security]\label{thm:pod-security}
 	Pod-core (Construction~\ref{const:pod-core}), instantiated with a secure signature scheme, parametrized with $\alpha \geq 4 \beta + 1$ and assuming at most \beta malicious replicas, is a secure \podtm with \beta-accountable safety (\Cref{def:accountable-safety}), with Confirmation within $\parConf = 2 \delta$ and Past-perfection within $\parPerf = \delta$, \ewnp.
 \end{theorem}
