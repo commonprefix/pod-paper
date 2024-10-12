@@ -98,9 +98,7 @@ A protocol is a \emph{secure} \podtm if it implements the\podtm interface of Def
 \end{definition}
 
 \noindent
-In the following we define an additional property of \podtm \emph{timeliness}
-% and \podtm \emph{monotonicity}
-, which can be satisfied independently of the safety and liveness properties of\podtm. Previous work has observed a similar property as orthogonal to safety and liveness~\cite{EPRINT:TziSriZin23}.
+In the following we define an additional property of \podtm \emph{timeliness}, which can be satisfied along with the standard safety and liveness properties of \podtm. Previous work has observed a similar property as orthogonal to safety and liveness~\cite{EPRINT:TziSriZin23}.
 
 \begin{definition}[\podtm \parTemp-timeliness for honest transactions]\label{def:pod-timely}
     A \podtm is \emph{\parTemp-timely} if it is a secure \podtm, as per Definition~\ref{def:podsec}, and the following properties hold for any transaction \tx written by an honest client in round $\round$ (observe that, from the \emph{confirmation within \parConf} property, \tx will become confirmed):
@@ -113,7 +111,7 @@ In the following we define an additional property of \podtm \emph{timeliness}
 
 
 
-In Appendix~\ref{app:monotonicity}, we define the property of \podtm \emph{Monotonicity} and show that it can be obtained from any secure \podtm protocol with stateful clients.
+In Appendix~\ref{app:monotonicity}, we define the weaker property of \podtm \emph{Monotonicity} and show that it can be obtained from any secure \podtm protocol with stateful clients.
 
 
 
