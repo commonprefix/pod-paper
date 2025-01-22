@@ -1,21 +1,27 @@
 \section{Introduction}
-Despite the great adoption of blockchains, an important problem still remains unsolved: they are slow. The latency from the moment a client submits a transaction until it appears in the output of the blockchain is long -- for certain applications prohibitively long.
+Despite the widespread adoption of blockchains, a significant challenge remains unresolved: they are inherently slow. The latency from the moment a client submits a transaction to its appearance in the blockchain's output can be prohibitively long for certain applications.
 
-In a model where \emph{replicas} maintain the network, \emph{writers} submit transactions and \emph{readers} read the network, the minimum latency is one network round trip, or $2\delta$, letting $\delta$ denote the actual network delay, as the information needs to flow from the writers to the replicas and then to the readers.
+In a model where \emph{replicas} maintain the network, \emph{writers} submit transactions, and \emph{readers} read the network, the minimum latency is one network round trip, or $2\delta$, letting $\delta$ denote the actual network delay, as the information must travel from the writers to the replicas and then to the readers.
 This works is motivated by the following question.
 
 \begin{center}
 	\emph{Can we have a blockchain with the optimal latency of one round trip time?}
 \end{center}
 
-We remark that the definition of latency we have given, which corresponds to the definition of \emph{liveness} in blockchains, refers to a finalized and non-reversible output: if a reader receives a transactions, then that transaction will always remain in the output of the protocol. Moreover, we do not consider a setting with the so-called ``optimistic'' or ``happy'' path, where transactions get finalized faster if some particular replica is honest and/or the network conditions are good. Instead, we require that a transaction, as long as its writer is honest, appears in the output within $2\delta$ time, whatever the value $\delta$ happens to currently be.
+We define latency in terms of the blockchain \emph{liveness} property, referring to finalized, non-reversible outputs: once a transaction is received by a reader, it remains in the protocol's output permanently.
+We do not assume "optimistic" or "happy" path scenarios, where transactions might finalize faster under favorable conditions (such as having honest leaders or optimal network conditions). Instead, we want that any transaction from an honest writer appears in the output of honest readers within $2\delta$ time, regardless of the current value of $\delta$.
 
-Our first design choice towards this goal is to eliminate any communication among replicas -- this is necessary in order to achieve the latency of $2\delta$ for all transactions. Hence, in our protocol we have writers send their transactions to all replicas. Replicas maintain a \emph{replica log}, they perform some computation when they receive transactions, and send their log to the readers. The readers then extract information from these replica logs.
+To achieve this $2\delta$ latency, our first key design decision eliminates inter-replica communication entirely. Instead, writers send their transactions directly to all replicas. Each replica maintains its own \emph{replica log}, processes incoming transactions independently, and transmits its log to readers. Readers then process these replica logs to extract relevant information.
 
-But what can the readers learn from the replica logs, when replicas do not even communicate with each other? It turns out that some simple additions by the replicas, such as timestamping transactions and sequencing the entries in their logs, are strong enough for readers to extract useful information. 
-Moreover, it is known that consensus is impossible with a latency of $2\delta$, hence this work is expected to yield a primitive that is weaker than consensus. What can this primitive achieve, and what applications can it be used for? We show that it can actually be used for multiple applications, such as payments, auctions, decentralized data stores. 
+This design raises two important questions. First, what meaningful information can readers derive from replica logs when replicas operate in isolation? Second, given that achieving consensus within $2\delta$ time is proven impossible, what capabilities can this necessarily weaker primitive offer? We demonstrate that, by incorporating simple mechanisms, such as transaction timestamping and replica-log sequencing, replicas can enable readers to extract valuable information beyond mere low-latency guarantees. Furthermore, we show how the properties of pod can enable various applications, including payment systems, auction platforms, and decentralized data stores.
 
-\wip{One paragraph summarizing the achieved properties.}
+Specifically, pod delivers the following guarantees:
+\begin{itemize}
+    \item Transaction confirmation within $2\delta$ latency, with each confirmed transaction assigned a \emph{confirmation round}; we say that the transaction becomes \emph{confirmed} at the time indicated by the confirmation timestamp.
+    \item Censorship resistance when facing up to $f$ Byzantine replicas, ensuring all confirmed transactions appear in every honest reader's output.
+    \item A \emph{past-perfect round} can be computed by readers, such that the reader has received all transactions that are or will be confirmed prior to this round, even though not all transactions are strictly ordered.
+    \item Accountability for any safety violations.
+\end{itemize}
 
 %------------------------------
 %%% OLD INTRO
@@ -43,24 +49,25 @@ We construct \podtm-core, a simple protocol realizing the \podtm notion with min
 %------------------------------
 
 
-\subsection{Our techniques}
-We consider that time proceeds in \emph{rounds}, and that parties know the current round, so we can express timestamps in terms of rounds. A \podtm associates each transaction $\tx$ with timestamp values $\rmin \geq 0$ (minimum round), $\rmax \leq \infty$ (maximum round) and $\rconf$ (\confirmed round). The confirmation round may be initially $\rconf=\perp$ but later becomes $\rmin \leq \rconf \leq \rmax$, when a transaction is \emph{confirmed}.  While each party reads different values $\rmin,\rmax,\rconf$ for the same $\tx$, \podtm guarantees that values read by different parties stay within these limits.
+\subsection{Summary of our results}
+We consider that time proceeds in \emph{rounds}, and that parties (replicas and clients) know the current round, so we can express timestamps in terms of rounds. The output of \podtm associates each transaction $\tx$ with timestamp values $\rmin \geq 0$ (minimum round), $\rmax \leq \infty$ (maximum round) and $\rconf$ (\confirmed round). The confirmation round may be initially $\rconf=\perp$ but later becomes $\rmin \leq \rconf \leq \rmax$, when a transaction is \emph{confirmed}.  While each party reads different values $\rmin,\rmax,\rconf$ for the same $\tx$, \podtm guarantees that values read by different parties stay within these limits.
 
-When parties \emph{read} a \podtm, they obtain a $\podtm$ data structure $\Pod = (\txSet, \rperf, \ppcert)$, where $\txSet$ is set of  transactions with their associated timestamps, $\rperf$ is a \emph{past-perfect} round and $\ppcert$ is auxiliary data. The \emph{past-perfection} safety property of \podtm guarantees that 
+When clients \emph{read} the \podtm, they obtain a $\podtm$ data structure $\Pod = (\txSet, \rperf, \ppcert)$, where $\txSet$ is set of  transactions with their associated timestamps, $\rperf$ is a \emph{past-perfect} round and $\ppcert$ is auxiliary data. The \emph{past-perfection} safety property of \podtm guarantees that 
 %if a transaction $\tx$ did not appear in $\txSet$, then no other party will ever read $\tx$ with confirmed round $\rconf'$ such that $\rconf' < \rperf$. This guarantees that, 
 \txSet contains \emph{all} transactions that every other honest party will ever read with a confirmed round smaller than $\rperf$.  A \podtm also guarantees \emph{past-perfection within $w$}, meaning that $\rperf$ is at most $w$ rounds in the past.
 
-For each transaction $\tx$ in \txSet, the reading party obtains associated timestamps $\rmin, \rmax, \rconf$ and auxiliary data $\txcert$, which may evolve. A \podtm guarantees \emph{confirmation within $u$ rounds}, meaning that, at most $u$ rounds after $\tx$ was written, every party who reads the \podtm will see $\tx$ as confirmed with some $\rconf \neq \perp$. 
+For each transaction $\tx$ in \txSet, the reader obtains associated timestamps $\rmin, \rmax, \rconf$ and auxiliary data $\txcert$, which may evolve. The protocol guarantees \emph{confirmation within $u$ rounds}, meaning that, at most $u$ rounds after $\tx$ was written, every party who reads the \podtm will see $\tx$ as confirmed with some $\rconf \neq \perp$. 
 Moreover, \podtm guarantees \emph{confirmation bounds}, ensuring that
 % if a party reads $\tx$ with minimum round $\rmin$ and maximum round $\rmax$, for every other party who reads $\tx$ with $\rconf' \neq \perp$, it holds that $\rmin \leq \rconf' \leq \rmax$. This means that 
 the values \rmin and \rmax for $\tx$, read by an honest party, determine the range of the \rconf value for $\tx$ that can ever be read by another honest party,
 i.e., $\rmin \leq \rconf \leq \rmax$.
 
-In summary, a \podtm provides \emph{past-perfection} and \emph{confirmation bounds} as safety properties, ensuring parties cannot be blindsided by transactions suddenly appearing as confirmed too far in the past, and that the different (and continuously changing) transaction timestamps stay in a certain range. The liveness properties of \emph{confirmation within $u$} and \emph{past-perfection within $w$} ensure that new transactions get confirmed within a bounded delay, and that each party's past-perfect round must be constantly progressing.
+In summary, \podtm provides \emph{past-perfection} and \emph{confirmation bounds} as safety properties, ensuring parties cannot be blindsided by transactions suddenly appearing as confirmed too far in the past, and that the different (and continuously changing) transaction timestamps stay in a certain range. The liveness properties of \emph{confirmation within $u$} and \emph{past-perfection within $w$} ensure that new transactions get confirmed within a bounded delay, and that each party's past-perfect round must be constantly progressing.
 
-Besides introducing the notion of \podtm, we present a construction \podtm-core that requires minimal interaction among parties and achieves optimal latency, \textit{i.e.}, optimal parameters $u=2\delta$ and $w=\delta$, where $\delta$ is the current network delay (not a delay upper bound). Our construction relies on a set of $n$ \emph{replicas} to maintain a \podtm data structure, which can be read by an unbounded number of clients. The only communication is between each client and the replicas, not among clients nor among replicas. Moreover, \podtm-core can use the auxiliary data $\ppcert,\txcert$ to publicly identify misbehaving replicas and keep them accountable.
+Besides introducing the notion of \podtm, we present a construction \podtm-core that requires minimal interaction among parties and achieves optimal latency, \textit{i.e.}, optimal parameters $u=2\delta$ and $w=\delta$, where $\delta$ is the current network delay (not a delay upper bound). Our construction relies on a set of $n$ \emph{replicas} to maintain a \podtm data structure, which can be read by an unbounded number of clients. The only communication is between each client and the replicas, not among clients nor among replicas.
+% Moreover, \podtm-core can use the auxiliary data $\ppcert,\txcert$ to publicly identify misbehaving replicas and keep them accountable.
 
-Writing a transaction $\tx$ in \podtm-core only requires clients to send $\tx$ to the replicas, who each assign a timestamp $\tsp$ (current time)  to $\tx$ and return a signature on $(\tx,\tsp)$. When reading the \podtm, the client simply requests each replica's log of $(\tx,\tsp)$, validates the responses, and determines $\rmin$ and $\rmax$ from the received timestamps. If the client receives responses from enough replicas, $\rconf$ is determined by taking the median of the timestamps received from these replicas.
+Writing a transaction $\tx$ in \podtm-core only requires clients to send $\tx$ to the replicas, who each assign a timestamp $\tsp$ (their current time) and a \emph{sequence number} to $\tx$ and return a signature on $(\tx,\tsp, \sn)$. When reading the \podtm, the client simply requests each replica's log of transactions, validates the responses, and determines $\rmin$ and $\rmax$ from the received timestamps. If the client receives responses from enough replicas, $\rconf$ is determined by taking the median of the timestamps received from these replicas.
 % If a replica provides conflicting timestamps $\tsp\neq \tsp'$ for the same $\tx$ to one or more clients, the replica's signatures publicly proves cheating.
 
 \vspace{2mm}

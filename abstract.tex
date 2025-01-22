@@ -1,12 +1,5 @@
 \begin{abstract}
-    %The fact that payments can be done in a distributed system without consensus has been recognized in the last years, and it has affected the design of several new blockchain networks.
-    %The core idea is that the so-called double-spending problem can be solved without agreeing in a total order for all transactions in the system. Instead, it is enough if the transactions of each user are totally-ordered.
-
-    %In this paper we observe that for some applications not even that property is required.
-   % The most common example is running auctions on top of a distributed system: at a prespecified \emph{deadline}, an auctioneer reads the bids from the system, runs the auction protocol, and announces the auction winner.
-    %Indeed, the bids of each user need not be ordered.
-    %What is instead require is that the auctioneer can not censor bids that have been written to the system.
-    %More specifically, honest bidders must be able to publicly prove that their bids were placed in the system \emph{before} the deadline.
+\wip{Rewrite}
 
 Recent research shows many consensus applications do not require total order, even though they are usually realized on top of totally-ordered public ledgers. For example, for the double-spending problem in payments it suffices if a total order is only imposed within each user's set of transactions. For some applications not even this property is required. In a distributed auction, an auctioneer reads bids from the ledger at a prescribed \emph{deadline} and announces the winner according to the auction mechanism (\textit{e.g.}, highest bid wins). In this case, the order of bids does not matter, as long as the auctioneer cannot censor bids from parties who placed their bids \emph{before} the deadline.
 
