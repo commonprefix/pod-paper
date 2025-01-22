@@ -1,4 +1,25 @@
 \section{Introduction}
+Despite the great adoption of blockchains, an important problem still remains unsolved: they are slow. The latency from the moment a client submits a transaction until it appears in the output of the blockchain is long -- for certain applications prohibitively long.
+
+In a model where \emph{replicas} maintain the network, \emph{writers} submit transactions and \emph{readers} read the network, the minimum latency is one network round trip, or $2\delta$, letting $\delta$ denote the actual network delay, as the information needs to flow from the writers to the replicas and then to the readers.
+This works is motivated by the following question.
+
+\begin{center}
+	\emph{Can we have a blockchain with the optimal latency of one round trip time?}
+\end{center}
+
+We remark that the definition of latency we have given, which corresponds to the definition of \emph{liveness} in blockchains, refers to a finalized and non-reversible output: if a reader receives a transactions, then that transaction will always remain in the output of the protocol. Moreover, we do not consider a setting with the so-called ``optimistic'' or ``happy'' path, where transactions get finalized faster if some particular replica is honest and/or the network conditions are good. Instead, we require that a transaction, as long as its writer is honest, appears in the output within $2\delta$ time, whatever the value $\delta$ happens to currently be.
+
+Our first design choice towards this goal is to eliminate any communication among replicas -- this is necessary in order to achieve the latency of $2\delta$ for all transactions. Hence, in our protocol we have writers send their transactions to all replicas. Replicas maintain a \emph{replica log}, they perform some computation when they receive transactions, and send their log to the readers. The readers then extract information from these replica logs.
+
+But what can the readers learn from the replica logs, when replicas do not even communicate with each other? It turns out that some simple additions by the replicas, such as timestamping transactions and sequencing the entries in their logs, are strong enough for readers to extract useful information. 
+Moreover, it is known that consensus is impossible with a latency of $2\delta$, hence this work is expected to yield a primitive that is weaker than consensus. What can this primitive achieve, and what applications can it be used for? We show that it can actually be used for multiple applications, such as payments, auctions, decentralized data stores. 
+
+\wip{One paragraph summarizing the achieved properties.}
+
+%------------------------------
+%%% OLD INTRO
+\iffalse
 Most distributed systems implementing cryptocurrency schemes~\cite{bitcoin} and smart contracts~\cite{smartcontracts,wood} have been built on the assumption that it is necessary to achieve consensus on \emph{total order} of all users' transactions. This belief sparked a rich line of work on permissionless blockchain protocols~\cite{EC:GarKiaLeo15,C:KRDO17,EC:DGKR18,EC:PasShi18,algorand} and more traditional consensus protocols~\cite{CCS:MXCSS16,PODC:YMRGA19,SP:AMNRY20,sbft,narwhal}, aimed at instantiating large scale high-throughput public ledgers that maintain an (eventually) immutable global order of transactions, while quickly registering honest parties' transactions. However, as much as these protocols have evolved in recent years, the need to maintain total order among all transactions in the ledger introduces fundamental constraints to their efficiency~\cite{antoniadis_et_al:LIPIcs.DISC.2018.7,FOCS:BerGarPer89,10.1007/978-3-319-39028-4_9}. Moreover, the fact that `leaders' get to choose what data to register in the ledger allows them to unfairly order and even briefly censor transactions~\cite{C:KZGJ20}. While solutions to censorship~\cite{DBLP:journals/corr/abs-2307-10185} and order fairness~\cite{CCS:KDLJK23,fairpos} problems have been suggested, they face fundamental limits~\cite{EC:KiaLeoShe24} due to aiming for full consensus guarantees.
 \pagebreak
 
@@ -17,12 +38,12 @@ In this work, we investigate how to further relax consensus guarantees in order 
 We answer this question by introducing the notion of \podtm, which allows for parties to read and write transactions associated with a \emph{timestamp}. Rather than agreeing on a transaction's timestamp, each party in a \podtm reads different timestamps that may later change, but are guaranteed to stay within certain limits.  This means that we may be able to order some transactions that are written sufficiently far in time from each other, while transactions written around the same time may appear concurrent during the entire execution. A \podtm has a \emph{past-perfection} property, which guarantees that, for each round, there is a point in time by which an honest party will have read all transaction that may ever get associated with a timestamp earlier than that round. A \podtm also guarantees that written transactions can be read by all honest parties (preventing censorship) and every round becomes \emph{past-perfect} within a bounded delays.  
 
 We construct \podtm-core, a simple protocol realizing the \podtm notion with minimal interaction among parties and optimal latency, guaranteeing that transactions become \emph{confirmed} and rounds become \emph{past-perfect} as fast as the network allows. Moreover, \podtm-core has accountability, guaranteeing identification (and enabling punishment) of parties that attempt to modify confirmed transactions, or vary their timestamps beyond the allowed limits. Based on \podtm-core, we construct \bidsettm-core, a protocol for agreeing on a unordered set of bids. Since \bidsettm-core inherits these properties, we obtain censorship resistant auctions.
+\fi
+%%% OLD INTRO
+%------------------------------
 
 
-\vspace{2mm}
-\noindent\textbf{Related Works:} As previously mentioned, a number of recent works~~\cite{DBLP:journals/corr/abs-1909-10926, DBLP:conf/dsn/CollinsGKKMPPST20,DBLP:conf/aft/BaudetDS20,DBLP:journals/dc/GuerraouiKMPS22} has considered how to construct digital asset transfer schemes (\textit{i.e.} payments) without relying on public ledgers that allow parties to agree on a total order of transactions. These works propose protocols where it is only guaranteed that honest parties can order transactions produced by the same party, yielding more efficient protocols. However, besides being restricted to payments, these protocols do not address censorship issues and do not guarantee that honest parties will see transactions in a timely manner (\textit{i.e.} some honest transactions may only be seen after an unknown delay). See Appendix~\ref{app:related} for a  detailed discussion.
-
-\subsection{Our Techniques}
+\subsection{Our techniques}
 We consider that time proceeds in \emph{rounds}, and that parties know the current round, so we can express timestamps in terms of rounds. A \podtm associates each transaction $\tx$ with timestamp values $\rmin \geq 0$ (minimum round), $\rmax \leq \infty$ (maximum round) and $\rconf$ (\confirmed round). The confirmation round may be initially $\rconf=\perp$ but later becomes $\rmin \leq \rconf \leq \rmax$, when a transaction is \emph{confirmed}.  While each party reads different values $\rmin,\rmax,\rconf$ for the same $\tx$, \podtm guarantees that values read by different parties stay within these limits.
 
 When parties \emph{read} a \podtm, they obtain a $\podtm$ data structure $\Pod = (\txSet, \rperf, \ppcert)$, where $\txSet$ is set of  transactions with their associated timestamps, $\rperf$ is a \emph{past-perfect} round and $\ppcert$ is auxiliary data. The \emph{past-perfection} safety property of \podtm guarantees that 
@@ -41,3 +62,8 @@ Besides introducing the notion of \podtm, we present a construction \podtm-core 
 
 Writing a transaction $\tx$ in \podtm-core only requires clients to send $\tx$ to the replicas, who each assign a timestamp $\tsp$ (current time)  to $\tx$ and return a signature on $(\tx,\tsp)$. When reading the \podtm, the client simply requests each replica's log of $(\tx,\tsp)$, validates the responses, and determines $\rmin$ and $\rmax$ from the received timestamps. If the client receives responses from enough replicas, $\rconf$ is determined by taking the median of the timestamps received from these replicas.
 % If a replica provides conflicting timestamps $\tsp\neq \tsp'$ for the same $\tx$ to one or more clients, the replica's signatures publicly proves cheating.
+
+\vspace{2mm}
+\subsection{Related works} 
+\wip{Bring section from appendix. Add references to other works with low latency.}
+As previously mentioned, a number of recent works~~\cite{DBLP:journals/corr/abs-1909-10926, DBLP:conf/dsn/CollinsGKKMPPST20,DBLP:conf/aft/BaudetDS20,DBLP:journals/dc/GuerraouiKMPS22} has considered how to construct digital asset transfer schemes (\textit{i.e.} payments) without relying on public ledgers that allow parties to agree on a total order of transactions. These works propose protocols where it is only guaranteed that honest parties can order transactions produced by the same party, yielding more efficient protocols. However, besides being restricted to payments, these protocols do not address censorship issues and do not guarantee that honest parties will see transactions in a timely manner (\textit{i.e.} some honest transactions may only be seen after an unknown delay). See Appendix~\ref{app:related} for a  detailed discussion.
