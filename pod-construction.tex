@@ -30,15 +30,15 @@ Before we present protocol \podtm-core, we define basic concepts and structures.
 \begin{remark}[Processing votes in order]
     We require that clients process votes from each replica in the same order, namely in order of increasing timestamps. For this we employ \emph{sequence numbers}. Each replica maintains a sequence number, which it increments and includes every time it assigns a timestamp to a transaction.
 \end{remark}
-\vspace{-3mm}
+% \vspace{-3mm}
 \begin{remark}[Implicit session identifiers]
 We assume that all messages between clients and replicas are concatenated with a session identifier (sid), which is unique for each concurrent execution of the protocol. Moreover, the sid is implicitly included in all messages signed by the replicas.
 \end{remark}
-\vspace{-3mm}
+% \vspace{-3mm}
 \begin{remark}[Streaming construction]
     The client protocol we show in \Cref{const:pod-core} is \emph{streaming}, that is, clients maintain a connection to the replicas, and \emph{stateful}, that is, they persist their state (received transactions, votes, and associated values) across all invocations of \opwrite{} and \opreadall{}.
 \end{remark}
-\vspace{-3mm}
+% \vspace{-3mm}
 \dotparagraph{Pseudocode notation}
 For a timestamp \tsp, notation $\tsp.\opGetVote$ denotes the vote message from some replica through which a client obtained timestamp \tsp. We abstract away the logic of how $\opGetVote$ is implemented.
 Notation $x: a \in A \rightarrow b \in B$ denotes that variable $x$ is a map from elements of type $A$ to elements of type $B$. When obvious from the context, we do not explicitly write the types $A$ or $B$.
@@ -103,7 +103,7 @@ Before it becomes confirmed, a transaction has $\rconf = \bot$ and $\txcert = [ 
 When confirmed, \rconf is the median of all received timestamps (line~\ref{line:assign-median}),
 and the auxiliary data \txcert contains all the received votes on \tx (line~\ref{line:assign-txcert}).
 % This implies that a transaction is confirmed if and only if $|\txcert| \geq \alpha$.
-\vspace{-3mm}
+
 \dotparagraph{Computing the associated values and the past-perfect round}
 Function \opMinPossibleTs{} in \Cref{alg:client-statistics} fills a missing vote from replica $\rep_j$ with $\mrt[\rep_j]$ (\cref{line:fill-vote-lts}),
 the minimum timestamp that can ever be  accepted from $\rep_j$ (smaller values will not pass the check in \cref{line:check-old-ts} of \Cref{alg:client-2}),
@@ -115,14 +115,13 @@ considering timestamps \mrt as the minimum possible for any future transaction.
 
 \input{pod-core-pseudocode/pod-core-client-code-statistics}
 
-\vspace{-5mm}
 \dotparagraph{Replica code (\Cref{alg:pod-core-replica})}
 The state of a replica (lines \ref{line:rep-state-begin}--\ref{line:rep-state-end}) contains, among others, the transaction log \repLog, which is implemented as a sequence of votes $(\tx, \tsp, \sn, \sigma, \rep_i)$ created by the replica, where \tsp is the timestamp assigned by the replica to \tx, \sn is a sequence number, and \sig is its signature.
 A functionality \opTime{} allows the replica to determine the current round number.
 When the replica receives a \msgconnect{} message from a client \client, it appends \client to its set of connected clients and sends to \client all entries in \repLog (lines \ref{line:rep-receive-connect-begin}--\ref{line:rep-receive-connect-end}).
-\vspace{-5mm}
+% \vspace{-5mm}
 \input{pod-core-pseudocode/pod-core-replica-code}
-\vspace{-5mm}
+% \vspace{-5mm}
 
 
 
@@ -142,7 +141,7 @@ When received by a client, a \heartBeat is handled as a vote (i.e., it triggers 
 % \dotparagraph{Detecting misbehavior}
 % Clients can detect certain cases of replica misbehavior. When this happens (lines \ref{line:raise-old-tsp}, \ref{line:raise-dup-tsp}, \ref{line:raise-old-heartbeat}) the client stops processing the current vote and triggers an \opAccountableFault{\tran} event, where \tran is a set of messages that can prove the misbehavior through the \identify{} function. 
 
-\vspace{1mm}
+
 \noindent\textbf{Security Analysis:} We formalize the security of Construction~\ref{const:pod-core} in the following theorem, which is proven in Appendix~\ref{app:pod-security}. We show the \identify{} function for \podtm-core in Appendix~\ref{app:pod-security} as well.
 % \vspace{-2mm}
 \begin{theorem}[Pod-core security]\label{thm:pod-security}
