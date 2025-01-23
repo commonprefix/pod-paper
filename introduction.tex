@@ -11,9 +11,9 @@ This works is motivated by the following question.
 We define latency in terms of the blockchain \emph{liveness} property, referring to finalized, non-reversible outputs: once a transaction is received by a reader, it remains in the protocol's output permanently.
 We do not assume "optimistic" or "happy" path scenarios, where transactions might finalize faster under favorable conditions (such as having honest leaders or optimal network conditions). Instead, we want that any transaction from an honest writer appears in the output of honest readers within $2\delta$ time, regardless of the current value of $\delta$.
 
-To achieve this $2\delta$ latency, our first key design decision eliminates inter-replica communication entirely. Instead, writers send their transactions directly to all replicas. Each replica maintains its own \emph{replica log}, processes incoming transactions independently, and transmits its log to readers. Readers then process these replica logs to extract relevant information.
+To achieve the single-roundtrip latency, our first key design decision eliminates inter-replica communication entirely. Instead, writers send their transactions directly to all replicas. Each replica maintains its own \emph{replica log}, processes incoming transactions independently, and transmits its log to readers. Readers then process these replica logs to extract relevant information.
 
-This design raises two important questions. First, what meaningful information can readers derive from replica logs when replicas operate in isolation? Second, given that achieving consensus within $2\delta$ time is proven impossible, what capabilities can this necessarily weaker primitive offer? We demonstrate that, by incorporating simple mechanisms, such as transaction timestamping and replica-log sequencing, replicas can enable readers to extract valuable information beyond mere low-latency guarantees. Furthermore, we show how the properties of pod can enable various applications, including payment systems, auction platforms, and decentralized data stores.
+This design raises two important questions. First, what meaningful information can readers derive from replica logs when replicas operate in isolation? Second, given that in two rounds is proven impossible~\cite{DBLP:conf/focs/GarayKKO07}, what capabilities can this necessarily weaker primitive offer? We demonstrate that, by incorporating simple mechanisms, such as transaction timestamping and replica-log sequencing, replicas can enable readers to extract valuable information beyond mere low-latency guarantees. Furthermore, we show how the properties of pod can enable various applications, including payment systems, auction platforms, and decentralized data stores.
 
 Specifically, pod delivers the following guarantees:
 \begin{itemize}
@@ -70,7 +70,47 @@ Besides introducing the notion of \podtm, we present a construction \podtm-core 
 Writing a transaction $\tx$ in \podtm-core only requires clients to send $\tx$ to the replicas, who each assign a timestamp $\tsp$ (their current time) and a \emph{sequence number} to $\tx$ and return a signature on $(\tx,\tsp, \sn)$. When reading the \podtm, the client simply requests each replica's log of transactions, validates the responses, and determines $\rmin$ and $\rmax$ from the received timestamps. If the client receives responses from enough replicas, $\rconf$ is determined by taking the median of the timestamps received from these replicas.
 % If a replica provides conflicting timestamps $\tsp\neq \tsp'$ for the same $\tx$ to one or more clients, the replica's signatures publicly proves cheating.
 
-\vspace{2mm}
-\subsection{Related works} 
-\wip{Bring section from appendix. Add references to other works with low latency.}
-As previously mentioned, a number of recent works~~\cite{DBLP:journals/corr/abs-1909-10926, DBLP:conf/dsn/CollinsGKKMPPST20,DBLP:conf/aft/BaudetDS20,DBLP:journals/dc/GuerraouiKMPS22} has considered how to construct digital asset transfer schemes (\textit{i.e.} payments) without relying on public ledgers that allow parties to agree on a total order of transactions. These works propose protocols where it is only guaranteed that honest parties can order transactions produced by the same party, yielding more efficient protocols. However, besides being restricted to payments, these protocols do not address censorship issues and do not guarantee that honest parties will see transactions in a timely manner (\textit{i.e.} some honest transactions may only be seen after an unknown delay). See Appendix~\ref{app:related} for a  detailed discussion.
+
+\subsection{Related work}\label{app:related}
+
+\dotparagraph{Reducing latency}
+Many previous works have lowered the latency of ordering transactions.
+HotStuff~\cite{DBLP:conf/podc/YinMRGA19} uses three rounds of all-to-leader and leader-to-all communication pattern, which results in an end-to-end latency (i.e., from the moment a client submits a transaction until in appears in the output of honest replicas) of $8\delta$ in the happy path.
+Jolteon~\cite{DBLP:conf/fc/GelashviliKSSX22}, Ditto~\cite{DBLP:conf/fc/GelashviliKSSX22}, and HotStuff-2~\cite{DBLP:journals/iacr/MalkhiN23} are two-round versions of HotStuff with end-to-end latency of $5\delta$.
+MoonShot~\cite{DBLP:journals/corr/abs-2401-01791} allows leaders to send a new proposal every $\delta$ time, before receiving enough votes for the previous one, but still achieves an end-to-end latency of $5\delta$.
+In the ``DAG-based'' line of word, Tusk~\cite{DBLP:conf/eurosys/DanezisKSS22} achieves and end-to-end latency of $7\delta$,
+the partially-synchronous version of BullShark~\cite{DBLP:journals/corr/abs-2209-05633} an end-to-end latency of $5\delta$,
+and Mysticeti~\cite{DBLP:journals/corr/abs-2310-14821} an end-to-end latency of $4\delta$.
+All these protocols aim at total-order properties, hence their lower latency is inherently restricted by lower bounds. Pod, in contrary, starts from the single-round-trip latency requirement and explores the properties that can be achieved.
+
+\dotparagraph{Consensusless payments}
+The redundancy of consensus for implementing payment systems has been recognized by previous works~\cite{DBLP:journals/dc/GuerraouiKMPS22,DBLP:journals/corr/abs-1909-10926,DBLP:conf/dsn/CollinsGKKMPPST20,DBLP:conf/aft/BaudetDS20}.
+The insight is that total transaction order is not required in the case that each account is controlled by one client.
+Instead, a partial order is sufficient, ensuring that, if transactions $\tx_1$ and $\tx_2$ are created by the same client, then every party outputs them in the same order.
+This requirement was first formalized by Guerraoui~\etal~\cite{DBLP:journals/dc/GuerraouiKMPS22} as the \emph{source-order property}.
+% Notice that this is weaker than the FIFO property, as it allows the output order to be different from the order in which the sender sent the transactions.
+% All protocols have a similar architecture: transactions are created and broadcast by clients, who either drive the whole broadcast instance~\cite{DBLP:conf/aft/BaudetDS20} or outsource it to trusted replicas~\cite{DBLP:conf/dsn/CollinsGKKMPPST20}.
+% The constructions of Guerraoui~\etal~\cite{DBLP:journals/dc/GuerraouiKMPS22} and FastPay~\cite{DBLP:conf/aft/BaudetDS20} satisfy the source-order property by having clients use sequence numbers for their transactions, and by having replicas sign at most one transaction from a client with a given sequence number.
+The constructions of Guerraoui~\etal~\cite{DBLP:journals/dc/GuerraouiKMPS22} and FastPay~\cite{DBLP:conf/aft/BaudetDS20} require clients to maintain sequence numbers.
+ABC~\cite{DBLP:journals/corr/abs-1909-10926} requires clients to reference all previous transaction in a DAG (including its own last transaction).
+% , and, in case of transactions spending the same output, by having replicas sign only one of them.
+Cheating client might lose liveness~\cite{DBLP:conf/aft/BaudetDS20,DBLP:journals/dc/GuerraouiKMPS22,DBLP:journals/corr/abs-1909-10926}, but equivocating is not possible.
+
+\dotparagraph{Parallel consensusless payments}
+Bazzi and Piergiovanni~\cite{PODC:BazPie24} observe two limitations of consensusless protocols: As they employ sequence numbers and deterministic broadcast,
+clients can only submit one transaction at a time, and they must obtain signatures by at least $2f+1$ replicas on each transaction,
+where $f$ is the maximum number of tolerated failures.
+The authors propose a new type of probabilistic Byzantine quorum systems~\cite{DBLP:journals/iandc/MalkhiRWW01},
+% achieving lower \emph{and} upper bounds in the intersection among quorums.
+and a protocol that allows a user to initiate multiple concurrent payments, called \emph{fractional payments},
+each transferring amount $b / s$ from their balance $b$, where $s$ is a constant,
+and each requiring a signature from less than $f$ replicas.
+Their solution, however, requires $n > 8f$ and a large $n$ for the probabilistic analysis to hold.
+
+\dotparagraph{Auctions}
+The primitive of \podtm offers the \emph{past-perfection} property:
+a \opread{} operation outputs a timestamp \rperf, and it is \emph{guaranteed}
+that the output of \opread{} contains all transactions that can ever be confirmed with a timestamp smaller than \rperf in the view of any reading client, regardless of the network conditions.
+This implies that reading clients (such as an auctioneer) cannot claim not having received a transaction when reading the \podtm, as this is detectable by any other client who reads the \podtm.
+To the best of our knowledge, previous work in the consensusless literature has not considered or achieved this property,
+hence it cannot readily support applications like auctions.

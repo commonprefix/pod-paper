@@ -1,14 +1,23 @@
 \begin{abstract}
-\wip{Rewrite}
+This work addresses the inherent high latency in blockchains.
+We present \podtm-core, a novel construction whose first priority is to achieve the optimal latency of one round trip.
+To accomplish this, we first eliminate inter-replica communication. Instead, clients send transactions directly to all replicas, each replica independently processes transactions and appends them to its log, and then clients receive and extract information from these logs.
+The replicas employ techniques such as transaction timestamping and replica-log sequencing, which allow clients to extract valuable information about the transactions and the state of the system.
 
-Recent research shows many consensus applications do not require total order, even though they are usually realized on top of totally-ordered public ledgers. For example, for the double-spending problem in payments it suffices if a total order is only imposed within each user's set of transactions. For some applications not even this property is required. In a distributed auction, an auctioneer reads bids from the ledger at a prescribed \emph{deadline} and announces the winner according to the auction mechanism (\textit{e.g.}, highest bid wins). In this case, the order of bids does not matter, as long as the auctioneer cannot censor bids from parties who placed their bids \emph{before} the deadline.
+Necessarily, this construction achieves weaker properties than a total-order broadcast protocol, due to existing lower bounds.
+Our work models the primitive of \podtm and defines its security properties.
+We then prove that our \podtm-core construction satisfies properties such as transaction confirmation within $2\delta$, censorship resistance against Byzantine replicas, and accountability for safety violations.
+We show that a wire range of applications, such as payment systems, auctions, and decentralized data stores, can be based on a \podtm primitive.
 
-We present \podtm, a new distributed-systems notion, that achieves an \emph{evolving partial order} among transactions with \emph{past-perfection} guarantees.
-\emph{Evolving partial order} means that each transaction written to the system is assigned a non-fixed \emph{timestamp}, which may vary within an interval. Hence, transactions written sufficiently far from each other are ordered, while some transactions may appear as concurrent.
-\emph{Past perfection} guarantees that a party who reads the system sees \emph{all} transactions written up to a \emph{past-perfect round}, and, crucially, it cannot censor transactions by denying having seen them.
+%OLD
+% Recent research shows many consensus applications do not require total order, even though they are usually realized on top of totally-ordered public ledgers. For example, for the double-spending problem in payments it suffices if a total order is only imposed within each user's set of transactions. For some applications not even this property is required. In a distributed auction, an auctioneer reads bids from the ledger at a prescribed \emph{deadline} and announces the winner according to the auction mechanism (\textit{e.g.}, highest bid wins). In this case, the order of bids does not matter, as long as the auctioneer cannot censor bids from parties who placed their bids \emph{before} the deadline.
 
-%The efficiency gain that results from this simple observation is tremendous.
-The protocol we propose is latency-optimal and is executed by a number of \emph{replicas} and \emph{clients} in a way that %minimizes interaction among these parties. In particular,
-neither replicas nor clients communicate among each other. Clients read and write transactions by directly communicating with each replica. In this setting, replicas are accountable, \textit{i.e.}, replicas violating safety can be publicly identified. Building on this protocol, we realize auctions with accountable censorship resistance.
+% We present \podtm, a new distributed-systems notion, that achieves an \emph{evolving partial order} among transactions with \emph{past-perfection} guarantees.
+% \emph{Evolving partial order} means that each transaction written to the system is assigned a non-fixed \emph{timestamp}, which may vary within an interval. Hence, transactions written sufficiently far from each other are ordered, while some transactions may appear as concurrent.
+% \emph{Past perfection} guarantees that a party who reads the system sees \emph{all} transactions written up to a \emph{past-perfect round}, and, crucially, it cannot censor transactions by denying having seen them.
+
+% %The efficiency gain that results from this simple observation is tremendous.
+% The protocol we propose is latency-optimal and is executed by a number of \emph{replicas} and \emph{clients} in a way that %minimizes interaction among these parties. In particular,
+% neither replicas nor clients communicate among each other. Clients read and write transactions by directly communicating with each replica. In this setting, replicas are accountable, \textit{i.e.}, replicas violating safety can be publicly identified. Building on this protocol, we realize auctions with accountable censorship resistance.
 
 \end{abstract}
