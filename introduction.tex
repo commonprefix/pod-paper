@@ -1,15 +1,16 @@
 \section{Introduction}
-Despite the widespread adoption of blockchains, a significant challenge remains unresolved: they are inherently slow. The latency from the moment a client submits a transaction to its appearance in the blockchain's output can be prohibitively long for certain applications. Indeed, Nakamoto-style blockchain consensus protocols require a large number of rounds in order to achieve consensus on a new block, even when considering the best known bounds~\cite{DBLP:conf/crypto/GaziRR23}. On the other hand, it is known that less scalable protocols realizing traditional notions of consensus such as broadcast and byzantine agreement require at least $t+1$ rounds in the synchronous case~\cite{DBLP:journals/ipl/AguileraT99} and at least $2n/(n-t)$ rounds in the asynchronous case~\cite{DBLP:conf/focs/GarayKKO07} for $n$ parties out of which $t$ are corrupted, even when allowing digital signatures and randomized protocols.
+Despite the widespread adoption of blockchains, a significant challenge remains unresolved: they are inherently slow. The latency from the moment a client submits a transaction to its appearance in the blockchain's output can be prohibitively long for certain applications. Indeed, Nakamoto-style blockchain protocols require a large number of rounds in order to achieve consensus on a new block, even when considering the best known bounds~\cite{DBLP:conf/crypto/GaziRR23}. On the other hand, it is known that less scalable protocols realizing traditional notions of consensus, such as broadcast and Byzantine agreement, require at least $t+1$ rounds in the synchronous case~\cite{DBLP:journals/ipl/AguileraT99} and at least $2n/(n-t)$ rounds in the asynchronous case~\cite{DBLP:conf/focs/GarayKKO07}, for $n$ parties out of which $t$ are corrupted.
+% even when allowing digital signatures and randomized protocols.
 
 In a model where \emph{replicas} maintain the network, \emph{writers} submit transactions, and \emph{readers} read the network, the minimum latency is one network round trip, or $2\delta$, letting $\delta$ denote the actual network delay, as the information must travel from the writers to the replicas and then to the readers.
 This works is motivated by the following question.
 
 \begin{center}
-	\emph{Can we have a blockchain with the optimal latency of one round trip time?}
+	\emph{Can we perform payments and other tasks that blockchains are commonly used for in optimal latency?}
 \end{center}
 
 We define latency in terms of the blockchain \emph{liveness} property, referring to finalized, non-reversible outputs: once a transaction is received by a reader, it remains in the protocol's output permanently.
-We do not assume "optimistic" or "happy" path scenarios, where transactions might finalize faster under favorable conditions (such as having honest leaders or optimal network conditions). Instead, we want that any transaction from an honest writer appears in the output of honest readers within $2\delta$ time, regardless of the current value of $\delta$.
+We do not assume ``optimistic'' or ``happy'' path scenarios, where transactions might finalize faster under favorable conditions (such as having honest leaders or optimal network conditions). Instead, we want that any transaction from an honest writer appears in the output of honest readers within $2\delta$ time, regardless of the current value of $\delta$.
 
 To achieve the single-roundtrip latency, our first key design decision eliminates inter-replica communication entirely. Instead, writers send their transactions directly to all replicas. Each replica maintains its own \emph{replica log}, processes incoming transactions independently, and transmits its log to readers. Readers then process these replica logs to extract relevant information.
 
