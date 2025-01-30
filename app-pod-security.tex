@@ -52,7 +52,7 @@ In order to prove Theorem~\ref{thm:pod-security} and establish the security of P
 We now recall Theorem~\ref{thm:pod-security}, which formally states that \Cref{const:pod-core} satisfies the security definition of \podtm (\Cref{def:podsec}) with accountable safety (\Cref{def:accountable-safety}). We prove it through a series of lemmas.
 
 \begin{customthm}{\ref{thm:pod-security}}[\podtm security]
-	In the asynchronous model with actual network delay $\delta$ (but unknown delay upper bound), assuming at most \beta malicious replicas, \podtm-core (Construction~\ref{const:pod-core}), instantiated with a secure signature scheme and parameterized with $\alpha \geq 4 \beta + 1$, is a responsive secure \podtm (\Cref{def:podsec}) with Confirmation within $\parConf = 2 \delta$ and Past-perfection within $\parPerf = \delta$, satisfying the property of \beta-accountable safety (\Cref{def:accountable-safety}), \ewnp.
+	In the asynchronous model with actual network delay $\delta$ (and unknown delay upper bound), assuming at most \beta Byzantine replicas, \podtm-core (Construction~\ref{const:pod-core}), instantiated with a secure signature scheme and parameterized with $\alpha \geq 4 \beta + 1$, is a responsive secure \podtm (\Cref{def:podsec}) with Confirmation within $\parConf = 2 \delta$ and Past-perfection within $\parPerf = \delta$, satisfying the property of \beta-accountable safety (\Cref{def:accountable-safety}), \ewnp.
 	\end{customthm}
 \begin{proof}
 	In Lemmas~\ref{lem:pod-confirmation}--\ref{lem:pod-accountable-safety}.
@@ -75,9 +75,8 @@ We now recall Theorem~\ref{thm:pod-security}, which formally states that \Cref{c
 \begin{proof}
 	Assume an honest client \client at round \round has view $\podView{c}{\round}$.
 	From \Cref{lem:rperf-value-of-honest}, there exists some honest replica $\rep_j$, such that the most-recent timestamp $\mrt[\rep_j]$ that $\rep_j$ has sent to \client satisfies $\podView{c}{\round}.\rperf \geq \mrt[\rep_j]$.
-	Now, all honest replicas $\rep_j$ send at least one heartbeat message per round (line~\ref{line:rep-send-vote-heartbeat})
-	and an honest client updates $\mrt[\rep_j]$ when it receives a vote. 
-	Since messages from honest replicas arrive within $\delta$ rounds, client \client will have $\mrt[\rep_j] \geq \round - \delta$ for all honest replicas $\rep_j$.
+	The honest replica $\rep_j$ sends at least one heartbeat or vote message per round (line~\ref{line:rep-send-vote-heartbeat}), which arrives within $\delta$ rounds, and an honest client updates $\mrt[\rep_j]$ when it receives the heartbeat or vote message. 
+	Hence, \client will have $\mrt[\rep_j] \geq \round - \delta$.
 	All together, $\podView{c}{\round}.\rperf \geq \round - \delta$.
 \end{proof}
 

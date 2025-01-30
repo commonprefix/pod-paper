@@ -145,7 +145,7 @@ When received by a client, a \heartBeat is handled as a vote (i.e., it triggers 
 \noindent\textbf{Security Analysis:} We formalize the security of Construction~\ref{const:pod-core} in the following theorem, which is proven in Appendix~\ref{app:pod-security}. We show the \identify{} function for \podtm-core in Appendix~\ref{app:pod-security} as well.
 % \vspace{-2mm}
 \begin{theorem}[Pod-core security]\label{thm:pod-security}
-	In the asynchronous model with actual network delay $\delta$ (but unknown delay upper bound), assuming at most \beta malicious replicas, \podtm-core (Construction~\ref{const:pod-core}), instantiated with a secure signature scheme and parameterized with $\alpha \geq 4 \beta + 1$, is a responsive secure \podtm (\Cref{def:podsec}) with Confirmation within $\parConf = 2 \delta$ and Past-perfection within $\parPerf = \delta$, satisfying the property of \beta-accountable safety (\Cref{def:accountable-safety}), \ewnp.
+	In the asynchronous model with actual network delay $\delta$ (and unknown delay upper bound), assuming at most \beta Byzantine replicas, \podtm-core (Construction~\ref{const:pod-core}), instantiated with a secure signature scheme and parameterized with $\alpha \geq 4 \beta + 1$, is a responsive secure \podtm (\Cref{def:podsec}) with Confirmation within $\parConf = 2 \delta$ and Past-perfection within $\parPerf = \delta$, satisfying the property of \beta-accountable safety (\Cref{def:accountable-safety}), \ewnp.
 \end{theorem}
 
 

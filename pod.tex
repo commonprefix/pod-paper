@@ -25,8 +25,8 @@ A \emph{transaction set} $\txSet$ is a set of tuples $(\tx, \rmin, \rmax, \rconf
 \end{definition}
 
 
-\begin{definition}[\podtm data structure]
-    A \podtm $\Pod$ is a triple $(\txSet, \rperf, \ppcert)$, where \txSet is a transaction set, \rperf is a round number, called the \emph{past-perfect round},
+\begin{definition}[Pod data structure]
+    A pod data structure $\Pod$ is a triple $(\txSet, \rperf, \ppcert)$, where \txSet is a transaction set, \rperf is a round number, called the \emph{past-perfect round},
     and $\ppcert \in \zo^*$ contains auxiliary data.
 \end{definition}
 
@@ -44,7 +44,7 @@ A \podtm protocol has the following interface.
     It writes a transaction \tx to the \podtm.
 
     \item $\opreadall{} \returns \Pod$:
-    It outputs a \podtm $\Pod = (\txSet, \rperf, \ppcert)$.
+    It outputs a pod data structure $\Pod = (\txSet, \rperf, \ppcert)$.
     % The second output is called an \emph{equivocation-evidence pod} and can be either $\bot$ or $\tilde{\Pod} = (\tilde{\txSet}, \tilde{\rperf}, \tilde{\ppcert})$.
 \end{itemize}
     We say that a client \emph{reads the} \podtm when it calls \opread{}.
@@ -87,7 +87,7 @@ A protocol is a \emph{secure} \podtm if it implements the \podtm interface of De
 
 	\item[(Safety) Past-perfection:]
 	Let \client be an honest client with view $\podView{\client}{\round}$ at round $\round$.
-	Then, for any transaction $\tx \in \zo^*$ that becomes confirmed in view $\podView{\client'}{\round'}$ with confirmed round $\rconf$, where $\client'$ is an honest client and $\round' \geq 0$ is a round, it holds that, if $\rconf < \podView{\client}{\round}.\rperf$ then $\tx \in \podView{\client}{\round}$.
+	Then, for any transaction $\tx \in \zo^*$ that becomes confirmed (in some view $\podView{\client'}{\round'}$ of an honest client $\client'$ at round $\round' \geq 0$ ) with confirmed round $\rconf$, it holds that, if $\rconf < \podView{\client}{\round}.\rperf$, then $\tx \in \podView{\client}{\round}$.
 	% For any honest client \client and round $\round$,
 	% if $\tx \not \in \podView{\client}{\round}$, then no honest client $\client'$ (including $\client'=\client$) observes \tx as confirmed with $\rconf < \podView{\client}{\round}.\rperf$.
 	
@@ -102,7 +102,8 @@ A protocol is a \emph{secure} \podtm if it implements the \podtm interface of De
 In the following we define an additional property of \podtm \emph{timeliness}, which can be satisfied along with the standard safety and liveness properties of \podtm. Previous work has observed a similar property as orthogonal to safety and liveness~\cite{EPRINT:TziSriZin23}.
 
 \begin{definition}[\podtm \parTemp-timeliness for honest transactions]\label{def:pod-timely}
-    A \podtm is \emph{\parTemp-timely} if it is a secure \podtm, as per Definition~\ref{def:podsec}, and the following properties hold for any transaction \tx written by an honest client in round $\round$ (observe that, from the \emph{confirmation within \parConf} property, \tx will become confirmed):
+    A \podtm protocol is \emph{\parTemp-timely} if it is a secure \podtm, as per Definition~\ref{def:podsec}, and for any transaction \tx written by an honest client in round $\round$ it assigns values \rmin, \rmax, \rconf to \tx such that the following properties hold:
+    % (observe that, from the \emph{confirmation within \parConf} property, \tx will become confirmed):
     \begin{enumerate}
         \item $\rconf \in (\round, \round + \parTemp]$
         \item $\rmax \in (\round, \round + \parTemp]$
