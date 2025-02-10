@@ -16,8 +16,8 @@
                 \Let{\rmin}{\opMinPossibleTs{\tx}}\label{line:upd-rmin-begin}
                 \Let{\rmax}{\opMaxPossibleTs{\tx}}\label{line:upd-rmax-begin}
                 \State{$\rconf \gets \bot ;\; \txcert \leftarrow [ \, ] ;\; \txVotes = [ \, ]$} \label{line:unconfirmed-tx}
-                \If{$| \tsps[\tx].\opValues{} | \geq \alpha$}\label{line:confirm-tx-begin}
-                    \For{$\rep_j \in \tsps[\tx].\opValues{}$}
+                \If{$| \tsps[\tx].\opKeys{} | \geq \alpha$}\label{line:confirm-tx-begin}
+                    \For{$\rep_j \in \tsps[\tx].\opKeys{}$}
                         \Let{\tsp}{\tsps[\tx][\rep_j]}
                         \Let{\txVotes}{\txVotes \concat \tsp}
                         \Let{\txcert}{\txcert \concat \tsp.\opGetVote} \label{line:assign-txcert}

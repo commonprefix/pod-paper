@@ -248,10 +248,10 @@ We now recall Theorem~\ref{thm:pod-security}, which formally states that \Cref{c
 	It sends a message \msgwrite{\tx} to all replicas at round \round (line~\ref{line:send-write-tx}).
 	An honest replica receives this by round $\round + \delta$ and assigns its current round $\round' \in (r, \round + \delta]$ as the timestamp (line~\ref{line:rep-assign-tsp}).
 	\begin{enumerate}
-		\item Regarding \rconf, when a client calls \opreadall{}, and since by assumption \tx is confirmed, it will have received votes on \tx from at least \alpha replicas. All honest replicas have sent timestamps for \tx in the interval $ (r, \round + \delta]$. Since \rconf is computed as the median of \alpha timestamps and $\alpha > 4\beta + 1$,\footnote{For this argument, $\alpha > 2\beta + 1$ would also be enough. The condition $\alpha > 2\beta + 1$ is necessary in order for \rmin and \rmax of a confirmed transaction to be timestamps returned by honest replicas.}
+		\item Regarding \rconf, when a client calls \opreadall{}, and since by assumption \tx is confirmed, it will have received votes on \tx from at least \alpha replicas. All honest replicas have sent timestamps for \tx in the interval $ (r, \round + \delta]$. Since \rconf is computed as the median of \alpha timestamps and $\alpha \geq 4\beta + 1$,\footnote{For this argument, $\alpha \geq 2\beta + 1$ would also be enough. The condition $\alpha \geq 4\beta + 1$ is necessary in order for \rmin and \rmax of a confirmed transaction to be timestamps returned by honest replicas.}
 		it will be a timestamp returned by an honest replica, or it will lie between timestamps returned by honest replicas. Hence, $\rconf \in (r, \round + \delta]$.
 		
-		\item Regarding \rmax, from \Cref{lem:assign-min-max}, at least $\lceil \alpha/2 \rceil -\beta \beta $ replicas have sent to \client a timestamp greater or equal than \rmax and, since $\alpha > 4\beta + 1$, at least one of those is a timestamp returned by an honest replica, hence  $\rmax \in (r, \round + \delta]$.
+		\item Regarding \rmax, from \Cref{lem:assign-min-max}, at least $\lceil \alpha/2 \rceil -2 \beta $ replicas have sent to \client a timestamp greater or equal than \rmax and, since $\alpha \geq 4\beta + 1$, at least one of those is a timestamp returned by an honest replica, hence  $\rmax \in (r, \round + \delta]$.
 		
 		\item Similarly, from \Cref{lem:assign-min-max} we get that \rmin is a timestamp returned by an honest replica, hence $\rmin \in (r, \round + \delta]$ and $\rmax - \rmin < \parTemp$.
 	\end{enumerate}
