@@ -7,7 +7,7 @@ The replicas employ techniques such as transaction timestamping and replica-log 
 Necessarily, this construction achieves weaker properties than a total-order broadcast protocol, due to existing lower bounds.
 Our work models the primitive of \podtm and defines its security properties.
 We then prove that our \podtm-core construction satisfies properties such as transaction confirmation within $2\delta$, censorship resistance against Byzantine replicas, and accountability for safety violations.
-We show that a wire range of applications, such as payment systems, auctions, and decentralized data stores, can be based on a \podtm primitive.
+We show that a wide range of applications, such as payment systems, auctions, and decentralized data stores, can be based on a \podtm primitive.
 
 %OLD
 % Recent research shows many consensus applications do not require total order, even though they are usually realized on top of totally-ordered public ledgers. For example, for the double-spending problem in payments it suffices if a total order is only imposed within each user's set of transactions. For some applications not even this property is required. In a distributed auction, an auctioneer reads bids from the ledger at a prescribed \emph{deadline} and announces the winner according to the auction mechanism (\textit{e.g.}, highest bid wins). In this case, the order of bids does not matter, as long as the auctioneer cannot censor bids from parties who placed their bids \emph{before} the deadline.
