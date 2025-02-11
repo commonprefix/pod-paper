@@ -18,23 +18,32 @@ We denote the concatenation of sequences $L_1$ and $L_2$ by $L_1 \concat L_2$.
 We consider $n$ \emph{replicas} $\replicas=\{\replicas_1,\ldots,\replicas_n\}$ and an unlimited number of \emph{clients}. Parties are \emph{stateful}, \textit{i.e.}, store \emph{state} between executions of different algorithms.
 We assume that replicas are known to all parties and that their public keys (for which they have the corresponding secret key) are registered in a Public Key Infrastructure (PKI).
 The clients do not participate in the PKI. 
-\vspace{-3mm} 
-\dotparagraph{\textbf{Adversarial Model}}We call a party (replica or client) \emph{honest}, if it follows the protocol, and \emph{malicious} otherwise.
-Malicious parties are Byzantine, \textit{i.e.}, deviate arbitrarily from the protocol. We assume \emph{static corruptions},  \textit{i.e.}, the set of malicious replicas is decided before the execution starts and remains constant.
-The adversary has access to the internal state and secret keys of all malicious parties.
-We denote by $\beta \in [0,n]$ the \emph{resilience threshold}, i.e.,  number of malicious replicas in an execution, and
+% \vspace{-3mm} 
+
+\dotparagraph{\textbf{Adversarial Model}}
+We call a party (replica or client) \emph{honest}, if it follows the protocol, and \emph{malicious} otherwise.
+We denote by $\beta \in [0,n]$ the \emph{resilience threshold}, i.e., the number of malicious replicas in an execution, and
 by $\alpha \in [0,n]$ the \emph{confirmation threshold}.
 Our constructions assume limits on \alpha and \beta, but make no honesty assumptions on clients.
+In this work we present protocols in two adversarial models, the \emph{Byzantine} and the \emph{omission} models.
+
+In the \emph{Byzantine} model malicious replicas may deviate arbitrarily from the protocol. We assume \emph{static corruptions},  \textit{i.e.}, the set of malicious replicas is decided before the execution starts and remains constant.
+The adversary has access to the internal state and secret keys of all malicious parties.
+
+In the \emph{omission} model malicious replicas may deviate from the protocol by dropping messages that they were supposed to send or receive, but follow the protocol otherwise. Observe that this includes crash faults, where replicas are allowed to crash and remain crashed until the end of the execution of an algorithm. \oa{We allow \emph{dynamic corruptions}, i.e., the set of malicious replicas can differ in each round, as long as not larger than \beta.}
+
 %\vspace{-3mm}
 %\dotparagraph{Stateful clients} A stateful client is a party who stores \emph{state} (\textit{i.e.}, data) between executions of different algorithms.
-\vspace{-3mm}
+% \vspace{-3mm}
+
 \dotparagraph{\textbf{Modeling time}}
 % We assume that parties have clocks allowing them to determine the physical time.
 % For any two honest parties, their clocks can be at most time $\phi$ apart.
 % For simplicity, our analysis will assume \emph{synchronized clocks}, that is, $\phi = 0$.
 Time proceeds in discrete \emph{rounds}.
 We assume that parties know the current round. A \emph{timestamp} is a round number assigned to an event, \textit{e.g.}, receiving or sending a message. We assume that all honest parties do any probabilistic polynomial time computation and send any messages required by the protocol at every round (although message delivery is not guaranteed).
-\vspace{-3mm}
+% \vspace{-3mm}
+
 \dotparagraph{\textbf{Modeling network}}
 We denote by $\delta \in \CN$ the actual delay (measured in number of rounds) it takes to deliver a message between two honest parties,
 a number which is \emph{finite} but \emph{unknown} to all parties.
@@ -44,7 +53,8 @@ In the \emph{synchronous} model, $\Delta$ is \emph{known} to all processes.
 In the \emph{asynchronous} model, $\Delta$ is \emph{unknown} but still finite, \textit{i.e.}, all messages are eventually delivered.
 In both cases, messages are delivered in an order chosen by the adversary.
 A protocol is \emph{responsive} if its liveness guarantees depend only on the actual network delay $\delta$ and it does not rely on knowledge of $\Delta$, which is the case of our main protocol \podtm-core.
-\vspace{-3mm}
+% \vspace{-3mm}
+
 \dotparagraph{\textbf{Digital Signatures}} We assume that replicas (and auctioneers in \bidsettm-core) authenticate their messages with digital signatures. A digital signature scheme is a triple of algorithms satisfying the EUF-CMA security~\cite{GMR88} as defined below:
 		\begin{itemize}
 	    	\item $\textsl{KeyGen}(1^{\kappa})$: The key generation algorithm takes as input a security parameter $\kappa$ and outputs a secret key $\sk$ and a public key $\pk$.

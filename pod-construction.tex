@@ -45,9 +45,12 @@ Notation $x: a \in A \rightarrow b \in B$ denotes that variable $x$ is a map fro
 For a map $x$, the operations $x.\opKeys$ and $x.\opValues$ return all keys and all values in $x$, respectively.
 With $\emptyset$ we denote an empty map.
 
+
+\subsection{Pod with Byzantine faults}
 \begin{construction}\label{const:pod-core}
-We present \podtm-core, a \podtm construction in Algorithms~\ref{alg:client-1}--~\ref{alg:client-statistics}, for the client code, and \ref{alg:pod-core-replica} for the replica code.
+We present \podtm-core, a \podtm construction, in Algorithms~\ref{alg:client-1}--~\ref{alg:client-statistics} for the client code and \ref{alg:pod-core-replica} for the replica code.
 % and discuss its main points, first for the client and then for the replica construction, in the following paragraphs.
+The construction tolerates up to \beta Byzantine replicas and requires $\alpha \geq 4 \beta + 1$, i.e., $n \geq 5 \beta + 1$.
 It achieves \emph{accountable safety} (see \Cref{sec:accountable-safety}) with an \identify{} function described in \Cref{alg:identify}.
 In the remainder of this section we discuss how \podtm-core achieves its properties.
 \end{construction}
@@ -156,3 +159,17 @@ When received by a client, a \heartBeat is handled as a vote (i.e., it triggers 
 %     \item We can use `helper' nodes, that know the addresses of all replicas, so that clients can use them, instead of having to contact all replicas.
 % \end{enumerate}    
 
+
+\subsection{Pod with omission faults}
+\begin{construction}\label{const:pod-crash}
+We present \podcrash, a \podtm construction
+that tolerates up to \beta malicious replicas in the omission model, and requires $\alpha \geq 2 \beta + 1$, i.e., $n \geq 3 \beta + 1$.
+
+The main difference is the way \rmin, \rmax, and \rperf are computed by clients. We show the new version in \Cref{alg:client-statistics-crash}.
+% It achieves \emph{accountable safety} (see \Cref{sec:accountable-safety}) with an \identify{} function described in \Cref{alg:identify}.
+% In the remainder of this section we discuss how \podtm-core achieves its properties.
+\end{construction}
+
+
+
+\input{pod-core-pseudocode/pod-core-client-code-statistics-crash}

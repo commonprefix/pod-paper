@@ -1,0 +1,49 @@
+\begin{algorithm}[h!]
+    \caption{Protocol \podcrash (\Cref{const:pod-crash}): Client code, part 3, computing \rmin, \rmax, \rconf allowing up to \beta omission faults. %\wip{Do we have time to write this for omission faults too?}
+    }
+    \label{alg:client-statistics-crash}
+    \begin{algorithmic}[1]
+    \Function{\opMinPossibleTs{\tx}}{}
+        \Let{\txVotesMin}{[\,]}
+        \For{$\rep_j \in \allreps$}\label{line:assing-missing-min-begin}
+            \If{$\tsps[\tx][\rep_j] \neq \bot$}
+                \Let{\txVotesMin}{\txVotesMin \concat [\tsps[\tx][\rep_j]]}
+            \Else
+                \Let{\txVotesMin}{\txVotesMin \concat [\mrt[\rep_j]]} \label{line:fill-vote-lts}
+            \EndIf
+        \EndFor\label{line:assing-missing-min-end}
+        \State{\text{sort \txVotesMin in increasing order}}
+        % \Let{\txVotesMin}{ [ 0, \stackrel{\beta \text{ times}}{\ldots}, 0 ] \concat \txVotesMin} \label{line:prepend-zero}
+        \return \opMed{$\txVotesMin[:\alpha]$}
+    \EndFunction
+    \Statex
+\vspace{-1mm}
+    \Function{\opMaxPossibleTs{\tx}}{}\label{line:fn-compute-max-begin}
+        \Let{\txVotesMax}{[\,]}
+        \For{$\rep_j \in \allreps$}\label{line:assing-missing-max-begin}
+            \If{$\tsps[\tx][\rep_j] \neq \bot$}
+                \Let{\txVotesMin}{\txVotesMin \concat [\tsps[\tx][\rep_j]]}
+            \Else
+                \Let{\txVotesMin}{\txVotesMin \concat [\infty]} \label{line:fill-vote-inf}
+            \EndIf
+        \EndFor\label{line:assing-missing-max-end}
+        \State{\text{sort \txVotesMax in increasing order}}
+        % \Let{\txVotesMax}{\txVotesMax \concat [ \infty, \stackrel{\beta \text{ times}}{\ldots}, \infty ]} \label{line:apend-infty}
+        \return \opMed{$\txVotesMax[-\alpha:]$}
+    \EndFunction\label{line:fn-compute-max-end}
+    \Statex
+\vspace{-1mm}
+    \Function{\opMinPossibleTsForNewTx{}}{}\label{line:fn-compute-pp-begin}
+        \Let{\txVotesPerf}{\mrt}
+        \State{\text{sort \txVotesPerf in increasing order}}
+        % \Let{\txVotesPerf}{ [ 0, \stackrel{\beta \text{ times}}{\ldots}, 0 ] \concat \txVotesPerf}
+        \return \opMed{$\txVotesPerf[:\alpha]$}
+    \EndFunction\label{line:fn-compute-pp-end}
+\vspace{-1mm}
+    % \Statex
+    % \Function{\opMed{Y}}{}\label{}
+    %     \return $Y[\lfloor \,|Y|/2 \, \rfloor]$
+    % \EndFunction
+\end{algorithmic}
+\end{algorithm}
+

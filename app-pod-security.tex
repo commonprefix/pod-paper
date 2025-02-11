@@ -6,9 +6,9 @@ In order to prove Theorem~\ref{thm:pod-security} and establish the security of P
 	Assume we keep all received timestamps for a transaction \tx ($n$ values in total) in a structure \txVotes, filling in a special  value ($0$  or $\infty$) for missing votes, sorted in increasing order.
 	Assume \mrt is also sorted in increasing order of timestamps.
 	\begin{enumerate}
-		\item \opMinPossibleTs{} returns as \rmin the timestamp at index $\lfloor \alpha / 2 \rfloor - \beta$ of \txVotes.
-		\item \opMaxPossibleTs{} returns as \rmax the timestamp at index $n - \alpha + \lfloor \alpha / 2 \rfloor + \beta$ of \txVotes.
-		\item \opMinPossibleTsForNewTx{} returns as \rperf the timestamp at index $\lfloor \alpha / 2 \rfloor - \beta$ of \mrt.
+		\item \opMinPossibleTs{} returns the timestamp at index $\lfloor \alpha / 2 \rfloor - \beta$ of \txVotes.
+		\item \opMaxPossibleTs{} returns the timestamp at index $n - \alpha + \lfloor \alpha / 2 \rfloor + \beta$ of \txVotes.
+		\item \opMinPossibleTsForNewTx{} returns the timestamp at index $\lfloor \alpha / 2 \rfloor - \beta$ of \mrt.
 	\end{enumerate}
 \end{lemma}
 \begin{proof}
@@ -69,7 +69,7 @@ We now recall Theorem~\ref{thm:pod-security}, which formally states that \Cref{c
 	As are at least \alpha honest replicas, $\client'$ receives at least \alpha such votes, hence the condition in line~\ref{line:confirm-tx-begin} is satisfied and $\client'$ observes \tx as \confirmed.
 \end{proof}
 
-\begin{lemma}[Past-perfection within $\parPerf$]
+\begin{lemma}[Past-perfection within $\parPerf$]\label{lem:past-perfection-liveness}
 	\Cref{const:pod-core} satisfies the \emph{past-perfection within $\parPerf$} property for $\parPerf = \delta$.
 \end{lemma}
 \begin{proof}
@@ -96,7 +96,7 @@ We now recall Theorem~\ref{thm:pod-security}, which formally states that \Cref{c
 	Assume an honest client $\client$ at round $\round > 0$ reads the \podtm and obtains $(\txSet, \rperf, \ppcert)$.
 	% such that $\tx \not \in \txSet$, for some $\tx \in \zo^*$.
 	Let $\allreps_1$ be the set of replicas $\rep_i$ for which $\client$ stores at round $\round$ an $\mrt_i \geq \rperf$.
-	From \Cref{lem:assign-min-max} (\rperf is computed as the timestamp at index $\lfloor \alpha / 2 \rfloor - \beta$ of sorted \mrt) there exist at least $n - \lfloor a/2 \rfloor + \beta$ such replicas, hence $|R_1| \geq n - \lfloor a/2 \rfloor + \beta$. 
+	From \Cref{lem:assign-min-max} (\rperf is computed as the timestamp at index $\lfloor \alpha / 2 \rfloor - \beta$ of sorted \mrt) there exist at least $n - \lfloor a/2 \rfloor + \beta$ such replicas, hence $|\allreps_1| \geq n - \lfloor a/2 \rfloor + \beta$. 
 	% Observe that no replica in $\allreps_1$ has sent to $\client$ a vote on \tx (because $\tx \not \in \txSet$),
 	For each $\rep_i \in \allreps_1$, client $\client$ has received the whole log of $\rep_i$ with timestamps up to $\mrt_i$ (\cref{line:client-check-sn} of \Cref{alg:client-1} does not allow gaps in the sequence number of the received votes).
 	That is, for each $\rep_i \in \allreps_1$ client $\client$ has received votes
@@ -121,8 +121,8 @@ We now recall Theorem~\ref{thm:pod-security}, which formally states that \Cref{c
 	
 	% We will show that, if at most \beta replicas are adversarial, then this leads to a contradiction.
 	% Observe that an honest replica cannot be in both $\allreps_1$ and $\allreps_2$, because that would imply that it omitted sending a vote to \client.
-	Observe from the cardinality of $\allreps_1$ and $\allreps_2$, that at least $\beta + 1$ replicas must be in both sets, hence at least one honest replica must be in both sets (except if the adversary forges a signature under the public key of an honest replica, which happens with negligible probability).
-	For that replica, the vote in \cref{eq:proof-pp-set2} must be one of the votes in \cref{eq:proof-pp-set1} since $\tsp_i < \rperf$ and $\tsp_{j, m_i} \geq \rperf$.
+	Observe from the cardinality of $\allreps_1$ and $\allreps_2$ that at least $\beta + 1$ replicas must be in both sets, hence at least one honest replica must be in both sets (except if the adversary forges a signature under the public key of an honest replica, which happens with negligible probability).
+	For that replica, the vote in \cref{eq:proof-pp-vote2} must be one of the votes in \cref{eq:proof-pp-set1} since $\tsp_i < \rperf$ and $\tsp_{j, m_i} \geq \rperf$.
 	Hence, client \client has received at least one vote on \tx, so $\tx \in \txSet$, as demanded by the past-perfection property.
 \end{proof}
 
