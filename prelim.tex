@@ -41,7 +41,7 @@ Taking a similar approach as Neu, Tas, and Tse~\cite[Def. 4]{FC:NeuTasTse22}, we
     which takes as input a partial transcript $\tran$ and outputs a set of replicas $\cheaters \subset \replicas$, such that the 
     following conditions hold except with negligible probability.
     \begin{description}
-        \item[Correctness:] If safety is violated, then there exists a partial transcript \tran, such that $\identify{\tran} \rightarrow \cheaters$ and $|\cheaters| > \beta$ and all replicas in \cheaters are adversarial.
+        \item[Correctness:] If safety is violated, then there exists a partial transcript \tran, such that $\identify{\tran} \rightarrow \cheaters$ and $|\cheaters| > \beta$.
         \item[No-framing:] For any partial transcript \tran produced during an execution of the protocol, the output of $\identify{\tran}$ does not contain honest replicas.
     \end{description}
 \end{definition}
