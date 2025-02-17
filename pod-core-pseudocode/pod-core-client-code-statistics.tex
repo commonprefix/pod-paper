@@ -1,5 +1,5 @@
 \begin{algorithm}[h!]
-    \caption{Protocol \podtm-core (\Cref{const:pod-core}): Client code, part 3, computing \rmin, \rmax, \rconf allowing up to \beta equivocations. %\wip{Do we have time to write this for omission faults too?}
+    \caption{Protocol \podtm-\clientsA (\Cref{const:pod-clients-a}), part 3: computing \rmin, \rmax, \rconf
     }
     \label{alg:client-statistics}
     \begin{algorithmic}[1]
@@ -39,7 +39,7 @@
         \Let{\txVotesPerf}{ [ 0, \stackrel{\beta \text{ times}}{\ldots}, 0 ] \concat \txVotesPerf}
         \return \opMed{$\txVotesPerf[:\alpha]$}
     \EndFunction\label{line:fn-compute-pp-end}
-\vspace{-1mm}
+% \vspace{-1mm}
     \Statex
     \Function{\opMed{Y}}{}\label{}
         \return $Y[\lfloor \,|Y|/2 \, \rfloor]$

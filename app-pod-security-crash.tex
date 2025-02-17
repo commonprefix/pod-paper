@@ -1,6 +1,6 @@
 \section{Security of  \podcrash}\label{app:pod-security-crash}
 % In order to prove Theorem~\ref{thm:pod-security} and establish the security of Protocol \podtm-core shown Construction~\ref{const:pod-core}, we first prove some useful intermediate results.
-The \podcrash construction differs from \podtm-core in that replicas do not append \beta times the $0$ or $\infty$ value when they compute \rmin, \rmax, \rconf (see \Cref{alg:client-statistics} vs. \Cref{alg:client-statistics-crash}). In this section we present the equivalent lemmas and proofs of \Cref{app:pod-security}, accounting for this change.
+The \podcrash construction differs from \podtm-\clientsA in that replicas do not append \beta times the $0$ or $\infty$ value when they compute \rmin, \rmax, \rconf (see \Cref{alg:client-statistics} vs. \Cref{alg:client-statistics-crash}). In this section we present the equivalent lemmas and proofs of \Cref{app:pod-security}, accounting for this change.
 
 \begin{lemma}\label{lem:assign-min-max-crash}
 	Regarding \Cref{alg:client-statistics-crash}, we have the following.
@@ -28,15 +28,19 @@ The \podcrash construction differs from \podtm-core in that replicas do not appe
 \end{proof}
 
 
-\begin{theorem}[\podcrash security]\label{thm:pod-security-crash}
-	In the asynchronous model with actual network delay $\delta$ (and unknown delay upper bound), assuming at most \beta omission-malicious replicas, \podcrash (Construction~\ref{const:pod-crash}), instantiated with a secure signature scheme and parameterized with $\alpha \geq 2 \beta + 1$, is a responsive secure \podtm (\Cref{def:podsec}) with Confirmation within $\parConf = 2 \delta$ and Past-perfection within $\parPerf = \delta$, satisfying the property of \beta-accountable safety (\Cref{def:accountable-safety}), \ewnp.
-	\end{theorem}
+We now recall Theorem~\ref{thm:pod-security-clients-b}, which formally states that the combination of \Cref{const:pod-core} (replica code) and \Cref{const:pod-clients-b} (client code) satisfies the security definition of \podtm (\Cref{def:podsec}) with accountable safety (\Cref{def:accountable-safety}). We prove it through a series of lemmas.
+
+
+\
+\begin{customthm}{\ref{thm:pod-security-clients-b}}[\podtm-\clientsB security]
+	\oa{Repeat \Cref{thm:pod-security-clients-b}.}
+\end{customthm}
 \begin{proof}
-	\oa{In Lemmas~\ref{lem:pod-confirmation}--\ref{lem:pod-accountable-safety}.}
+	\oa{In Lemmas~\ref{lem:pod-confirmation-crash}--\ref{lem:pod-accountable-safety-crash}.}
 \end{proof}
 
-\begin{lemma}[Confirmation within $\parConf$]\label{lem:pod-confirmation}
-	\oa{\Cref{const:pod-crash} satisfies the \emph{confirmation within $\parConf$} property for $\parConf = 2 \delta$.}
+\begin{lemma}[Confirmation within $\parConf$]\label{lem:pod-confirmation-crash}
+	\oa{The combination of \Cref{const:pod-core} (replica code) and \Cref{const:pod-clients-b} (client code) satisfies the \emph{confirmation within $\parConf$} property for $\parConf = 2 \delta$.}
 \end{lemma}
 \begin{proof}
 	Assume an honest client \client calls \opwrite{\tx} at round \round.
@@ -47,7 +51,7 @@ The \podcrash construction differs from \podtm-core in that replicas do not appe
 \end{proof}
 
 \begin{lemma}[Past-perfection within $\parPerf$]\label{lem:past-perfection-liveness-crash}
-	\Cref{const:pod-crash} satisfies the \emph{past-perfection within $\parPerf$} property for $\parPerf = \delta$.
+	The combination of \Cref{const:pod-core} (replica code) and \Cref{const:pod-clients-b} (client code) satisfies the \emph{past-perfection within $\parPerf$} property for $\parPerf = \delta$.
 \end{lemma}
 \begin{proof}
 	% Assume an honest client \client at round \round has view $\podView{c}{\round}$.
@@ -60,7 +64,7 @@ The \podcrash construction differs from \podtm-core in that replicas do not appe
 
 
 \begin{lemma}[Past-perfection safety]\label{lem:pod-pp-safety-crash}
-	\Cref{const:pod-crash} satisfies the \emph{past-perfection} safety property.
+	The combination of \Cref{const:pod-core} (replica code) and \Cref{const:pod-clients-b} (client code) satisfies the \emph{past-perfection} safety property.
 \end{lemma}
 \begin{proof}
 	% Assume an honest client $\client$ at round $\round > 0$ reads the \podtm and obtains $(\txSet, \rperf, \ppcert)$.
@@ -101,8 +105,8 @@ The \podcrash construction differs from \podtm-core in that replicas do not appe
 \end{proof}
 
 
-\begin{lemma}[Confirmation bounds]\label{lem:bounds-safety}
-	\oa{\Cref{const:pod-core} satisfies the \emph{confirmation bounds} safety property.}
+\begin{lemma}[Confirmation bounds]\label{lem:bounds-safety-crash}
+	\oa{The combination of \Cref{const:pod-core} (replica code) and \Cref{const:pod-clients-b} (client code) satisfies the \emph{confirmation bounds} safety property.}
 \end{lemma}
 \begin{proof}
 	Assume client $\client_1$ computes \rmin and client $\client_2$ computes $\rconf < \rmin$ for \tx.
@@ -121,11 +125,11 @@ The \podcrash construction differs from \podtm-core in that replicas do not appe
 
 \input{pod-core-pseudocode/pod-identify.tex}
 
-\begin{lemma}[\beta-Accountable safety]\label{lem:pod-accountable-safety}
+\begin{lemma}[\beta-Accountable safety]\label{lem:pod-accountable-safety-crash}
 	% The accountability properties are satisfied using
 	% \identify{}, for the \emph{accountability from the  view of a single party} property,
 	% and \identify{$\podView{\client_1}{\round_1}$, $\podView{\client_2}{\round_2}$}, for the \emph{accountability from the  view of two replicas} properties. 
-	\oa{\Cref{const:pod-core} satisfies accountable safety with resilience \beta.}
+	\oa{The combination of \Cref{const:pod-core} (replica code) and \Cref{const:pod-clients-b} (client code) satisfies accountable safety with resilience \beta.}
 \end{lemma}
 \begin{proof}
 	We show that \identify{} (\Cref{alg:identify}) satisfies the \emph{correctness} and \emph{no-framing} properties required by \Cref{def:accountable-safety}, in three steps.
@@ -207,7 +211,7 @@ The \podcrash construction differs from \podtm-core in that replicas do not appe
 
 \begin{theorem}[$\parTemp$-timeliness for honest transactions]
 	\sloppy{
-	\Cref{const:pod-crash}, parametrized with $\alpha \geq 2 \beta + 1$, satisfies \emph{\parTemp-timeliness for honest transactions}, as per \Cref{def:pod-timely}, for $\parTemp = \delta$.
+		The combination of \Cref{const:pod-core} (replica code) and \Cref{const:pod-clients-b} (client code), parametrized with $\alpha \geq 2 \beta + 1$, satisfies \emph{\parTemp-timeliness for honest transactions}, as per \Cref{def:pod-timely}, for $\parTemp = \delta$.
 	}
 \end{theorem}
 \begin{proof}

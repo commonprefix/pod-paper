@@ -1,5 +1,5 @@
 \begin{algorithm}[h!]
-    \caption{Protocol \podcrash (\Cref{const:pod-crash}): Client code, part 3, computing \rmin, \rmax, \rconf allowing up to \beta omission faults. %\wip{Do we have time to write this for omission faults too?}
+    \caption{Protocol \podcrash (\Cref{const:pod-clients-b}), part 3: computing \rmin, \rmax, \rconf
     }
     \label{alg:client-statistics-crash}
     \begin{algorithmic}[1]
@@ -39,7 +39,7 @@
         % \Let{\txVotesPerf}{ [ 0, \stackrel{\beta \text{ times}}{\ldots}, 0 ] \concat \txVotesPerf}
         \return \opMed{$\txVotesPerf[:\alpha]$}
     \EndFunction\label{line:fn-compute-pp-end}
-\vspace{-1mm}
+% \vspace{-1mm}
     % \Statex
     % \Function{\opMed{Y}}{}\label{}
     %     \return $Y[\lfloor \,|Y|/2 \, \rfloor]$

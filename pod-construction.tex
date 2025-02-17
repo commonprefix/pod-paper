@@ -45,14 +45,45 @@ Notation $x: a \in A \rightarrow b \in B$ denotes that variable $x$ is a map fro
 For a map $x$, the operations $x.\opKeys$ and $x.\opValues$ return all keys and all values in $x$, respectively.
 With $\emptyset$ we denote an empty map.
 
+\dotparagraph{Client types}
+\begin{description}
+    \item[\clientsA:] They expect up to \beta Byzantine corruptions out of the $n = \alpha + \beta$ replicas.
+    \item[\clientsB:] They expect up to \beta omission faults out of the $n = \alpha + \beta$ replicas.
+\end{description}
 
-\subsection{Pod with Byzantine faults}
-\begin{construction}\label{const:pod-core}
-We present \podtm-core, a \podtm construction, in Algorithms~\ref{alg:client-1}--~\ref{alg:client-statistics} for the client code and \ref{alg:pod-core-replica} for the replica code.
-% and discuss its main points, first for the client and then for the replica construction, in the following paragraphs.
-The construction tolerates up to \beta Byzantine replicas and requires $\alpha \geq 4 \beta + 1$, i.e., $n \geq 5 \beta + 1$.
-It achieves \emph{accountable safety} (see \Cref{sec:accountable-safety}) with an \identify{} function described in \Cref{alg:identify}.
-In the remainder of this section we discuss how \podtm-core achieves its properties.
+\subsection{Protocol for replicas}
+% \vspace{-5mm}
+\input{pod-core-pseudocode/pod-core-replica-code}
+% \vspace{-5mm}
+
+\begin{construction}[\podtm-core]\label{const:pod-core}
+    \oa{Dio, I call `pod-core' the replica code now.}
+    We present \podtm-core in \Cref{alg:pod-core-replica}. It specifies the protocol for replicas.
+    % and discuss its main points, first for the client and then for the replica construction, in the following paragraphs.
+    % The construction tolerates up to \beta Byzantine replicas and requires $\alpha \geq 4 \beta + 1$, i.e., $n \geq 5 \beta + 1$.
+    % It achieves \emph{accountable safety} (see \Cref{sec:accountable-safety}) with an \identify{} function described in \Cref{alg:identify}.
+    % In the remainder of this section we discuss how \podtm-core achieves its properties.
+\end{construction}
+
+We show the protocol for a replica in (\Cref{alg:pod-core-replica}).
+The state of a replica (lines \ref{line:rep-state-begin}--\ref{line:rep-state-end}) contains, among others, the transaction log \repLog, which is implemented as a sequence of votes $(\tx, \tsp, \sn, \sigma, \rep_i)$ created by the replica, where \tsp is the timestamp assigned by the replica to \tx, \sn is a sequence number, and \sig is its signature.
+A functionality \opTime{} allows the replica to determine the current round number.
+When the replica receives a \msgconnect{} message from a client \client, it appends \client to its set of connected clients and sends to \client all entries in \repLog (lines \ref{line:rep-receive-connect-begin}--\ref{line:rep-receive-connect-end}).
+
+\dotparagraph{Security of \podtm-core}
+In the following we present the protocol for the clients, and we then prove the security of \podtm-core in conjunction with the client protocol.
+The \identify{} function for \podtm-core is shown in Appendix~\ref{app:pod-security}.
+\oa{This is also new}
+
+
+\subsection{Protocol for clients of type \clientsA}
+\begin{construction}[\podtm-\clientsA]\label{const:pod-clients-a}
+\oa{Dio, protocol for clientsA.}
+We present \podtm-\clientsA, the protocol that \clientsA use to interact with \podtm-core, in Algorithms~\ref{alg:client-1}--~\ref{alg:client-statistics}.
+% % and discuss its main points, first for the client and then for the replica construction, in the following paragraphs.
+% The construction tolerates up to \beta Byzantine replicas and requires $\alpha \geq 4 \beta + 1$, i.e., $n \geq 5 \beta + 1$.
+% It achieves \emph{accountable safety} (see \Cref{sec:accountable-safety}) with an \identify{} function described in \Cref{alg:identify}.
+% In the remainder of this section we discuss how \podtm-core achieves its properties.
 \end{construction}
 
 \dotparagraph{Initialization}
@@ -118,13 +149,6 @@ considering timestamps \mrt as the minimum possible for any future transaction.
 
 \input{pod-core-pseudocode/pod-core-client-code-statistics}
 
-\dotparagraph{Replica code (\Cref{alg:pod-core-replica})}
-The state of a replica (lines \ref{line:rep-state-begin}--\ref{line:rep-state-end}) contains, among others, the transaction log \repLog, which is implemented as a sequence of votes $(\tx, \tsp, \sn, \sigma, \rep_i)$ created by the replica, where \tsp is the timestamp assigned by the replica to \tx, \sn is a sequence number, and \sig is its signature.
-A functionality \opTime{} allows the replica to determine the current round number.
-When the replica receives a \msgconnect{} message from a client \client, it appends \client to its set of connected clients and sends to \client all entries in \repLog (lines \ref{line:rep-receive-connect-begin}--\ref{line:rep-receive-connect-end}).
-% \vspace{-5mm}
-\input{pod-core-pseudocode/pod-core-replica-code}
-% \vspace{-5mm}
 
 
 
@@ -144,11 +168,13 @@ When received by a client, a \heartBeat is handled as a vote (i.e., it triggers 
 % \dotparagraph{Detecting misbehavior}
 % Clients can detect certain cases of replica misbehavior. When this happens (lines \ref{line:raise-old-tsp}, \ref{line:raise-dup-tsp}, \ref{line:raise-old-heartbeat}) the client stops processing the current vote and triggers an \opAccountableFault{\tran} event, where \tran is a set of messages that can prove the misbehavior through the \identify{} function. 
 
-
-\noindent\textbf{Security Analysis:} We formalize the security of Construction~\ref{const:pod-core} in the following theorem, which is proven in Appendix~\ref{app:pod-security}. We show the \identify{} function for \podtm-core in Appendix~\ref{app:pod-security} as well.
+\dotparagraph{Security Analysis} We formalize the security of Construction~\ref{const:pod-clients-a} in the following theorem, which is proven in Appendix~\ref{app:pod-security}. 
 % \vspace{-2mm}
-\begin{theorem}[Pod-core security]\label{thm:pod-security}
-	In the asynchronous model with actual network delay $\delta$ (and unknown delay upper bound), assuming at most \beta Byzantine replicas, \podtm-core (Construction~\ref{const:pod-core}), instantiated with a secure signature scheme and parameterized with $\alpha \geq 4 \beta + 1$, is a responsive secure \podtm (\Cref{def:podsec}) with Confirmation within $\parConf = 2 \delta$ and Past-perfection within $\parPerf = \delta$, satisfying the property of \beta-accountable safety (\Cref{def:accountable-safety}), \ewnp.
+\begin{theorem}[\podtm-\clientsA security]\label{thm:pod-security-clients-a}
+    \oa{Dio, security for clients A.}
+    Assume an execution where pod replicas run \podtm-core (\Cref{const:pod-core}), instantiated with a secure signature scheme, and clients run \podtm-\clientsA (\Cref{const:pod-clients-a}).
+    Assume the network is asynchronous with actual network delay $\delta$ (and unknown delay upper bound), that at most \beta replicas are Byzantine, and that $n \geq 5 \beta + 1$.
+    The output of the clients satisfies the definition of a responsive secure \podtm (\Cref{def:podsec}) with Confirmation within $\parConf = 2 \delta$ and Past-perfection within $\parPerf = \delta$, and it also satisfies the property of \beta-accountable safety (\Cref{def:accountable-safety}) with the \identify{} function described in \Cref{alg:identify}, \ewnp.
 \end{theorem}
 
 
@@ -160,16 +186,25 @@ When received by a client, a \heartBeat is handled as a vote (i.e., it triggers 
 % \end{enumerate}    
 
 
-\subsection{Pod with omission faults}
-\begin{construction}\label{const:pod-crash}
-We present \podcrash, a \podtm construction
-that tolerates up to \beta malicious replicas in the omission model, and requires $\alpha \geq 2 \beta + 1$, i.e., $n \geq 3 \beta + 1$.
-
-The main difference is the way \rmin, \rmax, and \rperf are computed by clients. We show the new version in \Cref{alg:client-statistics-crash}.
+\subsection{Protocol for clients of type \clientsB}
+\begin{construction}\label{const:pod-clients-b}
+    We present \podtm-\clientsB, the protocol that \clientsB use to interact with \podtm-core, in Algorithms~\ref{alg:client-1},~\ref{alg:client-2}, and~\ref{alg:client-statistics-crash}.
+    Parts 1 (\Cref{alg:client-1}) and 2 (\Cref{alg:client-2}) of the protocol are the same as in \Cref{const:pod-clients-a}.
+    The main difference is in the way \rmin, \rmax, and \rperf are computed by clients. We present the new version in \Cref{alg:client-statistics-crash}.
 % It achieves \emph{accountable safety} (see \Cref{sec:accountable-safety}) with an \identify{} function described in \Cref{alg:identify}.
 % In the remainder of this section we discuss how \podtm-core achieves its properties.
 \end{construction}
 
-
-
 \input{pod-core-pseudocode/pod-core-client-code-statistics-crash}
+
+\dotparagraph{Security Analysis} We formalize the security of Construction~\ref{const:pod-clients-b} in the following theorem, which is proven in Appendix~\ref{app:pod-security-crash}.
+% \vspace{-2mm}
+\begin{theorem}[\podtm-\clientsA security]\label{thm:pod-security-clients-b}
+    \oa{Dio, security for clients B.}
+    Assume an execution where pod replicas run \podtm-core (\Cref{const:pod-core}), instantiated with a secure signature scheme, and clients run \podtm-\clientsB (\Cref{const:pod-clients-b}).
+    Assume the network is asynchronous with actual network delay $\delta$ (and unknown delay upper bound), that at most \beta replicas are omission-faulty, and that $n \geq 3 \beta + 1$.
+    The output of the clients satisfies the definition of a responsive secure \podtm (\Cref{def:podsec}) with Confirmation within $\parConf = 2 \delta$ and Past-perfection within $\parPerf = \delta$, and it also satisfies the property of \beta-accountable safety (\Cref{def:accountable-safety}) with the \identify{} function described in \Cref{alg:identify}, \ewnp.
+\end{theorem}
+
+\subsection{Executions with \clientsA and \clientsB}
+\oa{We discussed two options here: Either have a theorem that says that what is guaranteed to each type of clients, or prove that one type is stronger and it maintains its properties.}

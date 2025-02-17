@@ -1,6 +1,6 @@
 
 \begin{algorithm}[t]
-    \caption{Protocol \podtm-core (\Cref{const:pod-core}): Client code, part 2.}
+    \caption{Protocol \podtm-clientsA (\Cref{const:pod-clients-a}), part 2}
     \label{alg:client-2}
     \begin{algorithmic}[1]
         \Function{$\opwrite{\tx}$}{} \label{line:write-tx-begin}
@@ -9,7 +9,7 @@
             \EndFor
         \EndFunction\label{line:write-tx-end}
         \Statex
-    
+        \vspace{-1mm}
         \Function{$\opreadall{}$}{} \label{line:read-begin}
             \State{$\allTxs \gets \emptyset ;\; \ppcert \gets [ \, ]$}
             \For{$\tx \in \tsps.\opKeys{}$}     \Comment{Loop over all received transactions} \label{line:loop-over-txs}
