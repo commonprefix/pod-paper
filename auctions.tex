@@ -12,14 +12,16 @@ In this section, we construct single-shot distributed auctions based on top of \
         \begin{description}[leftmargin=1mm]
         	\item[(Liveness) Termination within \parAuctionTerm:]
         	An honest consumer generates an event $\opResult{\bag, \bidcert}$ by round $\tzero + \parAuctionTerm$.
-        	
+
             \item [(Safety) Censorship resistance:]
-            If an honest bidder calls \opSubmitBid{\bid}, then $\bid \in \bag$.
+            If an honest bidder calls \opSubmitBid{\bid}
+            and an honest consumer generates an event $\opResult{\bag, $\cdot$}$,
+            then $\bid \in \bag$.
             %  or a subset of the parties that run the \bidsettm protocol is accountable.
             % \hue{Bid inclusion: In a synchronous network, all honest bids are included}
             % Moreover, \emph{fair punishment} holds: an honest auctioneer cannot be held accountable for censoring bids, even in asynchronous networks.
             % \oa{Notice that, even in asynchrony, an honest auctioneer cannot be blamed, in the construction we present.}
-            
+
             \item[(Safety) Weak consistency:]
             If two honest consumers generate \opResult{$\bag_1, \cdot$} and \opResult{$\bag_2, \cdot$} events, such that $\bag_1 \neq \emptyset$ and $\bag_2 \neq \emptyset$, then $\bag_1 = \bag_2$.
             % \hue{Single-result: If there are multiple conflicting auction results, the auctioneer can be held accountable}
