@@ -59,7 +59,7 @@ Observe also that the transaction \msgbidresult{(\bag, \bidcert, \sigma)} become
 
 
 
-The code for a consumer is shown in \Cref{alg:bid-set-consumer}. The consumer waits until one of the following two conditions is met. 
+The code for a consumer is shown in \Cref{alg:bid-set-consumer}. The consumer waits until one of the following two conditions is met.
 First, a \emph{confirmed} transaction \msgbidresult{(\bag, \bidcert, \sigma)} appears in \txSet , for which $\rconf \leq \tzero + 3 \Delta$ (\cref{line:bidset-find-confirmed-tx}), in which case it outputs the bid-set \bag it the \opResult{} event.
 Second, a round higher than $\tzero + 3 \Delta$ becomes past-perfect in \podtm (\cref{line:bidset-read-result-pp}), in which case it outputs $\bag=\emptyset$.
 

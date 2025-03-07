@@ -3,7 +3,7 @@ Despite the widespread adoption of blockchains, a significant challenge remains 
 % even when allowing digital signatures and randomized protocols.
 
 In a model where \emph{replicas} maintain the network, \emph{writers} submit transactions, and \emph{readers} read the network, the minimum latency is one network round trip, or $2\delta$, letting $\delta$ denote the actual network delay, as the information must travel from the writers to the replicas and then to the readers.
-This works is motivated by the following question.
+This work is motivated by the following question.
 
 \begin{center}
 	\emph{Can we perform payments -- and other tasks that blockchains are commonly used for -- in optimal latency?}
@@ -42,7 +42,7 @@ In this work, we investigate how to further relax consensus guarantees in order 
 \end{center}
 
 \subsection{Our Contributions}
-We answer this question by introducing the notion of \podtm, which allows for parties to read and write transactions associated with a \emph{timestamp}. Rather than agreeing on a transaction's timestamp, each party in a \podtm reads different timestamps that may later change, but are guaranteed to stay within certain limits.  This means that we may be able to order some transactions that are written sufficiently far in time from each other, while transactions written around the same time may appear concurrent during the entire execution. A \podtm has a \emph{past-perfection} property, which guarantees that, for each round, there is a point in time by which an honest party will have read all transaction that may ever get associated with a timestamp earlier than that round. A \podtm also guarantees that written transactions can be read by all honest parties (preventing censorship) and every round becomes \emph{past-perfect} within a bounded delays.  
+We answer this question by introducing the notion of \podtm, which allows for parties to read and write transactions associated with a \emph{timestamp}. Rather than agreeing on a transaction's timestamp, each party in a \podtm reads different timestamps that may later change, but are guaranteed to stay within certain limits.  This means that we may be able to order some transactions that are written sufficiently far in time from each other, while transactions written around the same time may appear concurrent during the entire execution. A \podtm has a \emph{past-perfection} property, which guarantees that, for each round, there is a point in time by which an honest party will have read all transaction that may ever get associated with a timestamp earlier than that round. A \podtm also guarantees that written transactions can be read by all honest parties (preventing censorship) and every round becomes \emph{past-perfect} within a bounded delays.
 
 We construct \podtm-core, a simple protocol realizing the \podtm notion with minimal interaction among parties and optimal latency, guaranteeing that transactions become \emph{confirmed} and rounds become \emph{past-perfect} as fast as the network allows. Moreover, \podtm-core has accountability, guaranteeing identification (and enabling punishment) of parties that attempt to modify confirmed transactions, or vary their timestamps beyond the allowed limits. Based on \podtm-core, we construct \bidsettm-core, a protocol for agreeing on a unordered set of bids. Since \bidsettm-core inherits these properties, we obtain censorship resistant auctions.
 \fi
@@ -53,13 +53,13 @@ We construct \podtm-core, a simple protocol realizing the \podtm notion with min
 \subsection{Summary of our results}
 We consider that time proceeds in \emph{rounds}, and that parties (replicas and clients) know the current round, so we can express timestamps in terms of rounds. The output of \podtm associates each transaction $\tx$ with timestamp values $\rmin \geq 0$ (minimum round), $\rmax \leq \infty$ (maximum round) and $\rconf$ (\confirmed round). The confirmation round may be initially $\rconf=\perp$ but later becomes $\rmin \leq \rconf \leq \rmax$, when a transaction is \emph{confirmed}.  While each party reads different values $\rmin,\rmax,\rconf$ for the same $\tx$, \podtm guarantees that values read by different parties stay within these limits.
 
-When clients \emph{read} the \podtm, they obtain a $\podtm$ data structure $\Pod = (\txSet, \rperf, \ppcert)$, where $\txSet$ is set of  transactions with their associated timestamps, $\rperf$ is a \emph{past-perfect} round and $\ppcert$ is auxiliary data. The \emph{past-perfection} safety property of \podtm guarantees that 
-%if a transaction $\tx$ did not appear in $\txSet$, then no other party will ever read $\tx$ with confirmed round $\rconf'$ such that $\rconf' < \rperf$. This guarantees that, 
+When clients \emph{read} the \podtm, they obtain a $\podtm$ data structure $\Pod = (\txSet, \rperf, \ppcert)$, where $\txSet$ is set of  transactions with their associated timestamps, $\rperf$ is a \emph{past-perfect} round and $\ppcert$ is auxiliary data. The \emph{past-perfection} safety property of \podtm guarantees that
+%if a transaction $\tx$ did not appear in $\txSet$, then no other party will ever read $\tx$ with confirmed round $\rconf'$ such that $\rconf' < \rperf$. This guarantees that,
 \txSet contains \emph{all} transactions that every other honest party will ever read with a confirmed round smaller than $\rperf$.  A \podtm also guarantees \emph{past-perfection within $w$}, meaning that $\rperf$ is at most $w$ rounds in the past.
 
-For each transaction $\tx$ in \txSet, the reader obtains associated timestamps $\rmin,\allowbreak \rmax, \rconf$ and auxiliary data $\txcert$, which may evolve. The protocol guarantees \emph{confirmation within $u$ rounds}, meaning that, at most $u$ rounds after $\tx$ was written, every party who reads the \podtm will see $\tx$ as confirmed with some $\rconf \neq \perp$. 
+For each transaction $\tx$ in \txSet, the reader obtains associated timestamps $\rmin,\allowbreak \rmax, \rconf$ and auxiliary data $\txcert$, which may evolve. The protocol guarantees \emph{confirmation within $u$ rounds}, meaning that, at most $u$ rounds after $\tx$ was written, every party who reads the \podtm will see $\tx$ as confirmed with some $\rconf \neq \perp$.
 Moreover, \podtm guarantees \emph{confirmation bounds}, ensuring that
-% if a party reads $\tx$ with minimum round $\rmin$ and maximum round $\rmax$, for every other party who reads $\tx$ with $\rconf' \neq \perp$, it holds that $\rmin \leq \rconf' \leq \rmax$. This means that 
+% if a party reads $\tx$ with minimum round $\rmin$ and maximum round $\rmax$, for every other party who reads $\tx$ with $\rconf' \neq \perp$, it holds that $\rmin \leq \rconf' \leq \rmax$. This means that
 the values \rmin and \rmax for $\tx$, read by an honest party, determine the range of the \rconf value for $\tx$ that can ever be read by another honest party,
 i.e., $\rmin \leq \rconf \leq \rmax$.
 
@@ -101,7 +101,7 @@ Cheating client might lose liveness~\cite{DBLP:conf/aft/BaudetDS20,DBLP:journals
 Bazzi and Piergiovanni~\cite{PODC:BazPie24} observe two limitations of consensusless protocols: As they employ sequence numbers and deterministic broadcast,
 clients can only submit one transaction at a time, and they must obtain signatures by at least $2f+1$ replicas on each transaction,
 where $f$ is the maximum number of tolerated failures.
-The authors propose a new type of probabilistic Byzantine quorum systems~\cite{DBLP:journals/iandc/MalkhiRWW01},
+The authors propose a new type of probabilistic Byzantine quorum system~\cite{DBLP:journals/iandc/MalkhiRWW01},
 % achieving lower \emph{and} upper bounds in the intersection among quorums.
 and a protocol that allows a user to initiate multiple concurrent payments, called \emph{fractional payments},
 each transferring amount $b / s$ from their balance $b$, where $s$ is a constant,
