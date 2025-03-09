@@ -12,7 +12,14 @@ This work is motivated by the following question.
 We define latency in terms of the blockchain \emph{liveness} property, referring to finalized, non-reversible outputs: once a transaction is received by a reader, it remains in the protocol's output permanently.
 We do not assume ``optimistic'' or ``happy'' path scenarios, where transactions might finalize faster under favorable conditions (such as having honest leaders or optimal network conditions). Instead, we want that any transaction from an honest writer appears in the output of honest readers within $2\delta$ time, regardless of the current value of $\delta$.
 
-To achieve the single-roundtrip latency, our first key design decision eliminates inter-replica communication entirely. Instead, writers send their transactions directly to all replicas. Each replica maintains its own \emph{replica log}, processes incoming transactions independently, and transmits its log to readers. Readers then process these replica logs to extract relevant information.
+To achieve the single-roundtrip latency, our first key design decision eliminates inter-replica communication entirely. Instead, writers send their transactions directly to all replicas. Each replica maintains its own \emph{replica log}, processes incoming transactions independently, and transmits its log to readers. Readers then process these replica logs to extract relevant information. See Figure~\ref{fig:architecture}.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.35\textwidth]{figures/pod-architecture.pdf}
+    \caption{Pod's simple architecture. A writing client (top) sends a transaction to all replicas (middle). Each replica appends the transaction to its own log and transmits it to the reading client (bottom).}
+    \label{fig:architecture}
+\end{figure}
 
 This design raises two important questions. First, what meaningful information can readers derive from replica logs when replicas operate in isolation? Second, given that in two rounds even randomized authenticated broadcast is proven impossible~\cite{DBLP:conf/focs/GarayKKO07}, what capabilities can this necessarily weaker primitive offer? We demonstrate that, by incorporating simple mechanisms, such as transaction timestamping and replica-log sequencing, replicas can enable readers to extract valuable information beyond mere low-latency guarantees. Furthermore, we show how the properties of pod can enable various applications, including payment systems, auction platforms, and decentralized data stores.
 
