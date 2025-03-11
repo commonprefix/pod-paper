@@ -5,8 +5,12 @@ Despite the widespread adoption of blockchains, a significant challenge remains 
 In a model where \emph{replicas} maintain the network, \emph{writers} submit transactions, and \emph{readers} read the network, the minimum latency is one network round trip, or $2\delta$, letting $\delta$ denote the actual network delay, as the information must travel from the writers to the replicas and then to the readers.
 This work is motivated by the following question.
 
+%\begin{center}
+%	\emph{Can we perform payments -- and other tasks that blockchains are commonly used for -- in optimal latency?}
+%\end{center}
+
 \begin{center}
-	\emph{Can we perform payments -- and other tasks that blockchains are commonly used for -- in optimal latency?}
+	\emph{Can we tasks that blockchains are commonly used for in optimal latency?}
 \end{center}
 
 We define latency in terms of the blockchain \emph{liveness} property, referring to finalized, non-reversible outputs: once a transaction is received by a reader, it remains in the protocol's output permanently.
