@@ -98,9 +98,10 @@ A protocol is a \emph{secure} \podtm if it implements the \podtm interface of De
 \end{description}
 \end{definition}
 
-\oa{Bernie, check this paragraph.}
-The \emph{confirmation within \parConf} property gives us that, if an honest client writes a transaction \tx, then \tx will obtain $\rconf \neq \bot$ within \parConf rounds, but it does not tell us \emph{what} that \rconf will be.
-Similarly, the \emph{confirmation bounds} property gives $\rmin \leq \rconf' \leq \rmax$, for $\rconf'$ computed by honest client $\client_2$ and \rmin, \rmax computed by honest client $\client_1$, but it does not guarantee anything about the values of \rmin and \rmax (for example, it could trivially be $\rmin=0$ and $\rmax=\infty$).
+
+%The \emph{confirmation within \parConf} property gives us that, if an honest client writes a transaction \tx, then \tx will obtain $\rconf \neq \bot$ within \parConf rounds, but it does not tell us \emph{what} that \rconf will be.
+%Similarly, 
+The \emph{confirmation bounds} property gives $\rmin \leq \rconf' \leq \rmax$, for $\rconf'$ computed by honest client $\client_2$ and \rmin, \rmax computed by honest client $\client_1$, but it does not guarantee anything about the values of \rmin and \rmax (for example, it could trivially be $\rmin=0$ and $\rmax=\infty$).
 To this purpose we define an additional property of \podtm, called \emph{timeliness}.
 % , which can be satisfied along with the standard safety and liveness properties of \podtm.
 Previous work has observed a similar property as orthogonal to safety and liveness~\cite{EPRINT:TziSriZin23}.
@@ -109,13 +110,13 @@ Previous work has observed a similar property as orthogonal to safety and livene
     A \podtm protocol is \emph{\parTemp-timely} if it is a secure \podtm, as per Definition~\ref{def:podsec}, and for any honest clients $\client_1,\client_2$, if $\client_1$ writes transaction \tx in round $\round$, then $\client_2$ computes \rmin, \rmax, \rconf for \tx such that:
     % (observe that, from the \emph{confirmation within \parConf} property, \tx will become confirmed):
     \begin{enumerate}
-        \item $\rconf \in (\round, \round + \parTemp]$
+        %\item $\rconf \in (\round, \round + \parTemp]$
         \item $\rmax \in (\round, \round + \parTemp]$
         \item $\rmax - \rmin < \parTemp$, implying that $\rmin \neq 0$ and $\rmax \neq \infty$.
     \end{enumerate}
 \end{definition}
 
-\oa{Bernie, check this as well.}
+
 Moreover, a \podtm protocol allows the values \rmin, \rmax, \rconf to change during an execution -- for example, clients in construction \podtm-core will update them when they receive votes from replicas.
 The properties we have defined so far do not impose any restriction on how they evolve.
 For this reason, in Appendix~\ref{app:monotonicity} we define the additional property of \podtm \emph{Monotonicity}.
