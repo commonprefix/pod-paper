@@ -85,6 +85,11 @@ Writing a transaction $\tx$ in \podtm-core only requires clients to send $\tx$ t
 In this work we allow clients to specify their own trust assumptions, expecting up to \beta Byzantine \emph{and} at the same time up to \gamma additional omission-faulty replicas.
 We prove our results for executions with only Byzantine and only omission faults, but we conjecture that the results hold for a continuum between these two cases. We leave this as future work. \oa{NEW}
 
+\subsection{Applications}
+The efficiency of pod enables a plethora of distributed applications to be implemented with low latency. In \Cref{sec:auctions} we show how auctions can be run on top of pod, achieved through \bidsettm, a primitive for collecting a set of bids in a censorship resistant manner.
+
+\todo{A paragraph on feed-layers ad decentralized social applications}
+
 
 \subsection{Related work}\label{app:related}
 
