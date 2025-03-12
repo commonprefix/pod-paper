@@ -75,6 +75,8 @@ When it receives  \msgwrite{\tx}, a replica first checks whether it has already 
 Honest replicas use incremental sequence numbers for each transaction, implying that a vote with a larger sequence number than a second vote will have a larger or equal timestamp than the second.
 The replica appends $(\tx, \tsp, \sn, \sig)$ to \repLog, and sends it via a \msgrecord{(\tx, \tsp, \sn, \sig, \rep_i)} message to all connected clients (\cref{line:send-vote}).
 
+\input{pod-core-pseudocode/pod-core-client-code-1}
+
 \dotparagraph{Client initialization}
 The state of a client is shown in \Cref{alg:client-1} in lines~\ref{line:client-state-begin}--\ref{line:client-state-end}.
 The state contains \mrt, \nextsn, \tsps, and \Pod.
@@ -98,7 +100,7 @@ The \identify{} function we show in \Cref{alg:identify} can detect such misbehav
 
 
 %\vspace{-5mm}
-\input{pod-core-pseudocode/pod-core-client-code-1}
+
 %\vspace{-7mm}
 \dotparagraph{Writing to and reading from \podtm}
 Protocol \podtm-core implements functions \opwrite{\tx} and \opreadall{} (\Cref{def:podinterface}) functions as shown in \Cref{alg:client-2}.

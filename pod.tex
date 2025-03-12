@@ -19,9 +19,8 @@ In \podtm-core, \txcert will contain digital signatures used to achieve accounta
 \end{definition}
 
 \begin{definition}[Transaction set]
-\sloppy{
 A \emph{transaction set} $\txSet$ is a set of tuples $(\tx, \rmin, \rmax, \rconf, \txcert)$. We say that a transaction $\tx$ \emph{appears} in $\txSet$ when $\exists (\tx', \rmin, \rmax, \rconf, \txcert) \in \txSet$ such that $\tx'=\tx$.  Conversely, we say that a transaction $\tx$ \emph{does not appear} in $\txSet$ when this condition is not satisfied.
-}
+
 \end{definition}
 
 
@@ -120,6 +119,16 @@ Previous work has observed a similar property as orthogonal to safety and livene
 Moreover, a \podtm protocol allows the values \rmin, \rmax, \rconf to change during an execution -- for example, clients in construction \podtm-core will update them when they receive votes from replicas.
 The properties we have defined so far do not impose any restriction on how they evolve.
 For this reason, in Appendix~\ref{app:monotonicity} we define the additional property of \podtm \emph{Monotonicity}.
+
+We conlude this section with a visual example in \Cref{fig:example-output}, showing a possible output of pod and highlighting the notions of \emph{associated values} for a transactions and the \emph{past-perfect round}.
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.35\textwidth]{figures/pod-architecture.pdf}
+    \caption{\todo{Add figure} A possible output of a pod execution. Each transaction is assigned a minimum and a maximum timestamp. If the transaction gets confirmed, then its confirmation timestamp will be between these two values.
+    % A reader derives these values from the votes it receives from the validators.
+    A reader also derives a past-perfect timestamp $\rperf$. In the example of the figure, the reader knows that no transaction other than $\tx_1$ and $\tx_2$ will ever obtain a confirmation timestamp smaller than $\rperf$. Transactions written concurrently, or close to each other, such as $\tx_3$ and $\tx_4$, may not be totally ordered. Transactions written by malicious clients, such as $\tx_5$ may not become confirmed.}
+    \label{fig:example-output}
+\end{figure}
 
 
 
