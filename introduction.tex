@@ -82,6 +82,9 @@ Besides introducing the notion of \podtm, we present a construction \podtm-core 
 Writing a transaction $\tx$ in \podtm-core only requires clients to send $\tx$ to the replicas, who each assign a timestamp $\tsp$ (their current time) and a \emph{sequence number} to $\tx$ and return a signature on $(\tx,\tsp, \sn)$. When reading the \podtm, the client simply requests each replica's log of transactions, validates the responses, and determines $\rmin$ and $\rmax$ from the received timestamps. If the client receives responses from enough replicas, $\rconf$ is determined by taking the median of the timestamps received from these replicas.
 % If a replica provides conflicting timestamps $\tsp\neq \tsp'$ for the same $\tx$ to one or more clients, the replica's signatures publicly proves cheating.
 
+In this work we allow clients to specify their own trust assumptions, expecting up to \beta Byzantine \emph{and} at the same time up to \gamma additional omission-faulty replicas.
+We prove our results for executions with only Byzantine and only omission faults, but we conjecture that the results hold for a continuum between these two cases. We leave this as future work. \oa{NEW}
+
 
 \subsection{Related work}\label{app:related}
 

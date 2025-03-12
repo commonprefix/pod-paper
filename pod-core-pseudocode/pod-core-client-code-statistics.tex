@@ -1,5 +1,5 @@
-\begin{algorithm}[h!]
-    \caption{Protocol \podtm-\clientsA (\Cref{const:pod-clients-a}), part 3: computing \rmin, \rmax, \rconf
+\begin{algorithm}[ht!]
+    \caption{Protocol \podtm-core (\Cref{const:pod-core}): Client code, part 3 (computing associated values and past-perfect round). The code is parametrized with \beta, the number of Byzantine replicas expected by the client, and \gamma, the number of omission-faulty replicas, and $\alpha = n - \beta - \gamma$.
     }
     \label{alg:client-statistics}
     \begin{algorithmic}[1]
@@ -13,7 +13,7 @@
             \EndIf
         \EndFor\label{line:assing-missing-min-end}
         \State{\text{sort \txVotesMin in increasing order}}
-        \Let{\txVotesMin}{ [ 0, \stackrel{\beta \text{ times}}{\ldots}, 0 ] \concat \txVotesMin} \label{line:prepend-zero}
+        \Let{\txVotesMin}{ [ 0, \stackrel{\beta \text{ times}}{\ldots}, 0 ] \concat \txVotesMin} \Comment{omitted altogether if $\beta=0$}\label{line:prepend-zero}
         \return \opMed{$\txVotesMin[:\alpha]$}
     \EndFunction
     \Statex
@@ -28,7 +28,7 @@
             \EndIf
         \EndFor\label{line:assing-missing-max-end}
         \State{\text{sort \txVotesMax in increasing order}}
-        \Let{\txVotesMax}{\txVotesMax \concat [ \infty, \stackrel{\beta \text{ times}}{\ldots}, \infty ]} \label{line:apend-infty}
+        \Let{\txVotesMax}{\txVotesMax \concat [ \infty, \stackrel{\beta \text{ times}}{\ldots}, \infty ]}\Comment{omitted altogether if $\beta=0$} \label{line:apend-infty}
         \return \opMed{$\txVotesMax[-\alpha:]$}
     \EndFunction\label{line:fn-compute-max-end}
     \Statex
@@ -36,10 +36,10 @@
     \Function{\opMinPossibleTsForNewTx{}}{}\label{line:fn-compute-pp-begin}
         \Let{\txVotesPerf}{\mrt}
         \State{\text{sort \txVotesPerf in increasing order}}
-        \Let{\txVotesPerf}{ [ 0, \stackrel{\beta \text{ times}}{\ldots}, 0 ] \concat \txVotesPerf}
+        \Let{\txVotesPerf}{ [ 0, \stackrel{\beta \text{ times}}{\ldots}, 0 ] \concat \txVotesPerf}\Comment{omitted altogether if $\beta=0$}
         \return \opMed{$\txVotesPerf[:\alpha]$}
     \EndFunction\label{line:fn-compute-pp-end}
-% \vspace{-1mm}
+\vspace{-1mm}
     \Statex
     \Function{\opMed{Y}}{}\label{}
         \return $Y[\lfloor \,|Y|/2 \, \rfloor]$

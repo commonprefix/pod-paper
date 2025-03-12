@@ -1,5 +1,5 @@
 \section{Definition of \podtm monotonicity}\label{app:monotonicity}
-We define \emph{\podtm monotonicity} as an intermediate notion that stands between a simple secure \podtm and a $\theta$-timely \podtm. \oa{I am not sure this is true, or at least intuitive. I would remove this sentence.}
+% We define \emph{\podtm monotonicity} as an intermediate notion that stands between a simple secure \podtm and a $\theta$-timely \podtm. \oa{I am not sure this is true, or at least intuitive. I would remove this sentence.}
 
 The property of \podtm monotonicity requires that, as time advances, $\rmin$ does not decrease, $\rmax$ does not increase and confirmed transactions remain confirmed.
 
@@ -8,7 +8,9 @@ The property of \podtm monotonicity requires that, as time advances, $\rmin$ doe
 	\begin{description}
 		\item [Past-perfection monotonicity:] It holds that $\podView{\client}{\round_2}.\rperf \geq \podView{\client}{\round_1}.\rperf$.
 		\item [Transaction monotonicity:] If  transaction $\tx$ appears in $\podView{\client}{\round_1}.\txSet$, then $\tx$ appears in $\podView{\client}{\round_2}.\txSet$.
-		\item [Confirmation-bounds monotonicity:] For every $\tx$ that appears in $\podView{\client}{\round_1}.\txSet$ with $\rmin,\rmax,\rconf$ and appears in  $\podView{\client}{\round_2}.\txSet$ with $\rmin',\rmax',\rconf'$,  it holds that $\rmin'\geq \rmin$, $\rmax' \leq \rmax$, $\rconf' \geq \rconf$. \oa{Is the last part true, that $\rconf' \geq \rconf$?}
+		\item [Confirmation-bounds monotonicity:] For every $\tx$ that appears in $\podView{\client}{\round_1}.\txSet$ with $\rmin,\rmax,\rconf$ and appears in  $\podView{\client}{\round_2}.\txSet$ with $\rmin',\rmax',\rconf'$,  it holds that $\rmin'\geq \rmin$, $\rmax' \leq \rmax$.
+		% $\rconf' \geq \rconf$.
+		\oa{UPDATED. I removed the part $\rconf' \geq \rconf$, I do not think it holds.}
 	\end{description}
 \end{definition}
 
@@ -56,7 +58,8 @@ In the remarks below, we observe that \podtm monotonicity implies a number of us
 %\end{remark}
 
 \begin{remark}[Strong confirmation-bounds monotonicity]
-	Properties 2 and 3 of \podtm monotonicity imply that if an honest client computes $\rmin$ and $\rmax$ for \tx in round $\round_1$, then the same client will later obtain $\rmin'$ and $\rmax'$ for \tx in round $\round_2 > \round_1$ such that $\rmin' \geq \rmin$ and $\rmax' \leq \rmax$. \oa{What is the difference between this and the \emph{confirmation-bounds monotonicity}?}
+	Properties 2 and 3 of \podtm monotonicity imply that if an honest client computes $\rmin$ and $\rmax$ for \tx in round $\round_1$, then the same client will later obtain $\rmin'$ and $\rmax'$ for \tx in round $\round_2 > \round_1$ such that $\rmin' \geq \rmin$ and $\rmax' \leq \rmax$.
+	% \oa{What is the difference between this and the \emph{confirmation-bounds monotonicity}?}
 \end{remark}
 
 \begin{remark}

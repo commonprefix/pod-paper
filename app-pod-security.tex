@@ -1,5 +1,5 @@
-\section{Security of  \podtm-\clientsA}\label{app:pod-security}
-In order to prove Theorem~\ref{thm:pod-security-clients-a} and establish the security of Protocol \podtm-core shown Construction~\ref{const:pod-core}, we first prove some useful intermediate results.
+\section{Security of \podtm-core under Byznatine faults}\label{app:pod-security-byzantine}
+In order to prove Theorem~\ref{thm:pod-security-byzantine} and establish the security of Protocol \podtm-core shown Construction~\ref{const:pod-core}, we first prove some useful intermediate results. We remind that $n = \alpha + \beta + \gamma$, where $\beta$ denotes the number of Byzantine replicas and \gamma the number of omission-faulty replicas in an execution, and \alpha denotes the number of replicas required to confirm a transaction. \oa{NEW}
 
 \begin{lemma}\label{lem:assign-min-max}
 	Regarding \Cref{alg:client-statistics}, we have the following.
@@ -17,7 +17,7 @@ In order to prove Theorem~\ref{thm:pod-security-clients-a} and establish the sec
 \end{proof}
 
 \begin{lemma}\label{lem:rperf-value-of-honest}
-	Assuming $\alpha \geq 4 \beta + 1$, if a client outputs \rperf as the past-perfect round,
+	Assuming $n \geq 5 \beta + 1$ and $\gamma = 0$, if a client outputs \rperf as the past-perfect round,
 	then there exists some honest replica $\rep_j$, such that the most-recent timestamp (mrt) from $\rep_j$ received by the client satisfies $\mrt[\rep_j] \leq \rperf$.
 \end{lemma}
 \begin{proof}
@@ -49,17 +49,20 @@ In order to prove Theorem~\ref{thm:pod-security-clients-a} and establish the sec
 
 \noindent
 
-We now recall Theorem~\ref{thm:pod-security-clients-a}, which formally states that the combination of \Cref{const:pod-core} (replica code) and \Cref{const:pod-clients-a} (client code) satisfies the security definition of \podtm (\Cref{def:podsec}) with accountable safety (\Cref{def:accountable-safety}). We prove it through a series of lemmas.
+We now recall Theorem~\ref{thm:pod-security-byzantine}, which we prove through a series of lemmas.
 
-\begin{customthm}{\ref{thm:pod-security-clients-a}}[\podtm-\clientsA security]
-	\oa{Repeat \Cref{thm:pod-security-clients-a}.}
+\begin{customthm}{\ref{thm:pod-security-byzantine}}[\podtm-core security under Byzantine faults]
+	Assume an execution of \podtm-core (\Cref{const:pod-core}), instantiated with a secure signature scheme,
+    where the network is asynchronous with actual network delay $\delta$ (and unknown delay upper bound),
+    at most \beta replicas are Byzantine and no additional replica is omission faulty, and $n \geq 5 \beta + 1$.
+    The output of the clients satisfies the definition of a responsive secure \podtm (\Cref{def:podsec}) with Confirmation within $\parConf = 2 \delta$ and Past-perfection within $\parPerf = \delta$, and it also satisfies the property of \beta-accountable safety (\Cref{def:accountable-safety}) with the \identify{} function described in \Cref{alg:identify}, \ewnp.
 \end{customthm}
 \begin{proof}
 	In Lemmas~\ref{lem:pod-confirmation}--\ref{lem:pod-accountable-safety}.
 \end{proof}
 
 \begin{lemma}[Confirmation within $\parConf$]\label{lem:pod-confirmation}
-	The combination of \Cref{const:pod-core} (replica code) and \Cref{const:pod-clients-a} (client code) satisfies the \emph{confirmation within $\parConf$} property for $\parConf = 2 \delta$. \oa{Dio, how does it look to you to use the `The combination of \Cref{const:pod-core} (replica code) and \Cref{const:pod-clients-a} (client code)' phrasing in theorems?}
+	\Cref{const:pod-core}, assuming $n \geq 5 \beta + 1$ and $\gamma = 0$, satisfies the \emph{confirmation within $\parConf$} property for $\parConf = 2 \delta$.
 \end{lemma}
 \begin{proof}
 	Assume an honest client \client calls \opwrite{\tx} at round \round.
@@ -70,7 +73,7 @@ We now recall Theorem~\ref{thm:pod-security-clients-a}, which formally states th
 \end{proof}
 
 \begin{lemma}[Past-perfection within $\parPerf$]\label{lem:past-perfection-liveness}
-	The combination of \Cref{const:pod-core} (replica code) and \Cref{const:pod-clients-a} (client code) satisfies the \emph{past-perfection within $\parPerf$} property for $\parPerf = \delta$.
+	\Cref{const:pod-core}, assuming $n \geq 5 \beta + 1$ and $\gamma = 0$, satisfies the \emph{past-perfection within $\parPerf$} property for $\parPerf = \delta$.
 \end{lemma}
 \begin{proof}
 	Assume an honest client \client at round \round has view $\podView{c}{\round}$.
@@ -90,7 +93,7 @@ We now recall Theorem~\ref{thm:pod-security-clients-a}, which formally states th
 	% \end{proof}
 
 \begin{lemma}[Past-perfection safety]\label{lem:pod-pp-safety}
-	The combination of \Cref{const:pod-core} (replica code) and \Cref{const:pod-clients-a} (client code) satisfies the \emph{past-perfection} safety property.
+	\Cref{const:pod-core}, assuming $n \geq 5 \beta + 1$ and $\gamma = 0$, satisfies the \emph{past-perfection} safety property.
 \end{lemma}
 \begin{proof}
 	Assume an honest client $\client$ at round $\round > 0$ reads the \podtm and obtains $(\txSet, \rperf, \ppcert)$.
@@ -135,7 +138,7 @@ We now recall Theorem~\ref{thm:pod-security-clients-a}, which formally states th
 	% \end{proof}
 
 \begin{lemma}[Confirmation bounds]\label{lem:bounds-safety}
-	The combination of \Cref{const:pod-core} (replica code) and \Cref{const:pod-clients-a} (client code) satisfies the \emph{confirmation bounds} safety property.
+	\Cref{const:pod-core}, assuming $n \geq 5 \beta + 1$ and $\gamma = 0$, satisfies the \emph{confirmation bounds} safety property.
 \end{lemma}
 \begin{proof}
 	Assume client $\client_1$ computes \rmin and client $\client_2$ computes $\rconf < \rmin$ for \tx.
@@ -158,7 +161,7 @@ We now recall Theorem~\ref{thm:pod-security-clients-a}, which formally states th
 	% The accountability properties are satisfied using
 	% \identify{}, for the \emph{accountability from the  view of a single party} property,
 	% and \identify{$\podView{\client_1}{\round_1}$, $\podView{\client_2}{\round_2}$}, for the \emph{accountability from the  view of two replicas} properties. 
-	The combination of \Cref{const:pod-core} (replica code) and \Cref{const:pod-clients-a} (client code) satisfies accountable safety with resilience \beta.
+	\Cref{const:pod-core}, assuming $n \geq 5 \beta + 1$ and $\gamma = 0$, satisfies accountable safety with resilience \beta.
 \end{lemma}
 \begin{proof}
 	We show that \identify{} (\Cref{alg:identify}) satisfies the \emph{correctness} and \emph{no-framing} properties required by \Cref{def:accountable-safety}, in three steps.
@@ -240,7 +243,7 @@ We now recall Theorem~\ref{thm:pod-security-clients-a}, which formally states th
 
 \begin{theorem}[$\parTemp$-timeliness for honest transactions]
 	\sloppy{
-		The combination of \Cref{const:pod-core} (replica code) and \Cref{const:pod-clients-a} (client code), parametrized with $\alpha \geq 4 \beta + 1$, satisfies \emph{\parTemp-timeliness for honest transactions}, as per \Cref{def:pod-timely}, for $\parTemp = \delta$.
+		\Cref{const:pod-core}, assuming $n \geq 5 \beta + 1$ and $\gamma = 0$, satisfies \emph{\parTemp-timeliness for honest transactions}, as per \Cref{def:pod-timely}, for $\parTemp = \delta$.
 	}
 \end{theorem}
 \begin{proof}
