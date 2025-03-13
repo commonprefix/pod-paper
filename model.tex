@@ -15,9 +15,8 @@ We denote the concatenation of sequences $L_1$ and $L_2$ by $L_1 \concat L_2$.
 \subsection{Execution Model}\label{sec:system}
 
 \dotparagraph{\textbf{Parties}}
-We consider $n$ \emph{replicas} $\replicas=\{\replicas_1,\ldots,\replicas_n\}$ and an unlimited number of \emph{clients}. Parties are \emph{stateful}, \textit{i.e.}, store \emph{state} between executions of different algorithms.
-We assume that replicas are known to all parties and that their public keys (for which they have the corresponding secret key) are registered in a Public Key Infrastructure (PKI).
-The clients do not participate in the PKI. 
+We consider $n$ \emph{replicas} $\replicas=\{\replicas_1,\ldots,\replicas_n\}$ and an unknown number of \emph{clients}. Parties are \emph{stateful}, \textit{i.e.}, store \emph{state} between executions of different algorithms.
+We assume that replicas are known to all parties and register their public keys (for which they have corresponding secret keys) in a Public Key Infrastructure (PKI). Clients do not register keys in the PKI. 
 % \vspace{-3mm} 
 
 \dotparagraph{\textbf{Adversarial Model}}
@@ -39,7 +38,7 @@ In the \emph{omission} model, corrupted replicas may only deviate from the proto
 % For any two honest parties, their clocks can be at most time $\phi$ apart.
 % For simplicity, our analysis will assume \emph{synchronized clocks}, that is, $\phi = 0$.
 Time proceeds in discrete \emph{rounds}.
-We assume that parties know the current round. A \emph{timestamp} is a round number assigned to an event, \textit{e.g.}, receiving or sending a message. We assume that all honest parties do any probabilistic polynomial time computation and send any messages required by the protocol at every round (although message delivery is not guaranteed).
+We assume that parties know the current round. A \emph{timestamp} is a round number assigned to an event, \textit{e.g.}, receiving or sending a message. We assume that all honest parties do any probabilistic polynomial time computation and send any messages required by the protocol at every round (but message delivery is not guaranteed).
 % \vspace{-3mm}
 
 \dotparagraph{\textbf{Modeling network}}
