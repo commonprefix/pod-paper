@@ -37,17 +37,17 @@ In this section, we show how single-shot distributed auctions can be implemented
 %We present \bidsettm-core, a \bidsettm construction that uses a \podtm to register bids.
 
 
-\begin{construction}[\bidsettm-core]\label{const:bidset}
+\begin{protocol}[\bidsettm-core]\label{const:bidset}
 	Protocol \bidsettm-core is parameterized by an integer $\Delta$ (looking ahead, we will prove security in synchrony, \textit{i.e.}, assuming the network delay $\delta$ is smaller than $\Delta$) and assumes digital signatures and a \podtm with $\delta$-timeliness, $\parPerf=\delta$ and $\parConf=2\delta$. At time \tzero, all parties start executing Algorithms~\ref{alg:bid-set-bidder}--\ref{alg:bid-set-consumer}.
 	% A bidder runs \opSubmitBid{} (\Cref{alg:bid-set-bidder}), the sequencer runs \opRunAuction{} (\Cref{alg:bid-set-sequencer}), and a consumer runs \opReadResult{} (\Cref{alg:bid-set-consumer}), in order to output the $\opResult{\bag, \bidcert}$ event.
 	A pre-appointed \emph{sequencer} is responsible to reading the \podtm and writing back to it when a specific condition is met. For example, when instantiating \bidsettm-core on top of \podtm-core, a replica can act as sequencer.
-\end{construction}
+\end{protocol}
 
 % \vspace{-5mm}
 \input{bidset-core-pseudocode/bidset-bidder-pseudocode.tex}
-% \vspace{-13mm}
+\vspace{-5mm}
 \input{bidset-core-pseudocode/bidset-auctioneer-pseudocode.tex}
-% \vspace{-13mm}
+\vspace{-5mm}
 \input{bidset-core-pseudocode/bidset-consumer-pseudocode.tex}
 % \vspace{-5mm}
 A bidder submits a bid by writing it on the \podtm (\Cref{alg:bid-set-bidder}) at round \tzero.
