@@ -120,14 +120,34 @@ Moreover, a \podtm protocol allows the values \rmin, \rmax, \rconf to change dur
 The properties we have defined so far do not impose any restriction on how they evolve.
 For this reason, in Appendix~\ref{app:monotonicity} we define the additional property of \podtm \emph{Monotonicity}.
 
-We conlude this section with a visual example in \Cref{fig:example-output}, showing a possible output of pod and highlighting the notions of \emph{associated values} for a transactions and the \emph{past-perfect round}.
-\begin{figure}[h]
+We conclude this section with some visual examples in Figures \ref{fig:example-output} and \ref{fig:example-output}.
+% \begin{figure}[h]
+%     \centering
+%     \includegraphics[width=0.35\textwidth]{figures/pod-architecture.pdf}
+%     \caption{\todo{Add figure} }
+%     \label{fig:example-output}
+% \end{figure}
+
+
+\begin{figure}[ht]
+    \begin{minipage}[b]{.5\textwidth}
     \centering
-    \includegraphics[width=0.35\textwidth]{figures/pod-architecture.pdf}
-    \caption{\todo{Add figure} A possible output of a pod execution. Each transaction is assigned a minimum and a maximum timestamp. If the transaction gets confirmed, then its confirmation timestamp will be between these two values.
-    % A reader derives these values from the votes it receives from the validators.
-    A reader also derives a past-perfect timestamp $\rperf$. In the example of the figure, the reader knows that no transaction other than $\tx_1$ and $\tx_2$ will ever obtain a confirmation timestamp smaller than $\rperf$. Transactions written concurrently, or close to each other, such as $\tx_3$ and $\tx_4$, may not be totally ordered. Transactions written by malicious clients, such as $\tx_5$ may not become confirmed.}
+    \includegraphics[width=1\textwidth]{figures/pod-temperature.pdf}
+    \caption{The same transaction in the view of three different clients of pod. Each client assigns it a minimum round \rmin and a maximum round \rmax. If it gets confirmed, the confirmation round \rconf will be
+     between these two values. The \rconf that each client locally computes respects the bounds of each other client.}
+     \label{fig:temperature}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[b]{.4\textwidth}
+    \centering
+    \includegraphics[width=1\textwidth]{figures/pod-example.pdf}
+    \caption{A possible view of a single pod client. 
+    Transactions $\tx_1, \tx_2, \tx_3$ are seen confirmed, while $\tx_4$ is not confirmed in the view of the client. 
+    A client also derives a past-perfect timestamp $\rperf$. No transaction other than $\tx_1, \tx_2, \tx_3, \tx_4$ may  obtain an \rconf smaller than $\rperf$. Specifically, there can be a $\tx_5$ that the client has not any votes for -- $\tx_5$ cannot obtain $\rconf \leq \rperf$. 
+    % Transactions written concurrently, or close to each other, such as $\tx_3$ and $\tx_4$, may not be totally ordered. Transactions written by malicious clients, such as $\tx_5$ may not become confirmed.
+    }
     \label{fig:example-output}
+    \end{minipage}
 \end{figure}
 
 
