@@ -10,7 +10,7 @@ The property of \podtm monotonicity requires that, as time advances, $\rmin$ doe
 		\item [Transaction monotonicity:] If  transaction $\tx$ appears in $\podView{\client}{\round_1}.\txSet$, then $\tx$ appears in $\podView{\client}{\round_2}.\txSet$.
 		\item [Confirmation-bounds monotonicity:] For every $\tx$ that appears in $\podView{\client}{\round_1}.\txSet$ with $\rmin,\rmax,\rconf$ and appears in  $\podView{\client}{\round_2}.\txSet$ with $\rmin',\rmax',\rconf'$,  it holds that $\rmin'\geq \rmin$, $\rmax' \leq \rmax$.
 		% $\rconf' \geq \rconf$.
-		\oa{UPDATED. I removed the part $\rconf' \geq \rconf$, I do not think it holds.}
+	
 	\end{description}
 \end{definition}
 
