@@ -95,13 +95,33 @@ The efficiency of pod enables a plethora of distributed applications to be imple
 
 \dotparagraph{Reducing latency}
 Many previous works have lowered the latency of ordering transactions.
-HotStuff~\cite{DBLP:conf/podc/YinMRGA19} uses three rounds of all-to-leader and leader-to-all communication pattern, which results in an end-to-end latency (i.e., from the moment a client submits a transaction until in appears in the output of honest replicas) of $8\delta$ in the happy path.
+HotStuff~\cite{DBLP:conf/podc/YinMRGA19} uses three rounds of all-to-leader and leader-to-all communication pattern, which results in a latency (measuring from the moment a client submits a transaction until in appears in the output of honest replicas) of $8\delta$ in the happy path.
 Jolteon~\cite{DBLP:conf/fc/GelashviliKSSX22}, Ditto~\cite{DBLP:conf/fc/GelashviliKSSX22}, and HotStuff-2~\cite{DBLP:journals/iacr/MalkhiN23} are two-round versions of HotStuff with end-to-end latency of $5\delta$.
 MoonShot~\cite{DBLP:journals/corr/abs-2401-01791} allows leaders to send a new proposal every $\delta$ time, before receiving enough votes for the previous one, but still achieves an end-to-end latency of $5\delta$.
 In the ``DAG-based'' line of word, Tusk~\cite{DBLP:conf/eurosys/DanezisKSS22} achieves and end-to-end latency of $7\delta$,
 the partially-synchronous version of BullShark~\cite{DBLP:journals/corr/abs-2209-05633} an end-to-end latency of $5\delta$,
 and Mysticeti~\cite{DBLP:journals/corr/abs-2310-14821} an end-to-end latency of $4\delta$.
 All these protocols aim at total-order properties, hence their lower latency is inherently restricted by lower bounds. Pod, in contrary, starts from the single-round-trip latency requirement and explores the properties that can be achieved.
+
+% \dotparagraph{Parallel consensusless payments}
+% Bazzi and Piergiovanni~\cite{PODC:BazPie24} observe two limitations of consensusless protocols: As they employ sequence numbers and deterministic broadcast,
+% clients can only submit one transaction at a time, and they must obtain signatures by at least $2f+1$ replicas on each transaction,
+% where $f$ is the maximum number of tolerated failures.
+% The authors propose a new type of probabilistic Byzantine quorum system~\cite{DBLP:journals/iandc/MalkhiRWW01},
+% % achieving lower \emph{and} upper bounds in the intersection among quorums.
+% and a protocol that allows a user to initiate multiple concurrent payments, called \emph{fractional payments},
+% each transferring amount $b / s$ from their balance $b$, where $s$ is a constant,
+% and each requiring a signature from less than $f$ replicas.
+% Their solution, however, requires $n > 8f$ and a large $n$ for the probabilistic analysis to hold.
+
+\dotparagraph{Auctions}
+The primitive of \podtm offers the \emph{past-perfection} property:
+a \opread{} operation outputs a timestamp \rperf, and it is \emph{guaranteed}
+that the output of \opread{} contains all transactions that can ever be confirmed with a timestamp smaller than \rperf in the view of any reading client, regardless of the network conditions.
+This implies that reading clients (such as an auctioneer) cannot claim not having received a transaction when reading the \podtm, as this is detectable by any other client who reads the \podtm.
+To the best of our knowledge, previous work in the consensusless literature has not considered or achieved this property,
+hence it cannot readily support applications like auctions.
+
 
 \dotparagraph{Consensusless payments}
 The redundancy of consensus for implementing payment systems has been recognized by previous works~\cite{DBLP:journals/dc/GuerraouiKMPS22,DBLP:journals/corr/abs-1909-10926,DBLP:conf/dsn/CollinsGKKMPPST20,DBLP:conf/aft/BaudetDS20}.
@@ -115,22 +135,3 @@ The constructions of Guerraoui~\etal~\cite{DBLP:journals/dc/GuerraouiKMPS22} and
 ABC~\cite{DBLP:journals/corr/abs-1909-10926} requires clients to reference all previous transaction in a DAG (including its own last transaction).
 % , and, in case of transactions spending the same output, by having replicas sign only one of them.
 Cheating client might lose liveness~\cite{DBLP:conf/aft/BaudetDS20,DBLP:journals/dc/GuerraouiKMPS22,DBLP:journals/corr/abs-1909-10926}, but equivocating is not possible.
-
-\dotparagraph{Parallel consensusless payments}
-Bazzi and Piergiovanni~\cite{PODC:BazPie24} observe two limitations of consensusless protocols: As they employ sequence numbers and deterministic broadcast,
-clients can only submit one transaction at a time, and they must obtain signatures by at least $2f+1$ replicas on each transaction,
-where $f$ is the maximum number of tolerated failures.
-The authors propose a new type of probabilistic Byzantine quorum system~\cite{DBLP:journals/iandc/MalkhiRWW01},
-% achieving lower \emph{and} upper bounds in the intersection among quorums.
-and a protocol that allows a user to initiate multiple concurrent payments, called \emph{fractional payments},
-each transferring amount $b / s$ from their balance $b$, where $s$ is a constant,
-and each requiring a signature from less than $f$ replicas.
-Their solution, however, requires $n > 8f$ and a large $n$ for the probabilistic analysis to hold.
-
-\dotparagraph{Auctions}
-The primitive of \podtm offers the \emph{past-perfection} property:
-a \opread{} operation outputs a timestamp \rperf, and it is \emph{guaranteed}
-that the output of \opread{} contains all transactions that can ever be confirmed with a timestamp smaller than \rperf in the view of any reading client, regardless of the network conditions.
-This implies that reading clients (such as an auctioneer) cannot claim not having received a transaction when reading the \podtm, as this is detectable by any other client who reads the \podtm.
-To the best of our knowledge, previous work in the consensusless literature has not considered or achieved this property,
-hence it cannot readily support applications like auctions.
