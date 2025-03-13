@@ -24,10 +24,10 @@ The clients do not participate in the PKI.
 We call a party (replica or client) \emph{honest}, if it follows the protocol, and \emph{malicious} otherwise.
 % Our constructions assume limits on \alpha and \beta, but make no honesty assumptions on clients.
 We assume \emph{static corruptions},  \textit{i.e.}, the set of malicious replicas is decided before the execution starts and remains constant.
-In this work uses a combination of two adversarial models, the \emph{Byzantine} and the \emph{omission} models.
-In the \emph{Byzantine} model malicious replicas may deviate arbitrarily from the protocol. We denote by $\beta \in [0,n]$ the  number of Byzantine replicas in an execution. In this case, the adversary has access to the internal state and secret keys of all malicious parties.
-In the \emph{omission} model malicious replicas may deviate from the protocol by dropping messages that they were supposed to send or receive, but follow the protocol otherwise. Observe that this includes crash faults, where replicas are allowed to crash and remain crashed until the end of the execution of an algorithm.
-\oa{UPDATED}
+In this work uses a combination of two adversarial models, the \emph{Byzantine} and the \emph{omission} models.  In this case, the adversary has access to the internal state and secret keys of all corrupted parties.
+In the \emph{Byzantine} model, corrupted replicas are malicious and may deviate arbitrarily from the protocol. We denote by $\beta \in [0,n]$ the  number of Byzantine replicas in an execution.
+In the \emph{omission} model, corrupted replicas may only deviate from the protocol by dropping messages that they were supposed to send, but follow the protocol otherwise. Observe that this includes crash faults, where replicas crash (\textit{i.e.} stop execution) and remain crashed until the end of the execution of an algorithm.
+
 % \oa{We allow \emph{dynamic corruptions}, i.e., the set of malicious replicas can differ in each round, as long as not larger than \beta.}
 
 %\vspace{-3mm}
@@ -49,9 +49,13 @@ We denote by $\Delta \in \CN$ an upper bound on this delay, \textit{i.e.}, $\del
 % In this work, we present a general protocol, which we then analyze in the \emph{synchronous} and in the \emph{asynchronous} models, providing different guarantees in each world.
 In the \emph{synchronous} model, $\Delta$ is \emph{known} to all processes.
 In the \emph{asynchronous} model, $\Delta$ is \emph{unknown} but still finite, \textit{i.e.}, all messages are eventually delivered.
-In both cases, messages are delivered in an order chosen by the adversary.
-A protocol is \emph{responsive} if its liveness guarantees depend only on the actual network delay $\delta$ and it does not rely on knowledge of $\Delta$, which is the case of our main protocol \podtm-core.
-% \vspace{-3mm}
+In both cases, messages are delivered in an order chosen by the adversary. We new define responsive protocols, which is the case of our main protocol \podtm-core.
+
+%this is very fluffy, we should make it precise for the DISC submission.
+\begin{definition}[Responsive Protocol (Informal)]
+A protocol is \emph{responsive} if it does not rely on knowledge of $\Delta$ and its liveness guarantees depend only on the actual network delay $\delta$.
+\end{definition}
+
 
 \dotparagraph{\textbf{Digital Signatures}} We assume that replicas (and auctioneers in \bidsettm-core) authenticate their messages with digital signatures. A digital signature scheme is a triple of algorithms satisfying the EUF-CMA security~\cite{GMR88} as defined below:
 		\begin{itemize}
