@@ -1,4 +1,7 @@
 \section{Discussion}
+
+\oa{NEW section}
+
 In this work we presented pod, a novel consensus layer that finalizes transactions with the optimal one-round-trip latency. Pod eliminates communication among replicas. Instead, clients read the state of the system by performing lightweight computations on the logs that replicas send to them. As no validator has a particular role in pod (as compared to leaders, block proposers, miners, etc. in similar protocols), pod achieves censorship resistance by default, without any extra mechanisms or additional cost. Furthermore, validator misbehavior, such as voting in incompatible ways or censoring confirmed transactions, is accountable.
 
 We then presented an efficient and censorship-resistanct auction mechanism, leveraging pod as a bulletin board. We saw how the accountability, offered by pod, is also inherrited by applications built on it -- the auctioneer cannot censor confirmed bids without being detected.
