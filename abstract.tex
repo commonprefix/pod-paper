@@ -1,13 +1,13 @@
 \begin{abstract}
 This work addresses the inherent issues of high latency in blockchains and low scalability in traditional consensus protocols.
-We present \podtm-core, a novel notion of consensus whose first priority is to achieve the physically optimal latency of one round trip, \textit{i.e.} requiring only one round for writing a new transaction and one round for reading it.
-To accomplish this, we first eliminate inter-replica communication. Instead, clients send transactions directly to all replicas, each replica independently processes transactions and appends them to its log, and then clients receive and extract information from these logs.
-The replicas employ techniques such as transaction timestamping and replica-log sequencing, which allow clients to extract valuable information about the transactions and the state of the system.
+We present \podtm, a novel notion of consensus whose first priority is to achieve the physically optimal latency of one round trip time, \textit{i.e.} requiring only one round for writing a new transaction and one round for reading it.
+To accomplish this, we first eliminate inter-replica communication. Instead, clients send transactions directly to all replicas, which independently process transactions and append them to local logs. 
+Replicas assigns a timestamp and a sequence number to each transaction in their logs, allowing clients to extract valuable metadata about the transactions and the system state. Later on, clients retrieve these logs and extract transactions (and associated metadata) from them.
 
 Necessarily, this construction achieves weaker properties than a total-order broadcast protocol, due to existing lower bounds.
 Our work models the primitive of \podtm and defines its security properties.
-We then prove that our \podtm-core construction satisfies properties such as transaction confirmation within $2\delta$, censorship resistance against Byzantine replicas, and accountability for safety violations.
-We show that a wide range of applications, such as payment systems, auctions, and decentralized data stores, can be based on a \podtm primitive.
+We then show \podtm-core, a protocol that satisfies properties such as transaction confirmation within $2\delta$, censorship resistance against Byzantine replicas, and accountability for safety violations. We show that single-shot auctions can be realized using the \podtm notion and observe that it is also sufficient for other popular applications.
+%We show that a wide range of applications, such as payment systems, auctions, and decentralized data stores, can be based on a \podtm primitive.
 
 %OLD
 % Recent research shows many consensus applications do not require total order, even though they are usually realized on top of totally-ordered public ledgers. For example, for the double-spending problem in payments it suffices if a total order is only imposed within each user's set of transactions. For some applications not even this property is required. In a distributed auction, an auctioneer reads bids from the ledger at a prescribed \emph{deadline} and announces the winner according to the auction mechanism (\textit{e.g.}, highest bid wins). In this case, the order of bids does not matter, as long as the auctioneer cannot censor bids from parties who placed their bids \emph{before} the deadline.
