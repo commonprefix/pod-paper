@@ -1,13 +1,13 @@
 \section{Evaluation}
 \label{sec:evaluation}
-To validate our theoretical results regarding optimal latency in Protocol \podtm-core, we implement prototype replicas and clients in Rust 1.85\footnote{Our prototype implementation is available at \url{https://github.com/commonprefix/pod-experiments}}.
+To validate our theoretical results regarding optimal latency in Protocol \podtm-core, we implement\footnote{Our prototype implementation is available at \url{https://github.com/commonprefix/pod-experiments}} prototype replicas and clients in Rust 1.85.
 We benchmark this prototype by measuring the
 end-to-end confirmation latency of a transaction from the moment it is written by client until it is
 confirmed by another client in a different continent, both interacting with replicas distributed around the world.
 We present the results in \Cref{fig:latency}.
 
 
-\vspace{-3mm}
+
 \begin{figure}[h!]
     \centering
     \includegraphics[width=\textwidth]{figures/latency.pdf}
