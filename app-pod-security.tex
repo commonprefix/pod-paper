@@ -55,7 +55,7 @@ We now recall Theorem~\ref{thm:pod-security-byzantine}, which we prove through a
 	Assuming that the network is asynchronous with actual network delay $\delta$ (and unknown delay upper bound), \beta is the number of Byzantine replicas, $\gamma=0$ is the number of omission-faulty replicas and $n \geq 5 \beta + 1$ is the total number of replicas. Protocol \podtm-core (\Cref{const:pod-core}) instantiated with a EUF-CMA secure signature scheme is a responsive secure \podtm (\Cref{def:podsec}) with Confirmation within $\parConf = 2 \delta$, Past-perfection within $\parPerf = \delta$ and  \beta-accountable safety (\Cref{def:accountable-safety}) with the \identify{} function described in \Cref{alg:identify}, \ewnp.
 \end{customthm}
 \begin{proof}
-	The proof follows from Lemmas~\ref{lem:pod-confirmation}--\ref{lem:pod-accountable-safety} presented and proven in the remainder of this section.
+	The proof follows from Lemmas~\ref{lem:pod-confirmation}--\ref{lem:pod-accountable-safety}, presented and proven in the remainder of this section.
 \end{proof}
 
 \begin{lemma}[Confirmation within $\parConf$]\label{lem:pod-confirmation}

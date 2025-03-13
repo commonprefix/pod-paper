@@ -1,4 +1,4 @@
-\section{Security of \podtm-core under ommission faults}\label{app:pod-security-crash}
+\section{Security of Protocol \podtm-core under ommission faults}\label{app:pod-security-crash}
 % In order to prove Theorem~\ref{thm:pod-security} and establish the security of Protocol \podtm-core shown Construction~\ref{const:pod-core}, we first prove some useful intermediate results.
 Let us assume now an execution where $\gamma=0$, i.e., no Byzantine replicas exist, and $\gamma>0$, i.e., there are omission-faulty replicas.
 In this section we present lemmas and proofs that are analogous to those in \Cref{app:pod-security-byzantine}, accounting for this change.
@@ -34,13 +34,11 @@ We now recall Theorem~\ref{thm:pod-security-crash}, which we prove through a ser
 
 \
 \begin{customthm}{\ref{thm:pod-security-crash}}[\podtm-core security under omission faults]
-	Assume an execution of \podtm-core (\Cref{const:pod-core}), instantiated with a secure signature scheme, where
-    the network is asynchronous with actual network delay $\delta$ (and unknown delay upper bound),
-    no replicas are Byzantine and at most \gamma replicas are omission faulty, and $n \geq 3 \gamma + 1$.
-    The output of the clients satisfies the definition of a responsive secure \podtm (\Cref{def:podsec}) with Confirmation within $\parConf = 2 \delta$ and Past-perfection within $\parPerf = \delta$, \ewnp.
+	Assuming that the network is asynchronous with actual network delay $\delta$ (and unknown delay upper bound), $\beta=0$ is the number of Byzantine replicas, $\gamma$ is the number of omission-faulty replicas and $n \geq 3 \gamma + 1$ is the total number of replicas.
+	Protocol \podtm-core (\Cref{const:pod-core}) instantiated with a EUF-CMA secure signature scheme is a responsive secure \podtm (\Cref{def:podsec}) with Confirmation within $\parConf = 2 \delta$ and Past-perfection within $\parPerf = \delta$, \ewnp.
 \end{customthm}
 \begin{proof}
-	In Lemmas~\ref{lem:pod-confirmation-crash}--\ref{lem:bounds-safety-crash}.
+	The proof follows from Lemmas~\ref{lem:pod-confirmation-crash}--\ref{lem:bounds-safety-crash}, presented and proven in the remainder of this section.
 \end{proof}
 
 \begin{lemma}[Confirmation within $\parConf$]\label{lem:pod-confirmation-crash}
