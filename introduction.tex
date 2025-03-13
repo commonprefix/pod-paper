@@ -21,7 +21,7 @@ To achieve the single-roundtrip latency, our first key design decision eliminate
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.35\textwidth]{figures/pod-architecture.pdf}
-    \caption{Pod's simple architecture. A writing client (top) sends a transaction to all replicas (middle). Each replica appends the transaction to its own log and transmits it to the reading client (bottom).}
+    \caption{Pod's simple architecture. A writing client (top) sends a transaction to all replicas (middle). Each replica appends it to its own log and transmits it to the reading client (bottom).}
     \label{fig:architecture}
 \end{figure}
 
