@@ -103,13 +103,13 @@ The \identify{} function we show in \Cref{alg:identify} can detect such misbehav
 %\vspace{-5mm}
 
 %\vspace{-7mm}
-\dotparagraph{Writing to and reading the \podtm}
+\dotparagraph{Writing to and reading from \podtm}
 Protocol \podtm-core implements functions \opwrite{\tx} and \opreadall{} (\Cref{def:podinterface}) functions as shown in \Cref{alg:client-2}.
 In order to write a transaction \tx, a client sends \msgwrite{\tx} to each replica (lines \ref{line:write-tx-begin}--\ref{line:write-tx-end}).
 Since the construction is stateful and streaming, the client state contains at all times the latest view the client has of the \podtm, \opreadall{} operates on the local state (lines \ref{line:read-begin}--\ref{line:read-end}).
 It returns a \podtm \Pod (\cref{line:return-pod}) with a transaction set \allTxs, containing the transactions the client has received so far (\cref{line:loop-over-txs}) and their associated values,
 a past-perfect round \rperf, and auxiliary data \ppcert.
-We remind that notation $\tsps.\opKeys{}$ on line \cref{line:loop-over-txs} returns all entries in \tsps.
+Note that $\tsps.\opKeys{}$ on \cref{line:loop-over-txs} returns all entries in \tsps.
 
 \input{pod-core-pseudocode/pod-core-client-code-2}
 
@@ -117,15 +117,15 @@ We remind that notation $\tsps.\opKeys{}$ on line \cref{line:loop-over-txs} retu
 
 %The associated values \rmin, \rmax, \rconf, \txcert for each transaction, the past-perfect round \rperf, and its auxiliary data \ppcert are computed in the following way. 
 The client uses the \opMinPossibleTs{} and \opMaxPossibleTs{} functions to compute \rmin (\cref{line:upd-rmin-begin}) and \rmax (\cref{line:upd-rmax-begin}).
-They return the minimum and maximum, respectively, round number that \emph{any client} can ever \emph{confirm} \tx with.
+They respectively return the minimum and maximum round number that \emph{any client} can ever \emph{confirm} \tx with.
 For \rperf (\cref{line:upd-rperf-begin}) the client uses \opMinPossibleTsForNewTx{}, which returns the smallest round number that \emph{any} client can ever assign to a transaction \emph{not yet seen} by the client.
 The auxiliary data \ppcert contains the vote on the most recent timestamp $\mrt[\rep_j]$ received from each replica $\rep_j$.
 
 
 
 
-A transaction becomes \confirmed (i.e., it gets assigned a confirmation round $\rconf \neq \bot$) when the client receives \alpha votes for \tx from different replicas (line~\ref{line:confirm-tx-begin}).
-Before it becomes confirmed, a transaction has $\rconf = \bot$ and $\txcert = [ \, ]$ (\cref{line:unconfirmed-tx}).
+A transaction becomes \confirmed (i.e., is assigned a confirmation round $\rconf \neq \bot$) when the client receives \alpha votes for \tx from different replicas (line~\ref{line:confirm-tx-begin}).
+Before it becomes confirmed, \tx has $\rconf = \bot$ and $\txcert = [ \, ]$ (\cref{line:unconfirmed-tx}).
 When confirmed, \rconf is the median of all received timestamps (line~\ref{line:assign-median}),
 and the auxiliary data \txcert contains all the received votes on \tx (line~\ref{line:assign-txcert}).
 % This implies that a transaction is confirmed if and only if $|\txcert| \geq \alpha$.
