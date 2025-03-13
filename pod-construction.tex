@@ -162,7 +162,7 @@ When received by a client, a \heartBeat is handled as a vote (i.e., it triggers 
     Shown in Appendix~\ref{app:pod-security-byzantine}. 
 \end{proof}
  
-\begin{theorem}[\podtm-core security]\label{thm:pod-security-crash}
+\begin{theorem}[\podtm-core security under Omission faults]\label{thm:pod-security-crash}
     Assume an execution of \podtm-core (\Cref{const:pod-core}), instantiated with a secure signature scheme, where
     the network is asynchronous with actual network delay $\delta$ (and unknown delay upper bound),
     no replicas are Byzantine and at most \gamma replicas are omission faulty, and $n \geq 3 \gamma + 1$.
