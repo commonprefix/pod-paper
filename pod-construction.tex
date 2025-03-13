@@ -102,7 +102,7 @@ The \identify{} function we show in \Cref{alg:identify} can detect such misbehav
 %\vspace{-5mm}
 
 %\vspace{-7mm}
-\dotparagraph{Writing to and reading from \podtm}
+\dotparagraph{Writing to and reading the \podtm}
 Protocol \podtm-core implements functions \opwrite{\tx} and \opreadall{} (\Cref{def:podinterface}) functions as shown in \Cref{alg:client-2}.
 In order to write a transaction \tx, a client sends \msgwrite{\tx} to each replica (lines \ref{line:write-tx-begin}--\ref{line:write-tx-end}).
 Since the construction is stateful and streaming, the client state contains at all times the latest view the client has of the \podtm, \opreadall{} operates on the local state (lines \ref{line:read-begin}--\ref{line:read-end}).
