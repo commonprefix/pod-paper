@@ -55,16 +55,17 @@ With $\emptyset$ we denote an empty map.
 \input{pod-core-pseudocode/pod-core-replica-code}
 % \vspace{-5mm}
 
-\begin{construction}[\podtm-core]\label{const:pod-core}
-    We now present \podtm-core. \Cref{alg:pod-core-replica} shows the code for replicas, and Algorithms \ref{alg:client-1}--\ref{alg:client-statistics} the code for clients. 
-    Clients instantiate the client code with values for \beta and \gamma, where \beta denotes the number of Byzantine replicas and \gamma the number of omission-faulty replicas (in addition to the Byzantine), according to their assumptions.
-    Moreover, the client code uses $\alpha = n - \beta - \gamma$. 
-    \oa{UPDATED}
+\begin{protocol}[\podtm-core]\label{const:pod-core}
+     Protocol \podtm-core is executed by $n$ replicas that follow the steps of \Cref{alg:pod-core-replica} and an unknown number of clients that follow the steps of Algorithms \ref{alg:client-1}, \ref{alg:client-2} and \ref{alg:client-statistics} with parameters \beta, \gamma and \alpha, where \beta denotes the number of Byzantine replicas and \gamma the number of omission-faulty replicas (in addition to the Byzantine) and $\alpha = n - \beta - \gamma$. 
     % and discuss its main points, first for the client and then for the replica construction, in the following paragraphs.
     % The construction tolerates up to \beta Byzantine replicas and requires $\alpha \geq 4 \beta + 1$, i.e., $n \geq 5 \beta + 1$.
     % It achieves \emph{accountable safety} (see \Cref{sec:accountable-safety}) with an \identify{} function described in \Cref{alg:identify}.
     % In the remainder of this section we discuss how \podtm-core achieves its properties.
-\end{construction}
+\end{protocol}
+
+\begin{remark}
+Looking forward, we only analyze the cases where either $\beta$ or $\gamma$ are non-zero, \textit{i.e.} we consider only the cases where all corrupted replicas are assumed to be either Byzantine or omission-faulty but not the cases where there are mixed Byzantine and omission-fault corruptions. However, we conjecture that Protocol \podtm-core is also a secure \podtm under a mixed adversarial model with a continuum of both Byzantine and omission-fault corruptions. A security analysis of Protocol \podtm-core in this mixed adversarial model will appear in the full version.
+\end{remark}
 
 \dotparagraph{Replica code}
 The state of a replica (lines \ref{line:rep-state-begin}--\ref{line:rep-state-end} of \Cref{alg:pod-core-replica}) contains, among others, the transaction log \repLog, which is implemented as a sequence of votes $(\tx, \tsp, \sn, \sigma, \rep_i)$ created by the replica, where \tsp is the timestamp assigned by the replica to \tx, \sn is a sequence number, and \sig is its signature.
@@ -151,27 +152,25 @@ When received by a client, a \heartBeat is handled as a vote (i.e., it triggers 
 % \dotparagraph{Detecting misbehavior}
 % Clients can detect certain cases of replica misbehavior. When this happens (lines \ref{line:raise-old-tsp}, \ref{line:raise-dup-tsp}, \ref{line:raise-old-heartbeat}) the client stops processing the current vote and triggers an \opAccountableFault{\tran} event, where \tran is a set of messages that can prove the misbehavior through the \identify{} function. 
 
-\begin{theorem}[\podtm-core security under Byzantine faults]\label{thm:pod-security-byzantine}
-    Assume an execution of \podtm-core (\Cref{const:pod-core}), instantiated with a secure signature scheme,
-    where the network is asynchronous with actual network delay $\delta$ (and unknown delay upper bound),
-    at most \beta replicas are Byzantine and no additional replica is omission faulty, and $n \geq 5 \beta + 1$.
-    The output of the clients satisfies the definition of a responsive secure \podtm (\Cref{def:podsec}) with Confirmation within $\parConf = 2 \delta$ and Past-perfection within $\parPerf = \delta$, and it also satisfies the property of \beta-accountable safety (\Cref{def:accountable-safety}) with the \identify{} function described in \Cref{alg:identify}, \ewnp.
-    \oa{NEW}
+\begin{theorem}[\podtm-core security under Byzantine faults]\label{thm:pod-security-byzantine} Assuming that the network is asynchronous with actual network delay $\delta$ (and unknown delay upper bound), \beta is the number of Byzantine replicas, $\gamma=0$ is the number of omission-faulty replicas and $n \geq 5 \beta + 1$ is the total number of replicas. Protocol \podtm-core (\Cref{const:pod-core}) instantiated with a EUF-CMA secure signature scheme is a responsive secure \podtm (\Cref{def:podsec}) with Confirmation within $\parConf = 2 \delta$, Past-perfection within $\parPerf = \delta$ and  \beta-accountable safety (\Cref{def:accountable-safety}) with the \identify{} function described in \Cref{alg:identify}, \ewnp.
+    
+
 \end{theorem}
 \begin{proof}
     Shown in Appendix~\ref{app:pod-security-byzantine}. 
 \end{proof}
  
 \begin{theorem}[\podtm-core security under Omission faults]\label{thm:pod-security-crash}
-    Assume an execution of \podtm-core (\Cref{const:pod-core}), instantiated with a secure signature scheme, where
-    the network is asynchronous with actual network delay $\delta$ (and unknown delay upper bound),
-    no replicas are Byzantine and at most \gamma replicas are omission faulty, and $n \geq 3 \gamma + 1$.
-    The output of the clients satisfies the definition of a responsive secure \podtm (\Cref{def:podsec}) with Confirmation within $\parConf = 2 \delta$ and Past-perfection within $\parPerf = \delta$, \ewnp.
-    \oa{NEW. Also, I removed the reference to accountable safety from here, since by assumption there are no equivocating parties.}
+	Assuming that the network is asynchronous with actual network delay $\delta$ (and unknown delay upper bound), $\beta=0$ is the number of Byzantine replicas, $\gamma$ is the number of omission-faulty replicas and $n \geq 3 \gamma + 1$ is the total number of replicas.
+    Protocol \podtm-core (\Cref{const:pod-core}) instantiated with a EUF-CMA secure signature scheme is a responsive secure \podtm (\Cref{def:podsec}) with Confirmation within $\parConf = 2 \delta$ and Past-perfection within $\parPerf = \delta$, \ewnp.
 \end{theorem}
 \begin{proof}
     Shown in Appendix~\ref{app:pod-security-crash}. 
 \end{proof}
+
+\begin{remark}
+	Notice that \Cref{thm:pod-security-crash} does not capture \beta-accountable safety (\Cref{def:accountable-safety}) because there are no safety violations when all corrupted replicas are only omission-faulty.
+\end{remark}
 % \subsection{Optimizations}
 % \begin{enumerate}
 %     \item Validators with secondaries to handle read operations.
