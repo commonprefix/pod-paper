@@ -4,12 +4,11 @@ We first define basic data structures and the interface of a \podtm.
 We then introduce the basic definition of a secure \podtm and its security properties, as well as some additional properties that it may satisfy, which we will later use for our applications. In particular, we define the notions of \emph{timeliness} and \emph{monotonicity} for a secure \podtm.
 
 \begin{definition}[Transaction and associated values]
-    A transaction $\tx \in \zo^*$ is associated with values $\rmin, \rmax, \rconf$, and $\txcert$.
+    A transaction $\tx \in \zo^*$ is associated with values $\rmin, \rmax, \rconf$, and $\txcert$, which change during the execution of a \podtm protocol..
     We call $\rmin \in \BN$ the \emph{minimum round}, $\rmax \in \BN \cup \{\infty\}$ the \emph{maximum round},
     $\rconf \in \BN \cup \{\bot\}$ the \emph{\confirmed round}, and $\txcert \in \zo^*$ contains some auxiliary data.
     We denote by $\rmax=\infty$ an unbounded maximum round and by $\rconf=\bot$ an undefined \confirmed round.
     For transaction \tx, denote its associated values by $\tx.\rmin, \tx.\rmax, \tx.\rconf$, and $\tx.\txcert$.
-    We remark that the associated values of a transaction change during the execution of a \podtm protocol.
 \end{definition}
 
 In \podtm-core, \txcert will contain digital signatures used to achieve accountability.
