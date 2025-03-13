@@ -1,39 +1,129 @@
 \section{Introduction}
-Despite the widespread adoption of blockchains, a significant challenge remains unresolved: they are inherently slow. The latency from the moment a client submits a transaction to its appearance in the blockchain's output can be prohibitively long for certain applications. Indeed, Nakamoto-style blockchain protocols require a large number of rounds in order to achieve consensus on a new block, even when considering the best known bounds~\cite{DBLP:conf/crypto/GaziRR23}. On the other hand, it is known that less scalable protocols realizing traditional notions of consensus, such as broadcast and Byzantine agreement, require at least $t+1$ rounds in the synchronous case~\cite{DBLP:journals/ipl/AguileraT99} and at least $2n/(n-t)$ rounds in the asynchronous case~\cite{DBLP:conf/focs/GarayKKO07}, for $n$ parties out of which $t$ are corrupted.
-% even when allowing digital signatures and randomized protocols.
+Despite the widespread adoption of blockchains, a significant challenge remains unresolved: they are inherently slow. The latency from the moment a client submits a transaction to when it is confirmed in another client's view of the blockchain can be prohibitively long for certain applications. Notice that we define latency in terms of the blockchain \emph{liveness} property, referring to finalized, non-reversible outputs: once a transaction is received by a reader, it remains in the protocol's output permanently.
+Moreover, we do not assume ``optimistic'' or ``happy path'' scenarios, where transactions might finalize faster under favorable conditions (such as having honest leaders or optimal network conditions).
 
-In a model where \emph{replicas} maintain the network, \emph{writers} submit transactions, and \emph{readers} read the network, the minimum latency is one network round trip, or $2\delta$, letting $\delta$ denote the actual network delay, as the information must travel from the writers to the replicas and then to the readers.
-This work is motivated by the following question.
+
+Indeed, Nakamoto-style blockchain protocols require a large number of rounds in order to achieve consensus on a new block, even when considering the best known bounds~\cite{DBLP:conf/crypto/GaziRR23}. On the other hand, it is known that permissioned protocols for $n$ parties (out of which $t$ are corrupted) realizing traditional notions of broadcast and Byzantine agreement require at least $t+1$ rounds in the synchronous case~\cite{DBLP:journals/ipl/AguileraT99} and at least $2n/(n-t)$ rounds in the asynchronous case~\cite{DBLP:conf/focs/GarayKKO07}, even when allowing for digital signatures and probabilistic termination.
+
+
+In a model where \emph{replicas} maintain the network, \emph{writers} submit transactions, and \emph{readers} read the network, the minimum latency is one network round trip, or $2\delta$, letting $\delta$ denote the actual network delay, as the information must travel from the writers to the replicas and then to the readers. More importantly, we want that any transaction from an honest writer appears in the output of honest readers within $2\delta$ time, regardless of the current value of $\delta$ and corrupted parties' actions.
+In this context, this work is motivated by the following question.
 
 %\begin{center}
 %	\emph{Can we perform payments -- and other tasks that blockchains are commonly used for -- in optimal latency?}
 %\end{center}
 
 \begin{center}
-	\emph{Can we do tasks that blockchains are commonly used for in optimal latency?}
+	\emph{Can we realize tasks that blockchains are commonly used for with optimal latency?}
 \end{center}
 
-We define latency in terms of the blockchain \emph{liveness} property, referring to finalized, non-reversible outputs: once a transaction is received by a reader, it remains in the protocol's output permanently.
-We do not assume ``optimistic'' or ``happy'' path scenarios, where transactions might finalize faster under favorable conditions (such as having honest leaders or optimal network conditions). Instead, we want that any transaction from an honest writer appears in the output of honest readers within $2\delta$ time, regardless of the current value of $\delta$.
+We give a positive answer to this question with a protocol realizing \podtm, a new notion of consensus that trades off traditional agreement properties for optimal latency, while retaining sufficient security guarantees to realize important tasks (\textit{e.g.}, decentralized auctions).
 
-To achieve the single-roundtrip latency, our first key design decision eliminates inter-replica communication entirely. Instead, writers send their transactions directly to all replicas. Each replica maintains its own \emph{replica log}, processes incoming transactions independently, and transmits its log to readers. Readers then process these replica logs to extract relevant information. See Figure~\ref{fig:architecture}.
+\subsection{Our Contributions}
+In order to motivate the notion of \podtm, we first introduce the architecture of our Protocol \podtm-core, which realizes this notion. To achieve the single-roundtrip latency, our first key design decision is to eliminate inter-replica communication entirely. Instead, writers send their transactions directly to all replicas. Each replica maintains its own \emph{replica log}, processes incoming transactions independently, and transmits its log to readers on request. Readers then process these replica logs to extract transactions and relevant associated information. See Figure~\ref{fig:architecture} for a summary of the \podtm-core architecture.
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.35\textwidth]{figures/pod-architecture.pdf}
-    \caption{Pod's simple architecture. A writing client (top) sends a transaction to all replicas (middle). Each replica appends it to its own log and transmits it to the reading client (bottom).}
+    \caption{\podtm-core's simple architecture. A writing client (top) sends a transaction to all replicas (middle). Each replica appends it to its own log and transmits it to the reading client (bottom).}
     \label{fig:architecture}
 \end{figure}
 
-This design raises two important questions. First, what meaningful information can readers derive from replica logs when replicas operate in isolation? Second, given that in two rounds even randomized authenticated broadcast is proven impossible~\cite{DBLP:conf/focs/GarayKKO07}, what capabilities can this necessarily weaker primitive offer? We demonstrate that, by incorporating simple mechanisms, such as transaction timestamping and replica-log sequencing, replicas can enable readers to extract valuable information beyond mere low-latency guarantees. Furthermore, we show how the properties of pod can enable various applications, including payment systems, auction platforms, and decentralized data stores.
+This design raises two important questions. First, what meaningful information can readers derive from replica logs when replicas operate in isolation? Second, given that in two rounds even randomized authenticated broadcast is proven impossible~\cite{DBLP:conf/focs/GarayKKO07}, what capabilities can this necessarily weaker primitive offer? We demonstrate that, by incorporating simple mechanisms, such as assigning timestamps and sequence numbers to transactions, replicas can enable readers to extract valuable information beyond mere low-latency guarantees. Furthermore, we show how the properties of \podtm can enable various applications, including auctions (as shown in \Cref{sec:auctions}).%, payment systems and decentralized data stores.
 
-Specifically, pod delivers the following guarantees:
+Specifically, a secure \podtm delivers the following guarantees (formally defined in \Cref{sec:pod-model}):
 \begin{itemize}
-    \item Transaction confirmation within $2\delta$ latency, with each confirmed transaction assigned a \emph{confirmation round}; we say that the transaction becomes \emph{confirmed} at the time indicated by the confirmation timestamp.
-    \item Censorship resistance when facing up to $f$ Byzantine replicas, ensuring all confirmed transactions appear in every honest reader's output.
-    \item A \emph{past-perfect round} can be computed by readers, such that the reader has received all transactions that are or will be confirmed prior to this round, even though not all transactions are strictly ordered.
-    \item Accountability for any safety violations.
+    \item Transaction confirmation within $2\delta$ latency, with each confirmed transaction assigned a \emph{confirmation timestamp}; we say that the transaction becomes \emph{confirmed} at the time indicated by the confirmation timestamp.
+    \item Censorship resistance when facing up to $\beta$ Byzantine or $\gamma$ omission-faulty replicas, ensuring all confirmed transactions appear in every honest reader's output.
+    \item A \emph{past-perfect round} can be computed by readers, such that the reader is guranteed to have received all transactions that are or will be confirmed prior to this round, even though not all transactions are strictly ordered.
+    \item Accountability for any safety violations, \textit{i.e.}, identifying replicas that cause such violations.
 \end{itemize}
+
+In particular, our Protocol \podtm-core presented in \Cref{sec:pod-core-const} realizes the notion of \podtm with the properties above under two adversarial models:
+
+\begin{itemize}
+	\item  (Security against Byzantine faults) \beta Byzantine replicas (and no omission-faulty replicas) out of a total of $n \geq 5 \beta + 1$ replicas.
+	\item  (Security against omission faults)  \gamma Byzantine replicas (and no Byzantine replicas) out of a total of $n \geq 3 \beta + 1$ replicas.
+\end{itemize}
+
+Our Protocol \podtm-core requires no expensive cryptographic primitives or stetup beyond digital signatures and a PKI registering replicas' public keys. We showcase Protocol \podtm-core's efficiency by means of experiments with a prototype implementation presented in \Cref{sec:evaluation}. Our experiments show that even with 1000 replicas distributed around the world, the latency achieved by our protocol is just under double (resp. about 5 times) the round-trip time between writer and reader clients with security against omission-faulty (resp. Byzantine) replicas.
+
+
+\subsection{Technical Overview}
+We consider that time proceeds in \emph{rounds}, and that parties (replicas and clients) know the current round, so we can express timestamps in terms of rounds. The output of \podtm associates each transaction $\tx$ with timestamp values $\rmin \geq 0$ (minimum round), $\rmax \leq \infty$ (maximum round) and $\rconf$ (\confirmed round). It may be that initially $\rconf=\perp$ but later becomes $\rmin \leq \rconf \leq \rmax$, when a transaction is \emph{confirmed}.  While each party reads different values $\rmin,\rmax,\rconf$ for the same $\tx$, \podtm guarantees that values read by different parties stay within these limits.
+
+When clients \emph{read} the \podtm, they obtain a $\podtm$ data structure $\Pod = (\txSet, \rperf, \ppcert)$, where $\txSet$ is set of  transactions with their associated timestamps, $\rperf$ is a \emph{past-perfect} round and $\ppcert$ is auxiliary data. The \emph{past-perfection} safety property guarantees that
+%if a transaction $\tx$ did not appear in $\txSet$, then no other party will ever read $\tx$ with confirmed round $\rconf'$ such that $\rconf' < \rperf$. This guarantees that,
+\txSet contains \emph{all} transactions that every other honest party will ever read with a confirmed round smaller than $\rperf$.  A \podtm also guarantees \emph{past-perfection within $w$}, meaning that $\rperf$ is at most $w$ rounds in the past.
+
+For each transaction $\tx$ in \txSet, the reader obtains associated timestamps $\rmin,\allowbreak \rmax, \rconf$ and auxiliary data $\txcert$, which may evolve. The protocol guarantees \emph{confirmation within $u$ rounds}, meaning that, at most $u$ rounds after $\tx$ was written, every party who reads the \podtm will see $\tx$ as confirmed with some $\rconf \neq \perp$.
+Moreover, \podtm guarantees \emph{confirmation bounds}, ensuring that
+% if a party reads $\tx$ with minimum round $\rmin$ and maximum round $\rmax$, for every other party who reads $\tx$ with $\rconf' \neq \perp$, it holds that $\rmin \leq \rconf' \leq \rmax$. This means that
+the values \rmin and \rmax for $\tx$, read by an honest party, determine the range of the \rconf value for $\tx$ that can ever be read by another honest party,
+i.e., $\rmin \leq \rconf \leq \rmax$.
+
+In summary, \podtm provides \emph{past-perfection} and \emph{confirmation bounds} as safety properties, ensuring parties cannot be blindsided by transactions suddenly appearing as confirmed too far in the past, and that the different (and continuously changing) transaction timestamps stay in a certain range. The liveness properties of \emph{confirmation within $u$} and \emph{past-perfection within $w$} ensure that new transactions get confirmed within a bounded delay, and that each party's past-perfect round must be constantly progressing.
+
+Besides introducing the notion of \podtm, we present Protocol \podtm-core. which realizes this notion while requiring minimal interaction among parties and achieving optimal latency, \textit{i.e.}, optimal parameters $u=2\delta$ and $w=\delta$, where $\delta$ is the current network delay (not a delay upper bound, which we assume to be unknown). Our construction relies on a set of $n$ \emph{replicas} to maintain a \podtm data structure, which can be read by an unknown number of clients. The only communication is between each client and the replicas, not among clients nor among replicas.
+% Moreover, \podtm-core can use the auxiliary data $\ppcert,\txcert$ to publicly identify misbehaving replicas and keep them accountable.
+
+Writing a transaction $\tx$ to $\podtm$ via Protocol \podtm-core only requires clients to send $\tx$ to the replicas, who each assign a timestamp $\tsp$ (their current time) and a \emph{sequence number} to $\tx$ and return a signature on $(\tx,\tsp, \sn)$. When reading the \podtm, the client simply requests each replica's log of transactions, validates the responses, and determines $\rmin$ and $\rmax$ from the received timestamps. If the client receives responses from enough replicas, $\rconf$ is determined by taking the median of the timestamps received from these replicas.
+% If a replica provides conflicting timestamps $\tsp\neq \tsp'$ for the same $\tx$ to one or more clients, the replica's signatures publicly proves cheating.
+
+We define Protocol \podtm-core such that clients may specify their own trust assumptions, expecting up to \beta Byzantine \emph{and} at the same time up to \gamma additional omission-faulty replicas.
+However, although we prove our results for executions with only Byzantine and only omission faults, we conjecture that Protocol \podtm-core realizes the \podtm notion for a continuum between these two cases. We leave the security analysis of our protocol under a continuum of mixed Byzantine and omission faults to the full version of this work.
+
+\subsubsection{Applications.}
+The efficiency of pod has the potential to allow for a plethora of distributed applications to be implemented with low latency. In \Cref{sec:auctions} we show how auctions can be run on top of pod, achieved through \bidsettm, a new primitive for collecting a set of bids in a censorship resistant manner. It is straightforward to realize single-shot open bid auctions using our \bidsettm primitive based on pod. We also conjecture that protocols for distributed sealed bid auctions based on public bulletin board can also be recast over this primitive. Moreover, we conjecture that consensusless payment systems such as Fastpay~\cite{DBLP:conf/aft/BaudetDS20} may also be easily realized over \podtm.
+
+%\todo{A paragraph on feed-layers ad decentralized social applications}
+
+
+\subsection{Related work}\label{app:related}
+
+\dotparagraph{Reducing latency}
+Many previous works have lowered the latency of ordering transactions.
+HotStuff~\cite{DBLP:conf/podc/YinMRGA19} uses three rounds of all-to-leader and leader-to-all communication pattern, which results in a latency (measuring from the moment a client submits a transaction until in appears in the output of honest replicas) of $8\delta$ in the happy path.
+Jolteon~\cite{DBLP:conf/fc/GelashviliKSSX22}, Ditto~\cite{DBLP:conf/fc/GelashviliKSSX22}, and HotStuff-2~\cite{DBLP:journals/iacr/MalkhiN23} are two-round versions of HotStuff with end-to-end latency of $5\delta$.
+MoonShot~\cite{DBLP:journals/corr/abs-2401-01791} allows leaders to send a new proposal every $\delta$ time, before receiving enough votes for the previous one, but still achieves an end-to-end latency of $5\delta$.
+In the ``DAG-based'' line of word, Tusk~\cite{DBLP:conf/eurosys/DanezisKSS22} achieves and end-to-end latency of $7\delta$,
+the partially-synchronous version of BullShark~\cite{DBLP:journals/corr/abs-2209-05633} an end-to-end latency of $5\delta$,
+and Mysticeti~\cite{DBLP:journals/corr/abs-2310-14821} an end-to-end latency of $4\delta$.
+All these protocols aim at total-order properties and have their lower latency is inherently restricted by lower bounds, whereas \podtm starts from the single-round-trip latency requirement and explores the properties that can be achieved.
+
+% \dotparagraph{Parallel consensusless payments}
+% Bazzi and Piergiovanni~\cite{PODC:BazPie24} observe two limitations of consensusless protocols: As they employ sequence numbers and deterministic broadcast,
+% clients can only submit one transaction at a time, and they must obtain signatures by at least $2f+1$ replicas on each transaction,
+% where $f$ is the maximum number of tolerated failures.
+% The authors propose a new type of probabilistic Byzantine quorum system~\cite{DBLP:journals/iandc/MalkhiRWW01},
+% % achieving lower \emph{and} upper bounds in the intersection among quorums.
+% and a protocol that allows a user to initiate multiple concurrent payments, called \emph{fractional payments},
+% each transferring amount $b / s$ from their balance $b$, where $s$ is a constant,
+% and each requiring a signature from less than $f$ replicas.
+% Their solution, however, requires $n > 8f$ and a large $n$ for the probabilistic analysis to hold.
+
+\dotparagraph{Auctions}
+The \podtm noition offers the \emph{past-perfection} property:
+a \opread{} operation outputs a timestamp \rperf, and it is \emph{guaranteed}
+that the output of \opread{} contains all transactions that can ever be confirmed with a timestamp smaller than \rperf in the view of any reading client, regardless of the network conditions.
+This implies that reading clients (such as an auctioneer) cannot claim not having received a transaction when reading the \podtm, as this is detectable by any other client who reads the \podtm.
+To the best of our knowledge, previous work in the consensusless literature has not considered or achieved this property,
+hence it cannot readily support auctions.
+
+
+\dotparagraph{Consensusless payments}
+The redundancy of consensus for implementing payment systems has been recognized by previous works~\cite{DBLP:journals/dc/GuerraouiKMPS22,DBLP:journals/corr/abs-1909-10926,DBLP:conf/dsn/CollinsGKKMPPST20,DBLP:conf/aft/BaudetDS20}.
+The insight is that total transaction order is not required in the case that each account is controlled by one client.
+Instead, a partial order is sufficient, ensuring that, if transactions $\tx_1$ and $\tx_2$ are created by the same client, then every party outputs them in the same order.
+This requirement was first formalized by Guerraoui~\etal~\cite{DBLP:journals/dc/GuerraouiKMPS22} as the \emph{source-order property}.
+% Notice that this is weaker than the FIFO property, as it allows the output order to be different from the order in which the sender sent the transactions.
+% All protocols have a similar architecture: transactions are created and broadcast by clients, who either drive the whole broadcast instance~\cite{DBLP:conf/aft/BaudetDS20} or outsource it to trusted replicas~\cite{DBLP:conf/dsn/CollinsGKKMPPST20}.
+% The constructions of Guerraoui~\etal~\cite{DBLP:journals/dc/GuerraouiKMPS22} and FastPay~\cite{DBLP:conf/aft/BaudetDS20} satisfy the source-order property by having clients use sequence numbers for their transactions, and by having replicas sign at most one transaction from a client with a given sequence number.
+The constructions of Guerraoui~\etal~\cite{DBLP:journals/dc/GuerraouiKMPS22} and FastPay~\cite{DBLP:conf/aft/BaudetDS20} require clients to maintain sequence numbers.
+ABC~\cite{DBLP:journals/corr/abs-1909-10926} requires clients to reference all previous transaction in a DAG (including its own last transaction).
+% , and, in case of transactions spending the same output, by having replicas sign only one of them.
+Cheating clients might lose liveness~\cite{DBLP:conf/aft/BaudetDS20,DBLP:journals/dc/GuerraouiKMPS22,DBLP:journals/corr/abs-1909-10926}, but equivocating is not possible.
+
 
 %------------------------------
 %%% OLD INTRO
@@ -59,79 +149,3 @@ We construct \podtm-core, a simple protocol realizing the \podtm notion with min
 \fi
 %%% OLD INTRO
 %------------------------------
-
-
-\subsection{Summary of our results}
-We consider that time proceeds in \emph{rounds}, and that parties (replicas and clients) know the current round, so we can express timestamps in terms of rounds. The output of \podtm associates each transaction $\tx$ with timestamp values $\rmin \geq 0$ (minimum round), $\rmax \leq \infty$ (maximum round) and $\rconf$ (\confirmed round). The confirmation round may be initially $\rconf=\perp$ but later becomes $\rmin \leq \rconf \leq \rmax$, when a transaction is \emph{confirmed}.  While each party reads different values $\rmin,\rmax,\rconf$ for the same $\tx$, \podtm guarantees that values read by different parties stay within these limits.
-
-When clients \emph{read} the \podtm, they obtain a $\podtm$ data structure $\Pod = (\txSet, \rperf, \ppcert)$, where $\txSet$ is set of  transactions with their associated timestamps, $\rperf$ is a \emph{past-perfect} round and $\ppcert$ is auxiliary data. The \emph{past-perfection} safety property of \podtm guarantees that
-%if a transaction $\tx$ did not appear in $\txSet$, then no other party will ever read $\tx$ with confirmed round $\rconf'$ such that $\rconf' < \rperf$. This guarantees that,
-\txSet contains \emph{all} transactions that every other honest party will ever read with a confirmed round smaller than $\rperf$.  A \podtm also guarantees \emph{past-perfection within $w$}, meaning that $\rperf$ is at most $w$ rounds in the past.
-
-For each transaction $\tx$ in \txSet, the reader obtains associated timestamps $\rmin,\allowbreak \rmax, \rconf$ and auxiliary data $\txcert$, which may evolve. The protocol guarantees \emph{confirmation within $u$ rounds}, meaning that, at most $u$ rounds after $\tx$ was written, every party who reads the \podtm will see $\tx$ as confirmed with some $\rconf \neq \perp$.
-Moreover, \podtm guarantees \emph{confirmation bounds}, ensuring that
-% if a party reads $\tx$ with minimum round $\rmin$ and maximum round $\rmax$, for every other party who reads $\tx$ with $\rconf' \neq \perp$, it holds that $\rmin \leq \rconf' \leq \rmax$. This means that
-the values \rmin and \rmax for $\tx$, read by an honest party, determine the range of the \rconf value for $\tx$ that can ever be read by another honest party,
-i.e., $\rmin \leq \rconf \leq \rmax$.
-
-In summary, \podtm provides \emph{past-perfection} and \emph{confirmation bounds} as safety properties, ensuring parties cannot be blindsided by transactions suddenly appearing as confirmed too far in the past, and that the different (and continuously changing) transaction timestamps stay in a certain range. The liveness properties of \emph{confirmation within $u$} and \emph{past-perfection within $w$} ensure that new transactions get confirmed within a bounded delay, and that each party's past-perfect round must be constantly progressing.
-
-Besides introducing the notion of \podtm, we present a construction \podtm-core that requires minimal interaction among parties and achieves optimal latency, \textit{i.e.}, optimal parameters $u=2\delta$ and $w=\delta$, where $\delta$ is the current network delay (not a delay upper bound). Our construction relies on a set of $n$ \emph{replicas} to maintain a \podtm data structure, which can be read by an unbounded number of clients. The only communication is between each client and the replicas, not among clients nor among replicas.
-% Moreover, \podtm-core can use the auxiliary data $\ppcert,\txcert$ to publicly identify misbehaving replicas and keep them accountable.
-
-Writing a transaction $\tx$ in \podtm-core only requires clients to send $\tx$ to the replicas, who each assign a timestamp $\tsp$ (their current time) and a \emph{sequence number} to $\tx$ and return a signature on $(\tx,\tsp, \sn)$. When reading the \podtm, the client simply requests each replica's log of transactions, validates the responses, and determines $\rmin$ and $\rmax$ from the received timestamps. If the client receives responses from enough replicas, $\rconf$ is determined by taking the median of the timestamps received from these replicas.
-% If a replica provides conflicting timestamps $\tsp\neq \tsp'$ for the same $\tx$ to one or more clients, the replica's signatures publicly proves cheating.
-
-In this work we allow clients to specify their own trust assumptions, expecting up to \beta Byzantine \emph{and} at the same time up to \gamma additional omission-faulty replicas.
-We prove our results for executions with only Byzantine and only omission faults, but we conjecture that the results hold for a continuum between these two cases. We leave this as future work. \oa{NEW}
-
-\subsection{Applications}
-The efficiency of pod enables a plethora of distributed applications to be implemented with low latency. In \Cref{sec:auctions} we show how auctions can be run on top of pod, achieved through \bidsettm, a primitive for collecting a set of bids in a censorship resistant manner.
-
-\todo{A paragraph on feed-layers ad decentralized social applications}
-
-
-\subsection{Related work}\label{app:related}
-
-\dotparagraph{Reducing latency}
-Many previous works have lowered the latency of ordering transactions.
-HotStuff~\cite{DBLP:conf/podc/YinMRGA19} uses three rounds of all-to-leader and leader-to-all communication pattern, which results in a latency (measuring from the moment a client submits a transaction until in appears in the output of honest replicas) of $8\delta$ in the happy path.
-Jolteon~\cite{DBLP:conf/fc/GelashviliKSSX22}, Ditto~\cite{DBLP:conf/fc/GelashviliKSSX22}, and HotStuff-2~\cite{DBLP:journals/iacr/MalkhiN23} are two-round versions of HotStuff with end-to-end latency of $5\delta$.
-MoonShot~\cite{DBLP:journals/corr/abs-2401-01791} allows leaders to send a new proposal every $\delta$ time, before receiving enough votes for the previous one, but still achieves an end-to-end latency of $5\delta$.
-In the ``DAG-based'' line of word, Tusk~\cite{DBLP:conf/eurosys/DanezisKSS22} achieves and end-to-end latency of $7\delta$,
-the partially-synchronous version of BullShark~\cite{DBLP:journals/corr/abs-2209-05633} an end-to-end latency of $5\delta$,
-and Mysticeti~\cite{DBLP:journals/corr/abs-2310-14821} an end-to-end latency of $4\delta$.
-All these protocols aim at total-order properties, hence their lower latency is inherently restricted by lower bounds. Pod, in contrary, starts from the single-round-trip latency requirement and explores the properties that can be achieved.
-
-% \dotparagraph{Parallel consensusless payments}
-% Bazzi and Piergiovanni~\cite{PODC:BazPie24} observe two limitations of consensusless protocols: As they employ sequence numbers and deterministic broadcast,
-% clients can only submit one transaction at a time, and they must obtain signatures by at least $2f+1$ replicas on each transaction,
-% where $f$ is the maximum number of tolerated failures.
-% The authors propose a new type of probabilistic Byzantine quorum system~\cite{DBLP:journals/iandc/MalkhiRWW01},
-% % achieving lower \emph{and} upper bounds in the intersection among quorums.
-% and a protocol that allows a user to initiate multiple concurrent payments, called \emph{fractional payments},
-% each transferring amount $b / s$ from their balance $b$, where $s$ is a constant,
-% and each requiring a signature from less than $f$ replicas.
-% Their solution, however, requires $n > 8f$ and a large $n$ for the probabilistic analysis to hold.
-
-\dotparagraph{Auctions}
-The primitive of \podtm offers the \emph{past-perfection} property:
-a \opread{} operation outputs a timestamp \rperf, and it is \emph{guaranteed}
-that the output of \opread{} contains all transactions that can ever be confirmed with a timestamp smaller than \rperf in the view of any reading client, regardless of the network conditions.
-This implies that reading clients (such as an auctioneer) cannot claim not having received a transaction when reading the \podtm, as this is detectable by any other client who reads the \podtm.
-To the best of our knowledge, previous work in the consensusless literature has not considered or achieved this property,
-hence it cannot readily support applications like auctions.
-
-
-\dotparagraph{Consensusless payments}
-The redundancy of consensus for implementing payment systems has been recognized by previous works~\cite{DBLP:journals/dc/GuerraouiKMPS22,DBLP:journals/corr/abs-1909-10926,DBLP:conf/dsn/CollinsGKKMPPST20,DBLP:conf/aft/BaudetDS20}.
-The insight is that total transaction order is not required in the case that each account is controlled by one client.
-Instead, a partial order is sufficient, ensuring that, if transactions $\tx_1$ and $\tx_2$ are created by the same client, then every party outputs them in the same order.
-This requirement was first formalized by Guerraoui~\etal~\cite{DBLP:journals/dc/GuerraouiKMPS22} as the \emph{source-order property}.
-% Notice that this is weaker than the FIFO property, as it allows the output order to be different from the order in which the sender sent the transactions.
-% All protocols have a similar architecture: transactions are created and broadcast by clients, who either drive the whole broadcast instance~\cite{DBLP:conf/aft/BaudetDS20} or outsource it to trusted replicas~\cite{DBLP:conf/dsn/CollinsGKKMPPST20}.
-% The constructions of Guerraoui~\etal~\cite{DBLP:journals/dc/GuerraouiKMPS22} and FastPay~\cite{DBLP:conf/aft/BaudetDS20} satisfy the source-order property by having clients use sequence numbers for their transactions, and by having replicas sign at most one transaction from a client with a given sequence number.
-The constructions of Guerraoui~\etal~\cite{DBLP:journals/dc/GuerraouiKMPS22} and FastPay~\cite{DBLP:conf/aft/BaudetDS20} require clients to maintain sequence numbers.
-ABC~\cite{DBLP:journals/corr/abs-1909-10926} requires clients to reference all previous transaction in a DAG (including its own last transaction).
-% , and, in case of transactions spending the same output, by having replicas sign only one of them.
-Cheating client might lose liveness~\cite{DBLP:conf/aft/BaudetDS20,DBLP:journals/dc/GuerraouiKMPS22,DBLP:journals/corr/abs-1909-10926}, but equivocating is not possible.
