@@ -114,12 +114,12 @@ We now recall Theorem~\ref{thm:pod-security-crash}, which we prove through a ser
 \end{lemma}
 \begin{proof}
 	Assume client $\client_1$ computes \rmin and client $\client_2$ computes $\rconf < \rmin$ for \tx.
-	From \Cref{lem:assign-min-max}, the number of replicas that have sent to $\client_1$ a timestamp for \tx smaller than \rmin can  be  at most $\lfloor \alpha / 2 \rfloor - \gamma$.
-	Allowing up to \gamma replicas to equivocate, there can be at most $\lfloor \alpha / 2 \rfloor$ replicas that send $\client_2$  a timestamp smaller than \rmin.
+	From \Cref{lem:assign-min-max-crash}, the number of replicas that have sent to $\client_1$ a timestamp for \tx smaller than \rmin can be  at most $\lfloor \alpha / 2 \rfloor$,
+	hence there can be at most $\lfloor \alpha / 2 \rfloor$ replicas that send $\client_2$  a timestamp smaller than \rmin (no replicas are Byzantine).
 	However, in order to assign $\rconf < \rmin$ to \tx, client $\client_2$ must have received timestamps smaller than \rmin from at least $\lfloor \alpha / 2 \rfloor + 1$ replicas, a contradiction.
-	For \rmax, assume $\client_1$ computes \rmax and $\client_2$ computes $\rconf > \rmax$.
-	Using \Cref{lem:assign-min-max}, the number of replicas that have sent to  $\client_1$ a timestamp larger than \rmax can be at most $\alpha - \lfloor \alpha / 2 \rfloor - \gamma - 1$,
-	hence the number of honest replicas that will send a timestamp larger than \rmax to $\client_2$ is at most $\alpha - \lfloor \alpha / 2 \rfloor - 1$ (since \gamma are malicious).
+	Similarly for \rmax, assume $\client_1$ computes \rmax and $\client_2$ computes $\rconf > \rmax$.
+	Using \Cref{lem:assign-min-max-crash}, the number of replicas that have sent to  $\client_1$ a timestamp larger than \rmax can be at most $\alpha - \lfloor \alpha / 2 \rfloor - 1$,
+	hence at most that many replicas will send a timestamp larger than \rmax to $\client_2$.
 	If \alpha is odd, this upper bound becomes $\alpha - \lfloor \alpha / 2 \rfloor -1 = \lfloor \alpha / 2 \rfloor $, while $\client_2$ would need at least
 	$\lfloor \alpha / 2 \rfloor + 1$ votes larger that \rmax,
 	and if \alpha is even, then $\alpha - \lfloor \alpha / 2 \rfloor - 1 = \lfloor \alpha / 2 \rfloor - 1$, while $\client_2$ would need at least
