@@ -1,6 +1,6 @@
 \section{Auctions on \podtm through the \bidsettm protocol}\label{sec:auctions}
 In this section, we show how single-shot distributed auctions can be implemented on top of \podtm. This is achieved through \bidsettm, a primitive for collecting a set of bids, which guarantees accountable censorship resistance and consistency among honest parties. We first define \bidsettm and then construct it using an underlying \podtm.
-%We then show a \bidsettm construction that uses \podtm, which an auctioneer can use to run the auction protocol.
+%We then show a \bidsettm construction that uses \podtm, which an sequencer can use to run the auction protocol.
 
 \begin{definition}[\bidsettm protocol]\label{def:auction-framework}
     A \bidsettm \emph{protocol} has a \emph{starting time} parameter \tzero and exposes the following interfaces to \emph{bidder} and \emph{consumer} parties:
@@ -19,12 +19,12 @@ In this section, we show how single-shot distributed auctions can be implemented
             then $\bid \in \bag$.
             %  or a subset of the parties that run the \bidsettm protocol is accountable.
             % \hue{Bid inclusion: In a synchronous network, all honest bids are included}
-            % Moreover, \emph{fair punishment} holds: an honest auctioneer cannot be held accountable for censoring bids, even in asynchronous networks.
-            % \oa{Notice that, even in asynchrony, an honest auctioneer cannot be blamed, in the construction we present.}
+            % Moreover, \emph{fair punishment} holds: an honest sequencer cannot be held accountable for censoring bids, even in asynchronous networks.
+            % \oa{Notice that, even in asynchrony, an honest sequencer cannot be blamed, in the construction we present.}
 
             \item[(Safety) Weak consistency:]
             If two honest consumers generate \opResult{$\bag_1, \cdot$} and \opResult{$\bag_2, \cdot$} events, such that $\bag_1 \neq \emptyset$ and $\bag_2 \neq \emptyset$, then $\bag_1 = \bag_2$.
-            % \hue{Single-result: If there are multiple conflicting auction results, the auctioneer can be held accountable}
+            % \hue{Single-result: If there are multiple conflicting auction results, the sequencer can be held accountable}
             % \oa{Only in synchrony.}
 
         \end{description}
@@ -39,8 +39,8 @@ In this section, we show how single-shot distributed auctions can be implemented
 
 \begin{construction}[\bidsettm-core]\label{const:bidset}
 	Protocol \bidsettm-core is parameterized by an integer $\Delta$ (looking ahead, we will prove security in synchrony, \textit{i.e.}, assuming the network delay $\delta$ is smaller than $\Delta$) and assumes digital signatures and a \podtm with $\delta$-timeliness, $\parPerf=\delta$ and $\parConf=2\delta$. At time \tzero, all parties start executing Algorithms~\ref{alg:bid-set-bidder}--\ref{alg:bid-set-consumer}.
-	% A bidder runs \opSubmitBid{} (\Cref{alg:bid-set-bidder}), the auctioneer runs \opRunAuction{} (\Cref{alg:bid-set-auctioneer}), and a consumer runs \opReadResult{} (\Cref{alg:bid-set-consumer}), in order to output the $\opResult{\bag, \bidcert}$ event.
-	A pre-appointed \emph{auctioneer} is responsible to reading the \podtm and writing back to it when a specific condition is met. For example, when instantiating \bidsettm-core on top of \podtm-core, a replica can act as auctioneer.
+	% A bidder runs \opSubmitBid{} (\Cref{alg:bid-set-bidder}), the sequencer runs \opRunAuction{} (\Cref{alg:bid-set-sequencer}), and a consumer runs \opReadResult{} (\Cref{alg:bid-set-consumer}), in order to output the $\opResult{\bag, \bidcert}$ event.
+	A pre-appointed \emph{sequencer} is responsible to reading the \podtm and writing back to it when a specific condition is met. For example, when instantiating \bidsettm-core on top of \podtm-core, a replica can act as sequencer.
 \end{construction}
 
 % \vspace{-5mm}
@@ -51,9 +51,9 @@ In this section, we show how single-shot distributed auctions can be implemented
 \input{bidset-core-pseudocode/bidset-consumer-pseudocode.tex}
 % \vspace{-5mm}
 A bidder submits a bid by writing it on the \podtm (\Cref{alg:bid-set-bidder}) at round \tzero.
-The auctioneer (\Cref{alg:bid-set-auctioneer}) waits until the \podtm returns a past-perfect round larger than $\tzero + \Delta$ (\cref{line:bidset-wait-pp}). The \emph{$\delta$-timeliness property} of the \podtm, given that $\delta \leq \Delta$, ensures that the bids of honest parties will have a confirmation round at most $\tzero + \Delta$, and the \emph{accountable past-perfection safety} guarantees that a malicious auctioneer cannot exclude them from the bid-set $\bag$ in \cref{line:bidset-create-bag}. The auctioneer concludes by signing \bag and \bidcert (which can be used as evidence, in case of a safety violation) and writing  \msgbidresult{(\bag, \bidcert, \sigma)} on \podInst.
-As an intuition on how \bidsettm-core achieves its properties, observe that \cref{line:bidset-wait-pp} of \Cref{alg:bid-set-auctioneer} becomes true in the view of auctioneer by round $\tzero + \Delta + \delta$ (from the \emph{past-perfection within $\parPerf=\delta$} property of \podtm-core),
-hence \Cref{alg:bid-set-auctioneer} for an honest auctioneer terminates by that round.
+The sequencer (\Cref{alg:bid-set-sequencer}) waits until the \podtm returns a past-perfect round larger than $\tzero + \Delta$ (\cref{line:bidset-wait-pp}). The \emph{$\delta$-timeliness property} of the \podtm, given that $\delta \leq \Delta$, ensures that the bids of honest parties will have a confirmation round at most $\tzero + \Delta$, and the \emph{accountable past-perfection safety} guarantees that a malicious sequencer cannot exclude them from the bid-set $\bag$ in \cref{line:bidset-create-bag}. The sequencer concludes by signing \bag and \bidcert (which can be used as evidence, in case of a safety violation) and writing  \msgbidresult{(\bag, \bidcert, \sigma)} on \podInst.
+As an intuition on how \bidsettm-core achieves its properties, observe that \cref{line:bidset-wait-pp} of \Cref{alg:bid-set-sequencer} becomes true in the view of sequencer by round $\tzero + \Delta + \delta$ (from the \emph{past-perfection within $\parPerf=\delta$} property of \podtm-core),
+hence \Cref{alg:bid-set-sequencer} for an honest sequencer terminates by that round.
 Observe also that the transaction \msgbidresult{(\bag, \bidcert, \sigma)} becomes confirmed in the view of all honest clients by round $\tzero + \Delta + 3\delta$ (from the \emph{confirmation within $\parConf=2\delta$} property), and it will have a confirmed round $\rconf \leq \tzero + \Delta + 2\delta$ (from the \emph{$\delta$-timeliness} property).
 
 
@@ -64,7 +64,7 @@ First, a \emph{confirmed} transaction \msgbidresult{(\bag, \bidcert, \sigma)} ap
 Second, a round higher than $\tzero + 3 \Delta$ becomes past-perfect in \podtm (\cref{line:bidset-read-result-pp}), in which case it outputs $\bag=\emptyset$.
 
 Observe that, from the \emph{past-perfection within $\parPerf=\delta$} property of \podtm, the condition in \cref{line:bidset-read-result-pp} will become true at latest at round $\tzero + 3 \Delta + \delta$, hence \bidsettm-core achieves \emph{termination within $\parAuctionTerm=3\Delta + \delta$}.
-If the network is synchronous and the auctioneer honest, the condition in \cref{line:bidset-find-confirmed-tx} becomes true at round at most $\tzero + \Delta + 3\delta$ for an honest consumer, hence it outputs \bag as the bid-set, hence \bidsettm-core satisfies the \emph{consistency} property.
+If the network is synchronous and the sequencer honest, the condition in \cref{line:bidset-find-confirmed-tx} becomes true at round at most $\tzero + \Delta + 3\delta$ for an honest consumer, hence it outputs \bag as the bid-set, hence \bidsettm-core satisfies the \emph{consistency} property.
 
 
 \begin{remark}[Implicit sub-session identifiers]
@@ -75,16 +75,16 @@ If the network is synchronous and the auctioneer honest, the condition in \cref{
 \begin{theorem}[Bidset security]\label{thm:bidset-construction-secure}
 Assuming a synchronous network where $\delta \leq \Delta$,
 protocol \bidsettm-core (Construction~\ref{const:bidset}) instantiated with a digital signature and a  secure \podtm protocol that satisfies the \emph{past-perfection within $\parPerf = \delta$}, \emph{confirmation within $\parConf=2\delta$} and \emph{$\delta$-timeliness} properties, is a secure \bidsettm protocol satisfying \emph{termination within $\parAuctionTerm = 3\Delta + \delta$}.
-It satisfies accountable safety with an \identifyAuctioneer{} function that identifies a malicious auctioneer.
+It satisfies accountable safety with an \identifySequencer{} function that identifies a malicious sequencer.
 \end{theorem}
 \vspace{-3mm}
-\begin{proof} The proof and \identifyAuctioneer{} are shown in Appendix~\ref{app:bidsetsec}.
+\begin{proof} The proof and \identifySequencer{} are shown in Appendix~\ref{app:bidsetsec}.
 \end{proof}
 
 \begin{remark}
-    Observe that \bidsettm-core terminates within $\parAuctionTerm = 3\Delta + \delta$ in the worst case, but, if the auctioneer is honest, then it terminates within $\parAuctionTerm = \Delta + 3\delta$.
-    Moreover, \bidsettm-core is not responsive because \Cref{alg:bid-set-auctioneer} waits for a fixed $\Delta$ interval.
-    This step can be optimized if the set of bidders is known (i.e., by requiring them to pre-register), which allows for the protocol to be made optimistically responsive (\textit{i.e.}, $\parAuctionTerm = 4\delta$) when all bidders and the auctioneer are honest.
+    Observe that \bidsettm-core terminates within $\parAuctionTerm = 3\Delta + \delta$ in the worst case, but, if the sequencer is honest, then it terminates within $\parAuctionTerm = \Delta + 3\delta$.
+    Moreover, \bidsettm-core is not responsive because \Cref{alg:bid-set-sequencer} waits for a fixed $\Delta$ interval.
+    This step can be optimized if the set of bidders is known (i.e., by requiring them to pre-register), which allows for the protocol to be made optimistically responsive (\textit{i.e.}, $\parAuctionTerm = 4\delta$) when all bidders and the sequencer are honest.
 \end{remark}
 \vspace{-2mm}
 \dotparagraph{\textbf{Auctions using \bidsettm}} Building on a \bidsettm protocol, it is trivial to construct single-shot first price and second price open auctions as follows: 1. Bidders place their open bids $\bid$ by calling \opSubmitBid{\bid}; 2. Consumers determine the winner by calling \opReadResult{} to obtain $\bag$ and outputting either the first or second highest bid. We conjecture that single-shot sealed bid auction protocols such as those of~~\cite{trustee,seal,ACNS:DavGenPou22,CCS:TAFWBM23,chitra_et_al:LIPIcs.AFT.2024.19,cryptoeprint:2024/1011} can also be instantiated on top of a \bidsettm protocol. Intuitively, this holds because such protocols first agree on a set of sealed bids and then execute extra steps to determine the winner. However, a formal analysis of sealed-bid auction protocols based on \bidsettm is left as future work.

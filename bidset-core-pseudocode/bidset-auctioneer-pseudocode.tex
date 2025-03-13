@@ -1,6 +1,6 @@
 \begin{algorithm}[h!]
-    \caption{\bidsettm-core: Code for the auctioneer. It uses a \podtm instance \podInst, and $\sk_a$ denotes the secret key of the auctioneer.}
-    \label{alg:bid-set-auctioneer}
+    \caption{\bidsettm-core: Code for the sequencer. It uses a \podtm instance \podInst, and $\sk_a$ denotes the secret key of the sequencer.}
+    \label{alg:bid-set-sequencer}
     \begin{algorithmic}[1]
         \Function{\opRunAuction{}}{}
             \Let{(\txSet, \rperf, \ppcert)}{\podInst.\opreadall{}}
@@ -8,7 +8,7 @@
                 \Let{(\txSet, \rperf, \ppcert)}{\podInst.\opreadall{}}
             \EndWhile{}
             \State{$\bag \gets \{\tx \mid (\tx, \cdot, \cdot , \cdot, \cdot) \in \txSet\}  ;\; \bidcert \gets \ppcert$}\label{line:bidset-create-bag}
-            \Let{\sigma}{\opSign{$\sk_a, (\bag, \bidcert)$}} \label{line:bidset-auctioneer-sign}
+            \Let{\sigma}{\opSign{$\sk_a, (\bag, \bidcert)$}} \label{line:bidset-sequencer-sign}
             \Let{\tx}{\msgbidresult{(\bag, \bidcert, \sigma)}}\label{line:bidset-write-bag}
             \State{\podInst.\opwrite{\tx}} %Run by \tzero + 2 \Delta. 
         \EndFunction
