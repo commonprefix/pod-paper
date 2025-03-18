@@ -1,4 +1,4 @@
-\section{Security of Protocol \podtm-core under ommission faults}\label{app:pod-security-crash}
+\section{Security of Protocol \podtm-core under omission faults}\label{app:pod-security-crash}
 % In order to prove Theorem~\ref{thm:pod-security} and establish the security of Protocol \podtm-core shown Construction~\ref{const:pod-core}, we first prove some useful intermediate results.
 Let us assume now an execution where $\gamma=0$, i.e., no Byzantine replicas exist, and $\gamma>0$, i.e., there are omission-faulty replicas.
 In this section we present lemmas and proofs that are analogous to those in \Cref{app:pod-security-byzantine}, accounting for this change.
@@ -35,7 +35,7 @@ We now recall Theorem~\ref{thm:pod-security-crash}, which we prove through a ser
 \
 \begin{customthm}{\ref{thm:pod-security-crash}}[\podtm-core security under omission faults]
 	Assuming that the network is asynchronous with actual network delay $\delta$ (and unknown delay upper bound), $\beta=0$ is the number of Byzantine replicas, $\gamma$ is the number of omission-faulty replicas and $n \geq 3 \gamma + 1$ is the total number of replicas.
-	Protocol \podtm-core (\Cref{const:pod-core}) instantiated with a EUF-CMA secure signature scheme is a responsive secure \podtm (\Cref{def:podsec}) with Confirmation within $\parConf = 2 \delta$ and Past-perfection within $\parPerf = \delta$, \ewnp.
+	Protocol \podtm-core (\Cref{const:pod-core}) instantiated with an EUF-CMA secure signature scheme is a responsive secure \podtm (\Cref{def:podsec}) with Confirmation within $\parConf = 2 \delta$ and Past-perfection within $\parPerf = \delta$, \ewnp.
 \end{customthm}
 \begin{proof}
 	The proof follows from Lemmas~\ref{lem:pod-confirmation-crash}--\ref{lem:bounds-safety-crash}, presented and proven in the remainder of this section.
@@ -58,7 +58,7 @@ We now recall Theorem~\ref{thm:pod-security-crash}, which we prove through a ser
 \begin{proof}
 	% Assume an honest client \client at round \round has view $\podView{c}{\round}$.
 	% From \Cref{lem:rperf-value-of-honest-crash}, there exists some honest replica $\rep_j$, such that the most-recent timestamp $\mrt[\rep_j]$ that $\rep_j$ has sent to \client satisfies $\podView{c}{\round}.\rperf \geq \mrt[\rep_j]$.
-	% The honest replica $\rep_j$ sends at least one heartbeat or vote message per round (line~\ref{line:rep-send-vote-heartbeat}), which arrives within $\delta$ rounds, and an honest client updates $\mrt[\rep_j]$ when it receives the heartbeat or vote message. 
+	% The honest replica $\rep_j$ sends at least one heartbeat or vote message per round (line~\ref{line:rep-send-vote-heartbeat}), which arrives within $\delta$ rounds, and an honest client updates $\mrt[\rep_j]$ when it receives the heartbeat or vote message.
 	% Hence, \client will have $\mrt[\rep_j] \geq \round - \delta$.
 	% All together, $\podView{c}{\round}.\rperf \geq \round - \delta$.
 	The proof is the same as the proof of \Cref{lem:past-perfection-liveness}, except that is uses \Cref{lem:rperf-value-of-honest-crash} instead of \Cref{lem:rperf-value-of-honest} for the argument that there exists some honest replica $\rep_j$ for which \client outputs $\podView{c}{\round}.\rperf \geq \mrt[\rep_j]$.
@@ -72,7 +72,7 @@ We now recall Theorem~\ref{thm:pod-security-crash}, which we prove through a ser
 	% Assume an honest client $\client$ at round $\round > 0$ reads the \podtm and obtains $(\txSet, \rperf, \ppcert)$.
 	% % such that $\tx \not \in \txSet$, for some $\tx \in \zo^*$.
 	% Let $\allreps_1$ be the set of replicas $\rep_i$ for which $\client$ stores at round $\round$ an $\mrt_i \geq \rperf$.
-	% From \Cref{lem:assign-min-max-crash} (\rperf is computed as the timestamp at index $\lfloor \alpha / 2 \rfloor$ of sorted \mrt) there exist at least $n - \lfloor a/2 \rfloor$ such replicas, hence $|\allreps_1| \geq n - \lfloor a/2 \rfloor$. 
+	% From \Cref{lem:assign-min-max-crash} (\rperf is computed as the timestamp at index $\lfloor \alpha / 2 \rfloor$ of sorted \mrt) there exist at least $n - \lfloor a/2 \rfloor$ such replicas, hence $|\allreps_1| \geq n - \lfloor a/2 \rfloor$.
 	% % Observe that no replica in $\allreps_1$ has sent to $\client$ a vote on \tx (because $\tx \not \in \txSet$),
 	% For each $\rep_i \in \allreps_1$, client $\client$ has received the whole log of $\rep_i$ with timestamps up to $\mrt_i$ (\cref{line:client-check-sn} of \Cref{alg:client-1} does not allow gaps in the sequence number of the received votes).
 	% That is, for each $\rep_i \in \allreps_1$ client $\client$ has received votes
@@ -82,7 +82,7 @@ We now recall Theorem~\ref{thm:pod-security-crash}, which we prove through a ser
 	% \end{equation}
 	% %
 	% where $m_i$ is the smallest sequence number for which $\tsp_{i, m_i} \geq \rperf$.
-	
+
 	% Assume another client $\client'$ at some round $\round' > 0$ outputs a \podtm $(\txSet', \cdot, \cdot)$,
 	% such that $(\tx, \cdot, \cdot, \rconf, \txcert) \in \txSet'$ and $\rconf < \rperf$ (where \rperf is the past-perfect round observed by $\client$).
 	% For $\client'$ to output a confirmation round $\rconf < \rperf$, it must have received timestamps $\tsp_i$ on \tx, such that $\tsp_i < \rperf$, from at least $\lfloor \alpha/2 \rfloor + 1$ (because \rconf is computed as the median of at least \alpha votes).
@@ -94,11 +94,11 @@ We now recall Theorem~\ref{thm:pod-security-crash}, which we prove through a ser
 	% \end{equation}
 	% %
 	% such that $\tsp'_i < \rperf$.
-	
+
 	% Observe from the cardinality of $\allreps_1$ and $\allreps_2$ that at least one replica must be in both sets (except if the adversary forges a signature under the public key of an honest replica, which happens with negligible probability).
 	% For that replica, the vote in \cref{eq:proof-pp-vote2-crash} must be one of the votes in \cref{eq:proof-pp-set1-crash} since $\tsp_i < \rperf$ and $\tsp_{j, m_i} \geq \rperf$.
 	% Hence, client \client has received at least one vote on \tx, so $\tx \in \txSet$, as demanded by the past-perfection property.
-	
+
 	As in the proof of \Cref{lem:pod-pp-safety}, we construct set $\allreps_1$. Now we have that $|\allreps_1| \geq n - \lfloor a/2 \rfloor$, because from \Cref{lem:assign-min-max-crash} \rperf is computed as the timestamp at index $\lfloor \alpha / 2 \rfloor$ of sorted \mrt.
 	We construct $\allreps_2$ in the same way, for which we get $|\allreps_2| \geq \lfloor \alpha/2 \rfloor + 1$.
 	From the cardinality of $\allreps_1$ and $\allreps_2$, at least one replica must be in both sets, except with negligible probability.
@@ -121,7 +121,7 @@ We now recall Theorem~\ref{thm:pod-security-crash}, which we prove through a ser
 	If \alpha is odd, this upper bound becomes $\alpha - \lfloor \alpha / 2 \rfloor -1 = \lfloor \alpha / 2 \rfloor $, while $\client_2$ would need at least
 	$\lfloor \alpha / 2 \rfloor + 1$ votes larger that \rmax,
 	and if \alpha is even, then $\alpha - \lfloor \alpha / 2 \rfloor - 1 = \lfloor \alpha / 2 \rfloor - 1$, while $\client_2$ would need at least
-	$\lfloor \alpha / 2 \rfloor$ votes larger that \rmax in order to  
+	$\lfloor \alpha / 2 \rfloor$ votes larger that \rmax in order to
 	compute a median larger than \rmax (we remind that \cref{alg:client-statistics} returns as median the value at position $\lfloor \alpha /  2 \rfloor$).
 \end{proof}
 
@@ -138,11 +138,11 @@ We now recall Theorem~\ref{thm:pod-security-crash}, which we prove through a ser
 
 	% \begin{enumerate}
 	% 	\item Regarding \rconf, when a client calls \opreadall{}, and since by assumption \tx is confirmed, it will have received votes on \tx from at least \alpha replicas. All honest (not crashed and not omitting messages) replicas have sent timestamps for \tx in the interval $ (r, \round + \delta]$. Since \rconf is computed as the median of \alpha timestamps and $\alpha \geq 2\gamma + 1$,
-	% 	\rconf cannot be the timestamp returned by a malicious (crashed or omitting) replica, 
+	% 	\rconf cannot be the timestamp returned by a malicious (crashed or omitting) replica,
 	% 	hence $\rconf \in (r, \round + \delta]$.
-		
+
 	% 	\item Regarding \rmax, from \Cref{lem:assign-min-max}, at least $\lceil \alpha/2 \rceil -2 \gamma $ replicas have sent to \client a timestamp greater or equal than \rmax and, since $\alpha \geq 4\gamma + 1$, at least one of those is a timestamp returned by an honest replica, hence  $\rmax \in (r, \round + \delta]$.
-		
+
 	% 	\item Similarly, from \Cref{lem:assign-min-max} we get that \rmin is a timestamp returned by an honest replica, hence $\rmin \in (r, \round + \delta]$ and $\rmax - \rmin < \parTemp$.
 	% \end{enumerate}
 \end{proof}

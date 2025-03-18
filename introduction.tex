@@ -35,7 +35,7 @@ Specifically, a secure \podtm delivers the following guarantees (formally define
 \begin{itemize}
     \item Transaction confirmation within $2\delta$ latency, with each confirmed transaction assigned a \emph{confirmation timestamp}; we say that the transaction becomes \emph{confirmed} at the time indicated by the confirmation timestamp.
     \item Censorship resistance when facing up to $\beta$ Byzantine or $\gamma$ omission-faulty replicas, ensuring all confirmed transactions appear in every honest reader's output.
-    \item A \emph{past-perfect round} can be computed by readers, such that the reader is guranteed to have received all transactions that are or will be confirmed prior to this round, even though not all transactions are strictly ordered.
+    \item A \emph{past-perfect round} can be computed by readers, such that the reader is guaranteed to have received all transactions that are or will be confirmed prior to this round, even though not all transactions are strictly ordered.
     \item Accountability for any safety violations, \textit{i.e.}, identifying replicas that cause such violations.
 \end{itemize}
 
@@ -46,7 +46,7 @@ In particular, our Protocol \podtm-core presented in \Cref{sec:pod-core-const} r
 	\item  (Security against omission faults)  \gamma Byzantine replicas (and no Byzantine replicas) out of a total of $n \geq 3 \beta + 1$ replicas.
 \end{itemize}
 
-Our Protocol \podtm-core requires no expensive cryptographic primitives or stetup beyond digital signatures and a PKI registering replicas' public keys. We showcase Protocol \podtm-core's efficiency by means of experiments with a prototype implementation presented in \Cref{sec:evaluation}. Our experiments show that even with 1000 replicas distributed around the world, the latency achieved by our protocol is just under double (resp. about 5 times) the round-trip time between writer and reader clients with security against omission-faulty (resp. Byzantine) replicas.
+Our Protocol \podtm-core requires no expensive cryptographic primitives or setup beyond digital signatures and a PKI registering replicas' public keys. We showcase Protocol \podtm-core's efficiency by means of experiments with a prototype implementation presented in \Cref{sec:evaluation}. Our experiments show that even with 1000 replicas distributed around the world, the latency achieved by our protocol is just under double (resp. about 5 times) the round-trip time between writer and reader clients with security against omission-faulty (resp. Byzantine) replicas.
 
 
 \subsection{Technical Overview}
@@ -103,7 +103,7 @@ All these protocols aim at total-order properties and have their lower latency i
 % Their solution, however, requires $n > 8f$ and a large $n$ for the probabilistic analysis to hold.
 
 \dotparagraph{Auctions}
-The \podtm noition offers the \emph{past-perfection} property:
+The \podtm notion offers the \emph{past-perfection} property:
 a \opread{} operation outputs a timestamp \rperf, and it is \emph{guaranteed}
 that the output of \opread{} contains all transactions that can ever be confirmed with a timestamp smaller than \rperf in the view of any reading client, regardless of the network conditions.
 This implies that reading clients (such as an auctioneer) cannot claim not having received a transaction when reading the \podtm, as this is detectable by any other client who reads the \podtm.

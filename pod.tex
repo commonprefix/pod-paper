@@ -29,8 +29,8 @@ A \emph{transaction set} $\txSet$ is a set of tuples $(\tx, \rmin, \rmax, \rconf
 \end{definition}
 
 In \podtm-core, \ppcert will also contain signatures used to achieve accountability.
-Our construction will allow for deriving $\ppcert$ from all certificates $\txcert$ in $\txSet$, but we define $\ppcert$ explicitly for clarity and generality. 
-Moreover, \rperf will imply a completeness property on \txSet, defined by the past-perfection safety property of \podtm. 
+Our construction will allow for deriving $\ppcert$ from all certificates $\txcert$ in $\txSet$, but we define $\ppcert$ explicitly for clarity and generality.
+Moreover, \rperf will imply a completeness property on \txSet, defined by the past-perfection safety property of \podtm.
 We remark that transactions in \txSet may be \confirmed on unconfirmed.
 
 %We now define the \podtm protocol interface and associated concepts.
@@ -64,7 +64,7 @@ A \podtm protocol has the following interface.
     \podView{\client}{\round}.\rperf, \podView{\client}{\round}.\ppcert)$.
     We write $\tx \in \podView{\client}{\round}$ if $\tx$ appears in $\podView{\client}{\round}.\txSet$.
 \end{definition}
-    
+
 
 \begin{definition}[Secure \podtm]\label{def:podsec}
 A protocol is a \emph{secure} \podtm if it implements the \podtm interface of Definition~\ref{def:podinterface} and satisfies the following properties.
@@ -77,9 +77,9 @@ A protocol is a \emph{secure} \podtm if it implements the \podtm interface of De
 	% If an honest client writes a transaction \tx at round \round, then it will obtain output $(\tx, \rmin, \rmax, \rconf, \txcert)$, such that $\rconf \neq \bot$, by round $\round + \parConf$.
 	% \item[Availability after \parLive:]
 	% If an honest client writes a transaction \tx at round \round, then for any honest client $\client$, it holds that $\tx \in \podView{c}{\round + \parLive}$ and $\tx.\rconf \neq \bot$.
-	
+
 	\item[(Liveness) Past-perfection within \parPerf:]
-	Rounds become past-perfect after at most $\parPerf$ rounds. 
+	Rounds become past-perfect after at most $\parPerf$ rounds.
 	That is, for any honest client \client and round $\round \geq \parPerf$,
 	it holds that $\podView{c}{\round}.\rperf \geq \round - \parPerf$.
 
@@ -88,7 +88,7 @@ A protocol is a \emph{secure} \podtm if it implements the \podtm interface of De
 	Then, for any transaction $\tx \in \zo^*$ that becomes confirmed (in some view $\podView{\client'}{\round'}$ of an honest client $\client'$ at round $\round' \geq 0$ ) with confirmed round $\rconf$, it holds that, if $\rconf < \podView{\client}{\round}.\rperf$, then $\tx \in \podView{\client}{\round}$.
 	% For any honest client \client and round $\round$,
 	% if $\tx \not \in \podView{\client}{\round}$, then no honest client $\client'$ (including $\client'=\client$) observes \tx as confirmed with $\rconf < \podView{\client}{\round}.\rperf$.
-	
+
 	%\item[Generalized ledger safety:]
 	%The numbers $\rmin, \rmax$, and $\rconf$ for a transaction \tx satisfy the following:
 	\item[(Safety) Confirmation bounds:] For any honest clients $\client_1,\client_2$, if $\client_1$ observes $\tx$ with $\rmin$ and $\rmax$ and $\client_2$ observes \tx as \confirmed with confirmation round $\rconf'$, then $\rmin \leq \rconf' \leq \rmax$.
@@ -98,7 +98,7 @@ A protocol is a \emph{secure} \podtm if it implements the \podtm interface of De
 
 
 %The \emph{confirmation within \parConf} property gives us that, if an honest client writes a transaction \tx, then \tx will obtain $\rconf \neq \bot$ within \parConf rounds, but it does not tell us \emph{what} that \rconf will be.
-%Similarly, 
+%Similarly,
 The \emph{confirmation bounds} property gives $\rmin \leq \rconf' \leq \rmax$, for $\rconf'$ computed by honest client $\client_2$ and \rmin, \rmax computed by honest client $\client_1$, but it does not guarantee anything about the values of \rmin and \rmax (for example, it could trivially be $\rmin=0$ and $\rmax=\infty$).
 To this purpose we define an additional property of \podtm, called \emph{timeliness}.
 % , which can be satisfied along with the standard safety and liveness properties of \podtm.
@@ -140,9 +140,9 @@ We conclude this section with some visual examples in Figures \ref{fig:example-o
     \begin{minipage}[b]{.49\textwidth}
     \centering
     \includegraphics[width=1\textwidth]{figures/pod-example.pdf}
-    \caption{A possible view of a single pod client. 
-    Transactions $\tx_1, \tx_2, \tx_3$ are confirmed, $\tx_4$ is not yet confirmed. 
-    A client also derives a past-perfect round $\rperf$. No transaction other than $\tx_1, \tx_2, \tx_3, \tx_4$ may  obtain $\rconf \leq \rperf$. There may exist $\tx_5$ for which the client has not received votes, but $\tx_5$ cannot obtain $\rconf \leq \rperf$. 
+    \caption{A possible view of a single pod client.
+    Transactions $\tx_1, \tx_2, \tx_3$ are confirmed, $\tx_4$ is not yet confirmed.
+    A client also derives a past-perfect round $\rperf$. No transaction other than $\tx_1, \tx_2, \tx_3, \tx_4$ may  obtain $\rconf \leq \rperf$. There may exist $\tx_5$ for which the client has not received votes, but $\tx_5$ cannot obtain $\rconf \leq \rperf$.
     % Transactions written concurrently, or close to each other, such as $\tx_3$ and $\tx_4$, may not be totally ordered. Transactions written by malicious clients, such as $\tx_5$ may not become confirmed.
     }
     \label{fig:example-output}

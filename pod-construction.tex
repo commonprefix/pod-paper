@@ -118,8 +118,8 @@ Note that $\tsps.\opKeys{}$ on \cref{line:loop-over-txs} returns all entries in 
 %The associated values \rmin, \rmax, \rconf, \txcert for each transaction, the past-perfect round \rperf, and its auxiliary data \ppcert are computed in the following way. 
 The client uses the \opMinPossibleTs{} and \opMaxPossibleTs{} functions to compute \rmin (\cref{line:upd-rmin-begin}) and \rmax (\cref{line:upd-rmax-begin}).
 They respectively return the minimum and maximum round number that \emph{any client} can ever \emph{confirm} \tx with.
-For \rperf (\cref{line:upd-rperf-begin}) the client uses \opMinPossibleTsForNewTx{}, which returns the smallest round number that \emph{any} client can ever assign to a transaction \emph{not yet seen} by the client.
-The auxiliary data \ppcert contains the vote on the most recent timestamp $\mrt[\rep_j]$ received from each replica $\rep_j$.
+For \rperf (\cref{line:upd-rperf-begin}) the client uses \opMinPossibleTsForNewTx{}, which returns the earliest round that \emph{any} client can ever assign to a transaction \emph{not yet seen} by the client.
+\ppcert contains the vote on the most recent timestamp $\mrt[\rep_j]$ received from each $\rep_j$.
 
 
 
@@ -133,11 +133,10 @@ and the auxiliary data \txcert contains all the received votes on \tx (line~\ref
 \dotparagraph{Computing the associated values and the past-perfect round}
 Function \opMinPossibleTs{} in \Cref{alg:client-statistics} fills a missing vote from replica $\rep_j$ with $\mrt[\rep_j]$ (\cref{line:fill-vote-lts}),
 the minimum timestamp that can ever be  accepted from $\rep_j$ (smaller values will not pass the check in \cref{line:check-old-ts} of \Cref{alg:client-2}).
-Moreover, it prepends \beta times the $0$ value (\cref{line:prepend-zero}), pessimistically assuming that up to $\beta$ replicas will try to bias \tx by sending a timestamp $0$ to other clients -- of course, this only happens if the client believes there are Byzantine replicas, i.e., if $\beta > 0$.
-Accordingly, function \opMaxPossibleTs{} in \Cref{alg:client-statistics} fills a missing vote with $\infty$ (\cref{line:fill-vote-inf})
-and appends \beta times the $\infty$ value (\cref{line:apend-infty}), the worst-case timestamp that malicious replicas may send to other clients.
-Finally, \opMinPossibleTsForNewTx{} works similarly to \opMinPossibleTs{}, except
-considering timestamps \mrt as the minimum possible for any future transaction.
+Moreover, it prepends \beta times the $0$ value (\cref{line:prepend-zero}), pessimistically assuming that up to $\beta$ replicas will try to bias \tx by sending a timestamp $0$ to other clients, which only happens if replicas may be Byzantine, i.e., if $\beta > 0$.
+Similarly, function \opMaxPossibleTs{} in \Cref{alg:client-statistics} fills a missing vote with $\infty$ (\cref{line:fill-vote-inf})
+and appends \beta times the $\infty$ value (\cref{line:apend-infty}), the worst-case timestamp that Byzantine replicas may send to other clients.
+Finally, \opMinPossibleTsForNewTx{} is similar to \opMinPossibleTs{} but considers timestamps \mrt the minimum possible for future transactions.
 
 \input{pod-core-pseudocode/pod-core-client-code-statistics}
 
