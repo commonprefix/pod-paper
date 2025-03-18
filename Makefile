@@ -1,12 +1,12 @@
 main.pdf: *.tex *.bib *.sty
-	xelatex main.tex && \
+	xelatex -synctex=1 main.tex && \
 	bibtex main && \
-	xelatex main.tex && \
-	xelatex main.tex && \
+	xelatex -synctex=1 main.tex && \
+	xelatex -synctex=1 main.tex && \
 	rm -rf *.aux *.log *.out;
 
 minimal:
-	xelatex main.tex
+	xelatex -synctex=1 main.tex
 
 clean:
 	$(RM)  *.log *.aux \
