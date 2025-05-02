@@ -1,15 +1,14 @@
 \section{Modeling \podtm} \label{sec:pod-model}
-In this section, we introduce the notion of a \podtm, a distributed protocol where replicas maintain transactions with an evolving partial order, which can be \emph{read} and \emph{written} by clients.
+In this section, we introduce the notion of a \podtm, a distributed protocol where clients can \emph{read} and \emph{write} transactions.
 We first define basic data structures and the interface of a \podtm.
-We then introduce the basic definition of a secure \podtm and its security properties, as well as some additional properties that it may satisfy, which we will later use for our applications. In particular, we define the notions of \emph{timeliness} and \emph{monotonicity} for a secure \podtm.
+We then introduce the basic definition of a \emph{secure \podtm} and its security properties, as well as some additional properties (\emph{timeliness} and \emph{monotonicity}) that it may satisfy, which we later use for some applications.
 
-\begin{definition}[Transaction and associated values]
-    \oa{Rename to trace}
-    A transaction $\tx \in \zo^*$ is associated with values $\rmin, \rmax, \rconf$, and $\txcert$, which change during the execution of a \podtm protocol.
+\begin{definition}[Transaction trace]
+    The \emph{transaction trace} of a transaction $\tx \in \zo^*$ is a tuple containing the values $(\tx, \rmin, \rmax, \rconf$, $\txcert)$, which change during the execution of a \podtm protocol.
     We call $\rmin \in \BN$ the \emph{minimum round}, $\rmax \in \BN \cup \{\infty\}$ the \emph{maximum round},
     $\rconf \in \BN \cup \{\bot\}$ the \emph{\confirmed round}, and $\txcert \in \zo^*$ contains some auxiliary data.
     We denote by $\rmax=\infty$ an unbounded maximum round and by $\rconf=\bot$ an undefined \confirmed round.
-    For transaction \tx, denote its associated values by $\tx.\rmin, \tx.\rmax, \tx.\rconf$, and $\tx.\txcert$.
+    We also denote the values in the trace of $\tx$ by $\tx.\rmin, \tx.\rmax, \tx.\rconf$, and $\tx.\txcert$.
 \end{definition}
 
 In \podtm-core, \txcert will contain digital signatures used to achieve accountability.
@@ -18,14 +17,13 @@ In \podtm-core, \txcert will contain digital signatures used to achieve accounta
     A transaction with confirmed round \rconf is called \emph{\confirmed} if $\rconf \neq \bot$, and \emph{unconfirmed} otherwise.
 \end{definition}
 
-\begin{definition}[Transaction set]
-\oa{rename to trace set}
-A \emph{transaction set} $\txSet$ is a set of tuples $(\tx, \rmin, \rmax, \rconf, \txcert)$. We say that a transaction $\tx$ \emph{appears} in $\txSet$ when $\exists (\tx', \rmin, \rmax, \rconf, \txcert) \in \txSet$ such that $\tx'=\tx$.  Conversely, we say that a transaction $\tx$ \emph{does not appear} in $\txSet$ when this condition is not satisfied.
+\begin{definition}[Trace set]
+A \emph{trace set} $\txSet$ is a set of traces $(\tx, \rmin, \rmax, \rconf, \txcert)$. We say that a transaction $\tx$ \emph{appears} in $\txSet$ when $\exists (\tx, \rmin, \rmax, \rconf, \txcert) \in \txSet$, otherwise we say that a transaction $\tx$ \emph{does not appear} in $\txSet$.
 \end{definition}
 
 
 \begin{definition}[Pod data structure]
-    A pod data structure $\Pod$ is a triple $(\txSet, \rperf, \ppcert)$, where \txSet is a transaction set, \rperf is a round number, called the \emph{past-perfect round},
+    A pod data structure $\Pod$ is a triple $(\txSet, \rperf, \ppcert)$, where \txSet is a trace set, \rperf is a round number, called the \emph{past-perfect round},
     and $\ppcert \in \zo^*$ contains auxiliary data.
 \end{definition}
 
@@ -52,9 +50,9 @@ A \podtm protocol has the following interface.
      we say that the client \emph{observes} \tx and, if $\tx.\rconf \neq \bot$, we say that the client \emph{observes \tx as \confirmed}.
 \end{definition}
 
-\oa{
-    Define \emph{validity} of \Pod. look at Definition 4 from the Adversary-Majority-Consensus paper. Define valid() function, which must be polynomially computable, deterministic, and non-interactive. Completeness says that honest clients always output a valid \Pod.
-}
+\begin{definition}[Validity of a pod data structure]
+    A pod protocol specifies a computable, deterministic, and non-interactive function \opValid{\Pod} that takes as input a pod data structure $\Pod$ and outputs a boolean value.
+\end{definition}
 
 % \begin{definition}[Past-perfect round]
 % 	Given a set \txSet obtained by an honest client who reads the pod, a round \rperf is \emph{past-perfect} if,
@@ -72,12 +70,15 @@ A \podtm protocol has the following interface.
 
 
 \begin{definition}[Secure \podtm]\label{def:podsec}
-A protocol is a \emph{secure} \podtm if it implements the \podtm interface of Definition~\ref{def:podinterface} and satisfies the following properties.
+A protocol is a \emph{secure} \podtm if it implements the \podtm interface of Definition~\ref{def:podinterface} and specifies a valid function \opValid{}, such that the following properties hold.
 
 \begin{description}[leftmargin=1mm]
+    \item[(Liveness) Validity completeness:]
+    If $\podView{\client}{\round}$ is the view of an honest client $\client$ at round $\round$, then $\opValid{\podView{\client}{\round}} = \true$.
+
     \item[(Liveness) Confirmation within \parConf:]
 	Transactions become \confirmed after at most \parConf rounds.
-	That is, if an honest client $\client$ writes a transaction \tx at round \round, then for any honest client $\client'$ (including $\client=\client'$) it holds that $\tx \in \podView{\client'}{\round + \parConf}$ and $\tx.\rconf \neq \bot$.
+	Formally, if an honest client $\client$ writes a transaction \tx at round \round, then for any honest client $\client'$ (including $\client=\client'$) it holds that $\tx \in \podView{\client'}{\round + \parConf}$ and $\tx.\rconf \neq \bot$.
 	% \item[Confirmation within \parConf:]
 	% If an honest client writes a transaction \tx at round \round, then it will obtain output $(\tx, \rmin, \rmax, \rconf, \txcert)$, such that $\rconf \neq \bot$, by round $\round + \parConf$.
 	% \item[Availability after \parLive:]
@@ -85,20 +86,15 @@ A protocol is a \emph{secure} \podtm if it implements the \podtm interface of De
 
 	\item[(Liveness) Past-perfection within \parPerf:]
 	Rounds become past-perfect after at most $\parPerf$ rounds.
-	That is, for any honest client \client and round $\round \geq \parPerf$,
+	Formally, for any honest client \client and round $\round \geq \parPerf$,
 	it holds that $\podView{c}{\round}.\rperf \geq \round - \parPerf$.
 
 	\item[(Safety) Past-perfection:]
-	Let \client be an honest client with view $\podView{\client}{\round}$ at round $\round$.
-	Then, for any transaction $\tx \in \zo^*$ that becomes confirmed (in some view $\podView{\client'}{\round'}$ of an honest client $\client'$ at round $\round' \geq 0$ ) with confirmed round $\rconf$, it holds that, if $\rconf < \podView{\client}{\round}.\rperf$, then $\tx \in \podView{\client}{\round}$.
-    \oa{\item[(Safety) Past-perfection:] Define similarly}
-	% For any honest client \client and round $\round$,
-	% if $\tx \not \in \podView{\client}{\round}$, then no honest client $\client'$ (including $\client'=\client$) observes \tx as confirmed with $\rconf < \podView{\client}{\round}.\rperf$.
+    A valid pod \Pod contains all transactions that may ever obtain a \confirmed round smaller than $\Pod.\rperf$. Formally,
+	the adversary cannot output $\Pod_1$ and $\Pod_2$ to the network, such that $valid(\Pod_1) \land valid(\Pod_2)$ and there exists a transaction $\tx$ such that $(\tx, \rmin^1, \rmax^1, \rconf^1, \txcert^1) \in \Pod_1.\txSet$ and $(\tx, \rmin^2, \rmax^2, \rconf^2, \txcert^2) \not\in \Pod_2.\txSet$ and $\rconf^1 < \Pod_2.\rperf$.
 
-	%\item[Generalized ledger safety:]
-	%The numbers $\rmin, \rmax$, and $\rconf$ for a transaction \tx satisfy the following:
-	\item[(Safety) Confirmation bounds:] For any honest clients $\client_1,\client_2$, if $\client_1$ observes $\tx$ with $\rmin$ and $\rmax$ and $\client_2$ observes \tx as \confirmed with confirmation round $\rconf'$, then $\rmin \leq \rconf' \leq \rmax$.
-	\oa{\item[(Safety) Confirmation bounds:] The adversary cannot output $\Pod_1$ and $\Pod_2$ to the network, such that $valid(\Pod_1) \land valid(\Pod_2)$ and there exists a transaction $\tx$ such that $(\tx, \rmin^1, \rmax^1, \rconf^1, \txcert^1) \in \Pod_1.\txSet$ and $(\tx, \rmin^2, \rmax^2, \rconf^2, \txcert^2) \in \Pod_2.\txSet$ and $\rmin^1 > \rconf^2$ or $\rmax^1 < \rconf^2$.}
+	\item[(Safety) Confirmation bounds:] The values $\rmin$ and $\rmax$ bound the \confirmed round that a transaction may ever obtain. Formally,
+    the adversary cannot output $\Pod_1$ and $\Pod_2$ to the network, such that $valid(\Pod_1) \land valid(\Pod_2)$ and there exists a transaction $\tx$ such that $(\tx, \rmin^1, \rmax^1, \rconf^1, \txcert^1) \in \Pod_1.\txSet$ and $(\tx, \rmin^2, \rmax^2, \rconf^2, \txcert^2) \in \Pod_2.\txSet$ and $\rmin^1 > \rconf^2$ or $\rmax^1 < \rconf^2$.
 
 \end{description}
 \end{definition}
@@ -106,7 +102,7 @@ A protocol is a \emph{secure} \podtm if it implements the \podtm interface of De
 
 %The \emph{confirmation within \parConf} property gives us that, if an honest client writes a transaction \tx, then \tx will obtain $\rconf \neq \bot$ within \parConf rounds, but it does not tell us \emph{what} that \rconf will be.
 %Similarly,
-The \emph{confirmation bounds} property gives $\rmin \leq \rconf' \leq \rmax$, for $\rconf'$ computed by honest client $\client_2$ and \rmin, \rmax computed by honest client $\client_1$, but it does not guarantee anything about the values of \rmin and \rmax (for example, it could trivially be $\rmin=0$ and $\rmax=\infty$).
+The \emph{confirmation bounds} property gives $\rmin^1 \leq \rconf^2 \leq \rmax^1$, for $\rmin^1, \rmax^1, \rconf^2$ computed by honest clients, but it does not guarantee anything about the values of $\rmin^1$ and $\rmax^1$ (for example, it could trivially be $\rmin^1=0$ and $\rmax^1=\infty$).
 To this purpose we define an additional property of \podtm, called \emph{timeliness}.
 % , which can be satisfied along with the standard safety and liveness properties of \podtm.
 Previous work has observed a similar property as orthogonal to safety and liveness~\cite{EPRINT:TziSriZin23}.
@@ -122,11 +118,11 @@ Previous work has observed a similar property as orthogonal to safety and livene
 \end{definition}
 
 
-Moreover, a \podtm protocol allows the values \rmin, \rmax, \rconf to change during an execution -- for example, clients in construction \podtm-core will update them when they receive votes from replicas.
+Moreover, a \podtm protocol allows the values \rmin, \rmax, \rconf to change during an execution -- for example, clients in construction \podtm-core will update them when they receive votes from replicas.ß
 The properties we have defined so far do not impose any restriction on how they evolve.
 For this reason, in Appendix~\ref{app:monotonicity} we define the additional property of \podtm \emph{Monotonicity}.
 
-We conclude this section with some visual examples in Figures \ref{fig:example-output} and \ref{fig:temperature}.
+We conclude this section with some visual examples in Figures \ref{fig:temperature} and \ref{fig:example-output}.
 % \begin{figure}[h]
 %     \centering
 %     \includegraphics[width=0.35\textwidth]{figures/pod-architecture.pdf}

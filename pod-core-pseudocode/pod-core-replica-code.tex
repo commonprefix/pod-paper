@@ -3,20 +3,20 @@
     \label{alg:pod-core-replica}
     \begin{algorithmic}[1]
         % \State{\textbf{State:}}
-        % \State{\sk}                 \Comment{The secret key of the replica, used for signing} 
+        % \State{\sk}                 \Comment{The secret key of the replica, used for signing}
         \State{$\allClients$ }      \Comment{\text{The set of all connected clients}}\label{line:rep-state-begin}
         \State{\nextsn}             \Comment{\text{The next sequence number to assign to votes}}
         \State{$\repLog$}           \Comment{\text{The transaction log or the replica}}
         % \State{$\repLog : \tx \rightarrow (\tsp, \sn, \sig)$}  \Comment{\text{The transaction log or the replica}}
         \State{\opTime{}}           \Comment{\text{A function that returns the wall time of the replica}} \label{line:rep-state-end}
         \Statex
-    
+
         \On{event \opInit{}}
             \State{$\nextsn \gets 0 ;\; \allClients \gets \emptyset ;\; \repLog \gets [ \, ]$}\label{line:rep-init-clients}
             % \Let{\repLog}{[ \, ]}           \label{line:rep-init-log}
         \EndOn
         \Statex
-    
+
         \On{receive \msgconnect{} from client \client} \label{line:rep-receive-connect-begin}
             \Let{\allClients}{\allClients \cup \{\client\}}
             \For{$(\tx, \tsp, \sn, \sigma) \in \repLog$}
@@ -25,13 +25,13 @@
             \EndFor
         \EndOn\label{line:rep-receive-connect-end}
         \Statex
-    
+
         \On{receive \msgwrite{\tx} from a client} \label{line:rep-receive-write-begin}
             \State{\textbf{if} $\repLog[\tx] \neq \bot $ \textbf{then return}} \Comment{Ignore duplicate transactions}
             \State{\opSendVote{\tx}}
         \EndOn\label{line:rep-receive-write-end}
         \Statex
-    
+
         \Function{\opSendVote{\tx}}{}
             % \Let{\tsp}{\opTime} \label{line:rep-assign-tsp}
             % \Let{\sn}{\nextsn}
@@ -40,13 +40,13 @@
             \Let{\repLog}{\repLog \concat (\tx, \tsp, \sn, \sig)}
             \For{$\client \in \allClients$}
                 \State{Send \msgrecord{(\tx, \tsp, \sn, \sig, \rep_i)} to \client} \label{line:send-vote}
-            \EndFor       z
+            \EndFor
             \Let{\nextsn}{\nextsn+1} \label{line:rep-increment-sn}
         \EndFunction
         \Statex
-    
+
         \On{end round} \label{line:rep-send-heartbeat-begin}                      \Comment{Executed at the end of each round}
-            \State{\opSendVote{\heartBeat}}\label{line:rep-send-vote-heartbeat} 
+            \State{\opSendVote{\heartBeat}}\label{line:rep-send-vote-heartbeat}
         \EndOn\label{line:rep-send-heartbeat-end}
     \end{algorithmic}
     \end{algorithm}

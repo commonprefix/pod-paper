@@ -88,9 +88,8 @@ We now recall Theorem~\ref{thm:pod-security-byzantine}, which we prove through a
 	%     If \opread{} returns a set of transaction \transactions which contains a \confirmed transaction \tx, then \transactions will contain this \tx as confirmed in any subsequent call to \opread{}.
 	%     % This implies that \tx got assigned an $\rconf \neq \bot$ in line~\ref{line:assign-median}, which implies the condition in line~\ref{line:confirm-tx-begin} was at some point true. As the structure \tsps is persisted across calls to \opread{}, any subsequent \opread{} will return \tx as \confirmed.
 	% \end{proof}
-
 \begin{lemma}[Past-perfection safety]\label{lem:pod-pp-safety}
-	\Cref{const:pod-core}, assuming $n \geq 5 \beta + 1$ and $\gamma = 0$, satisfies the \emph{past-perfection} safety property, except with negligible probability.\oa{Because of forgery.}
+	\Cref{const:pod-core}, assuming $n \geq 5 \beta + 1$ and $\gamma = 0$, satisfies the \emph{past-perfection} safety property, except with negligible probability.\oa{Adapt proof to use the validity of \Pod. First show the \opValid{} function. Assume the adversary outputs $\Pod_1$ and $\Pod_2$ that violate the property. Show that, in order for \opValid{$\Pod_1$} to be true, $\ppcert^1$ must contain the votes of (1), and in order for \opValid{$\Pod_2$} to be true, $\ppcert^2$ must contain the votes of (2).}
 \end{lemma}
 \begin{proof}
 	Assume an honest client $\client$ at round $\round > 0$ reads the \podtm and obtains $(\txSet, \rperf, \ppcert)$.
