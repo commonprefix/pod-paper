@@ -10,7 +10,7 @@
 
 Before we present protocol \podtm-core, we define basic concepts and structures.
 
-\begin{definition}[Vote] 
+\begin{definition}[Vote]
     A \emph{vote} is a tuple $(\tx, \tsp, \sn, \sig, \rep)$, where \tx is a transaction, \tsp is a timestamp, \sn is a sequence number, \sig is a signature, and  \rep is a replica.
     A vote is \emph{valid} if \sig is a valid signature on message $m = (\tx, \tsp, \sn)$ with respect to the public key $\pk_\rep$ of replica \rep.
 \end{definition}
@@ -56,7 +56,7 @@ With $\emptyset$ we denote an empty map.
 % \vspace{-5mm}
 
 \begin{protocol}[\podtm-core]\label{const:pod-core}
-     Protocol \podtm-core is executed by $n$ replicas that follow the steps of \Cref{alg:pod-core-replica} and an unknown number of clients that follow the steps of Algorithms \ref{alg:client-1}, \ref{alg:client-2} and \ref{alg:client-statistics} with parameters \beta, \gamma and \alpha, where \beta denotes the number of Byzantine replicas and \gamma the number of omission-faulty replicas (in addition to the Byzantine) and $\alpha = n - \beta - \gamma$. 
+     Protocol \podtm-core is executed by $n$ replicas that follow the steps of \Cref{alg:pod-core-replica} and an unknown number of clients that follow the steps of Algorithms \ref{alg:client-1}, \ref{alg:client-2} and \ref{alg:client-statistics} with parameters \beta, \gamma and \alpha, where \beta denotes the number of Byzantine replicas and \gamma the number of omission-faulty replicas (in addition to the Byzantine) and $\alpha = n - \beta - \gamma$.
     % and discuss its main points, first for the client and then for the replica construction, in the following paragraphs.
     % The construction tolerates up to \beta Byzantine replicas and requires $\alpha \geq 4 \beta + 1$, i.e., $n \geq 5 \beta + 1$.
     % It achieves \emph{accountable safety} (see \Cref{sec:accountable-safety}) with an \identify{} function described in \Cref{alg:identify}.
@@ -78,7 +78,7 @@ The replica appends $(\tx, \tsp, \sn, \sig)$ to \repLog, and sends it via a \msg
 
 \input{pod-core-pseudocode/pod-core-client-code-1}
 
-\dotparagraph{Client initialization}
+\dotparagraph{Client code, initialization}
 The state of a client is shown in \Cref{alg:client-1} in lines~\ref{line:client-state-begin}--\ref{line:client-state-end}.
 The state contains \mrt, \nextsn, \tsps, and \Pod.
 Variable \tsps is a map from transactions \tx to a map from replicas \rep to timestamps \tsp.
@@ -96,7 +96,7 @@ The client checks the vote against previous votes received from $\rep_j$.
 First, \tsp must be greater or equal to $\mrt_j$, the most recent timestamp returned by replica $\rep_j$ (\cref{line:check-old-ts}).
 Second, the replica must have not previously sent a different timestamp for \tx (\cref{line:check-dup-tsp}), except if \tx is a \heartBeat (as checked on \cref{line:client-heartbeat-return}).
 If both checks pass, the client updates $\mrt[j]$ (\cref{line:upd-mrt}) and $\tsps[\tx][\rep_j]$ (\cref{line:rec-tsp}) with \tsp. If any of these checks fail, the client ignores the vote, since both of these cases constitute \emph{accountable} faults: In the first case, the client can use the message $\msgrecord{(\tx, \tsp, \sn, \sig, \rep_j)}$ and the vote it received when it updated $\mrt[\rep_j]$ to prove that $\rep_j$ has misbehaved. In the second case, it can use $\msgrecord{(\tx, \tsp, \sn, \sig, \rep_j)}$ and the previous vote it has received for \tx.
-%A practical implementation of \podtm can use these facts. 
+%A practical implementation of \podtm can use these facts.
 The \identify{} function we show in \Cref{alg:identify} can detect such misbehavior. However, in this paper we formalize accountability conditioned on safety being violated (\Cref{def:accountable-safety}), hence we do not further explore this.
 
 
@@ -115,7 +115,7 @@ Note that $\tsps.\opKeys{}$ on \cref{line:loop-over-txs} returns all entries in 
 
 
 
-%The associated values \rmin, \rmax, \rconf, \txcert for each transaction, the past-perfect round \rperf, and its auxiliary data \ppcert are computed in the following way. 
+%The associated values \rmin, \rmax, \rconf, \txcert for each transaction, the past-perfect round \rperf, and its auxiliary data \ppcert are computed in the following way.
 The client uses the \opMinPossibleTs{} and \opMaxPossibleTs{} functions to compute \rmin (\cref{line:upd-rmin-begin}) and \rmax (\cref{line:upd-rmax-begin}).
 They respectively return the minimum and maximum round number that \emph{any client} can ever \emph{confirm} \tx with.
 For \rperf (\cref{line:upd-rperf-begin}) the client uses \opMinPossibleTsForNewTx{}, which returns the earliest round that \emph{any} client can ever assign to a transaction \emph{not yet seen} by the client.
@@ -149,22 +149,22 @@ When received by a client, a \heartBeat is handled as a vote (i.e., it triggers 
 
 
 % \dotparagraph{Detecting misbehavior}
-% Clients can detect certain cases of replica misbehavior. When this happens (lines \ref{line:raise-old-tsp}, \ref{line:raise-dup-tsp}, \ref{line:raise-old-heartbeat}) the client stops processing the current vote and triggers an \opAccountableFault{\tran} event, where \tran is a set of messages that can prove the misbehavior through the \identify{} function. 
+% Clients can detect certain cases of replica misbehavior. When this happens (lines \ref{line:raise-old-tsp}, \ref{line:raise-dup-tsp}, \ref{line:raise-old-heartbeat}) the client stops processing the current vote and triggers an \opAccountableFault{\tran} event, where \tran is a set of messages that can prove the misbehavior through the \identify{} function.
 
 \begin{theorem}[\podtm-core security under Byzantine faults]\label{thm:pod-security-byzantine} Assuming that the network is asynchronous with actual network delay $\delta$ (and unknown delay upper bound), \beta is the number of Byzantine replicas, $\gamma=0$ is the number of omission-faulty replicas and $n \geq 5 \beta + 1$ is the total number of replicas. Protocol \podtm-core (\Cref{const:pod-core}) instantiated with a EUF-CMA secure signature scheme is a responsive secure \podtm (\Cref{def:podsec}) with Confirmation within $\parConf = 2 \delta$, Past-perfection within $\parPerf = \delta$ and  \beta-accountable safety (\Cref{def:accountable-safety}) with the \identify{} function described in \Cref{alg:identify}, \ewnp.
-    
+
 
 \end{theorem}
 \begin{proof}
-    Shown in Appendix~\ref{app:pod-security-byzantine}. 
+    Shown in Appendix~\ref{app:pod-security-byzantine}.
 \end{proof}
- 
+
 \begin{theorem}[\podtm-core security under Omission faults]\label{thm:pod-security-crash}
 	Assuming that the network is asynchronous with actual network delay $\delta$ (and unknown delay upper bound), $\beta=0$ is the number of Byzantine replicas, $\gamma$ is the number of omission-faulty replicas and $n \geq 3 \gamma + 1$ is the total number of replicas.
     Protocol \podtm-core (\Cref{const:pod-core}) instantiated with a EUF-CMA secure signature scheme is a responsive secure \podtm (\Cref{def:podsec}) with Confirmation within $\parConf = 2 \delta$ and Past-perfection within $\parPerf = \delta$, \ewnp.
 \end{theorem}
 \begin{proof}
-    Shown in Appendix~\ref{app:pod-security-crash}. 
+    Shown in Appendix~\ref{app:pod-security-crash}.
 \end{proof}
 
 \begin{remark}
@@ -175,4 +175,4 @@ When received by a client, a \heartBeat is handled as a vote (i.e., it triggers 
 %     \item Validators with secondaries to handle read operations.
 %     \item Use committees. We can support a weighted model by having replicas lock some stake in a slow-moving chain (such as Ethereum) and rotate the committee every, say, 24 hours.
 %     \item We can use `helper' nodes, that know the addresses of all replicas, so that clients can use them, instead of having to contact all replicas.
-% \end{enumerate}    
+% \end{enumerate}

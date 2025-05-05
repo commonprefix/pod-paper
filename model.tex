@@ -86,7 +86,7 @@ We new define responsive protocols, which is the case of our main protocol \podt
 A protocol is \emph{responsive} if it does not rely on knowledge of $\Delta$ and its liveness guarantees depend only on the actual network delay $\delta$.
 \end{definition}
 
-
+\subsection{Cryptographic primitives}
 \dotparagraph{\textbf{Digital Signatures}} We assume that replicas (and auctioneers in \bidsettm-core) authenticate their messages with digital signatures. A digital signature scheme is a triple of algorithms satisfying the EUF-CMA security~\cite{GMR88} as defined below:
 		\begin{itemize}
 	    	\item $\textsl{KeyGen}(1^{\kappa})$: The key generation algorithm takes as input a security parameter $\kappa$ and outputs a secret key $\sk$ and a public key $\pk$.

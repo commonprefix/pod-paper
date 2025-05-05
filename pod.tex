@@ -11,7 +11,7 @@ We then introduce the basic definition of a \emph{secure \podtm} and its securit
     We also denote the values in the trace of $\tx$ by $\tx.\rmin, \tx.\rmax, \tx.\rconf$, and $\tx.\txcert$.
 \end{definition}
 
-In \podtm-core, \txcert will contain digital signatures used to achieve accountability.
+In \podtm-core, \txcert will contain digital signatures used to achieve accountability and prove validity of a pod data structure (defined below).
 
 \begin{definition}[Confirmed transaction]
     A transaction with confirmed round \rconf is called \emph{\confirmed} if $\rconf \neq \bot$, and \emph{unconfirmed} otherwise.
@@ -27,10 +27,10 @@ A \emph{trace set} $\txSet$ is a set of traces $(\tx, \rmin, \rmax, \rconf, \txc
     and $\ppcert \in \zo^*$ contains auxiliary data.
 \end{definition}
 
-In \podtm-core, \ppcert will also contain signatures used to achieve accountability.
+We remark that transactions in \txSet may be \confirmed on unconfirmed. Moreover, \rperf will imply a completeness property on \txSet, defined by the past-perfection safety property of \podtm.
+
+Similar to \txcert, in \podtm-core \ppcert will also contain signatures used to achieve accountability and prove validity.
 Our construction will allow for deriving $\ppcert$ from all certificates $\txcert$ in $\txSet$, but we define $\ppcert$ explicitly for clarity and generality.
-Moreover, \rperf will imply a completeness property on \txSet, defined by the past-perfection safety property of \podtm.
-We remark that transactions in \txSet may be \confirmed on unconfirmed.
 
 %We now define the \podtm protocol interface and associated concepts.
 \begin{definition}[Interface of a \podtm]\label{def:podinterface}
@@ -50,8 +50,9 @@ A \podtm protocol has the following interface.
      we say that the client \emph{observes} \tx and, if $\tx.\rconf \neq \bot$, we say that the client \emph{observes \tx as \confirmed}.
 \end{definition}
 
-\begin{definition}[Validity of a pod data structure]
-    A pod protocol specifies a computable, deterministic, and non-interactive function \opValid{\Pod} that takes as input a pod data structure $\Pod$ and outputs a boolean value.
+\begin{definition}[Validity function]
+    Apart from its interface functions,
+    a pod protocol also specifies a computable, deterministic, and non-interactive function \opValid{\Pod} that takes as input a pod data structure $\Pod$ and outputs a boolean value. We say that a pod data structure $\Pod$ is \emph{valid} if $\opValid{\Pod} = \true$.
 \end{definition}
 
 % \begin{definition}[Past-perfect round]
@@ -68,34 +69,40 @@ A \podtm protocol has the following interface.
     We write $\tx \in \podView{\client}{\round}$ if $\tx$ appears in $\podView{\client}{\round}.\txSet$.
 \end{definition}
 
-
 \begin{definition}[Secure \podtm]\label{def:podsec}
-A protocol is a \emph{secure} \podtm if it implements the \podtm interface of Definition~\ref{def:podinterface} and specifies a valid function \opValid{}, such that the following properties hold.
-
-\begin{description}[leftmargin=1mm]
+A protocol is a \emph{secure} \podtm if it implements the \podtm interface of Definition~\ref{def:podinterface} and specifies a validity function \opValid{}, such that the following properties hold.
+\begin{description}[leftmargin=4mm, labelindent=4mm]
     \item[(Liveness) Validity completeness:]
-    If $\podView{\client}{\round}$ is the view of an honest client $\client$ at round $\round$, then $\opValid{\podView{\client}{\round}} = \true$.
+    Honest clients always output a valid pod data structure.
+    That is, if \opread{} returns $\Pod$ to an honest client, then $\opValid{\Pod} = \true$.
 
     \item[(Liveness) Confirmation within \parConf:]
-	Transactions become \confirmed after at most \parConf rounds.
-	Formally, if an honest client $\client$ writes a transaction \tx at round \round, then for any honest client $\client'$ (including $\client=\client'$) it holds that $\tx \in \podView{\client'}{\round + \parConf}$ and $\tx.\rconf \neq \bot$.
-	% \item[Confirmation within \parConf:]
-	% If an honest client writes a transaction \tx at round \round, then it will obtain output $(\tx, \rmin, \rmax, \rconf, \txcert)$, such that $\rconf \neq \bot$, by round $\round + \parConf$.
-	% \item[Availability after \parLive:]
-	% If an honest client writes a transaction \tx at round \round, then for any honest client $\client$, it holds that $\tx \in \podView{c}{\round + \parLive}$ and $\tx.\rconf \neq \bot$.
+	Transactions of honest clients become \confirmed after at most \parConf rounds.
+	Formally, if an honest client $\client$ writes a transaction \tx at round \round,
+    then for any honest client $\client'$ (including $\client=\client'$) it holds that $\tx \in \podView{\client'}{\round + \parConf}$ and $\tx.\rconf \neq \bot$.
+
 
 	\item[(Liveness) Past-perfection within \parPerf:]
 	Rounds become past-perfect after at most $\parPerf$ rounds.
-	Formally, for any honest client \client and round $\round \geq \parPerf$,
-	it holds that $\podView{c}{\round}.\rperf \geq \round - \parPerf$.
+	Formally,
+    for any honest client \client and round $\round \geq \parPerf$, it holds that $\podView{c}{\round}.\rperf \geq \round - \parPerf$.
+    % for any valid pod \Pod obtained at round \round, it holds that $\Pod.\rperf \geq \round - \parPerf$.
 
 	\item[(Safety) Past-perfection:]
     A valid pod \Pod contains all transactions that may ever obtain a \confirmed round smaller than $\Pod.\rperf$. Formally,
 	the adversary cannot output $\Pod_1$ and $\Pod_2$ to the network, such that $valid(\Pod_1) \land valid(\Pod_2)$ and there exists a transaction $\tx$ such that $(\tx, \rmin^1, \rmax^1, \rconf^1, \txcert^1) \in \Pod_1.\txSet$ and $(\tx, \rmin^2, \rmax^2, \rconf^2, \txcert^2) \not\in \Pod_2.\txSet$ and $\rconf^1 < \Pod_2.\rperf$.
 
-	\item[(Safety) Confirmation bounds:] The values $\rmin$ and $\rmax$ bound the \confirmed round that a transaction may ever obtain. Formally,
+	\item[(Safety) Confirmation bounds:]
+    \sloppy{
+    The values $\rmin$ and $\rmax$ bound the \confirmed round that a transaction may ever obtain. Formally,
     the adversary cannot output $\Pod_1$ and $\Pod_2$ to the network, such that $valid(\Pod_1) \land valid(\Pod_2)$ and there exists a transaction $\tx$ such that $(\tx, \rmin^1, \rmax^1, \rconf^1, \txcert^1) \in \Pod_1.\txSet$ and $(\tx, \rmin^2, \rmax^2, \rconf^2, \txcert^2) \in \Pod_2.\txSet$ and $\rmin^1 > \rconf^2$ or $\rmax^1 < \rconf^2$.
+    }
 
+    \oa{\item[(Safety) Censorship resistance:]}
+	If the adversary makes progress (outputs some past-perfect round), then it must output all transactions confirmed up that past perfect round, minus some propagation period of $X$.
+	Formally, there is a parameter $X$ such that,
+    if the adversary outputs $\Pod$ to the network with $valid(\Pod)$, then \Pod contains all transaction with confirmed round $\rconf \geq \Pod.\rperf - X$.
+    \oa{This is not exactly true, the adversary may see a transaction with $\alpha - \beta$ votes. It would be true if the confirmation threshold was $\alpha  - \beta$. What is its connection with the past-perfection safety property?}
 \end{description}
 \end{definition}
 
