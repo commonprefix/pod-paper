@@ -1,0 +1,27 @@
+\begin{algorithm}[h]
+    \caption{Function \opValid{\Pod, \cert} for \podtm-core. Code for a \emph{verifier}, which can be a pod client not communicating with the pod replicas.}
+    \label{alg:pod-core-valid}
+    \begin{algorithmic}[1]
+        \State{\textbf{State:} Same as in \Cref{alg:client-1}}
+        \Statex
+        \vspace{-1mm}
+        \Function{\opValid{\Pod, \cert}}{}
+            \Let{(\ppcert, \{\txcerti{i}\}_{i=0}^m ) }{\cert} \label{line:valid-extract-cert}
+            \State{\opInitClient{}} \Comment{Shown in \Cref{alg:client-1}}
+            \For{$(\tx, \tsp, \sn, \sig, \rep_j) \in \cup_{i=0}^m \txcerti{i}$ \textbf{in increasing order of} $\sn$}
+                \State{\textbf{require} \opProcessVote{$\tx, \tsp, \sn, \sig, \rep_j$}} \Comment{Shown in \Cref{alg:client-1}}
+            \EndFor
+            \State{\textbf{require} $\Pod.\txSet = \opComputeTxSet{\tsps, \mrt}$} \label{line:valid-check-begin} \Comment{Shown in \Cref{alg:client-statistics}}
+            \State{\textbf{require} $\Pod.\rperf = \opMinPossibleTsForNewTx{\mrt}$} \label{line:valid-check-end} \Comment{Shown in \Cref{alg:client-statistics}}
+            \Statex
+            \For{$\rep_j \in \allreps$} \label{line:valid-check-ppcert-begin} \Comment{Verify the past-perfection certificate \ppcert}
+                \State{\textbf{require} $(\cdot, \cdot, \cdot, \cdot, \rep_j) \in \ppcert$}
+            \EndFor
+            \State{\textbf{require} $| \ppcert| = |\allreps|$}
+            \For{$(\tx, \tsp, \sn, \sig, \rep_j) \in \ppcert$}
+                \State{\textbf{require} \opVerify{$\pk_j, (\tx, \tsp, \sn), \sig$}}
+                \State{\textbf{require} $\sn = \op{max}_{\sn'}((\cdot, \cdot, \sn', \cdot, \rep_j) \in \cup_{i=0}^m \txcerti{i})$}
+            \EndFor\label{line:valid-check-ppcert-end}
+        \EndFunction
+    \end{algorithmic}
+    \end{algorithm}

@@ -1,45 +1,57 @@
 \begin{algorithm}[ht!]
-    \caption{Protocol \podtm-core: Client code, part 3 (computing associated values and past-perfect round). The code is parametrized with \beta, the number of Byzantine replicas expected by the client, and \gamma, the number of omission-faulty replicas, and $\alpha = n - \beta - \gamma$ for $n$ replicas.
+    \caption{Protocol \podtm-core: Client code, part 2. Functions to compute trace values and past-perfect round. The code is parametrized with \beta, the number of Byzantine replicas expected by the client, and \gamma, the number of omission-faulty replicas, and $\alpha = n - \beta - \gamma$ for $n$ replicas.
     }
     \label{alg:client-statistics}
     \begin{algorithmic}[1]
-    \Function{\opMinPossibleTs{\tx}}{}
-        \Let{\txVotesMin}{[\,]}
-        \For{$\rep_j \in \allreps$}\label{line:assing-missing-min-begin}
-            \If{$\tsps[\tx][\rep_j] \neq \bot$}
-                \Let{\txVotesMin}{\txVotesMin \concat [\tsps[\tx][\rep_j]]}
-            \Else
+        \Function{$\opComputeTxSet{\tsps, \mrt}$}{}
+            \State{$\allTxs \gets \emptyset$}
+            % \State{$\allTxs \gets \emptyset ;\; \ppcert \gets [ \, ]$}
+            \For{$\tx \in \tsps.\opKeys{}$}     \Comment{loop over all received transactions} \label{line:loop-over-txs}
+                \Let{\rmin}{\opMinPossibleTs{\tsps[\tx], \mrt}}\label{line:upd-rmin-begin}
+                \Let{\rmax}{\opMaxPossibleTs{\tsps[\tx]}}\label{line:upd-rmax-begin}
+                \State{$\rconf \gets \bot ;\; \txVotes = [ \, ]$} \label{line:unconfirmed-tx}
+                % \State{$\rconf \gets \bot ;\; \txcert \leftarrow [ \, ] ;\; \txVotes = [ \, ]$} \label{line:unconfirmed-tx}
+                \If{$| \tsps[\tx].\opKeys{} | \geq \alpha$}\label{line:confirm-tx-begin}
+                    \State{\textbf{for} $\rep_j \in \tsps[\tx].\opKeys{}$ \textbf{do: } $\txVotes \leftarrow \txVotes \concat \tsps[\tx][\rep_j]$}
+                    \Let{\rconf}{\opMed{\txVotes}}\label{line:assign-median}
+                \EndIf\label{line:confirm-tx-end}
+                \Let{\allTxs}{\allTxs \cup \{ (\tx, \rmin, \rmax, \rconf) \} }
+                % \Let{\allTxs}{\allTxs \cup \{ (\tx, \rmin, \rmax, \rconf, \txcert) \} }
+            \EndFor
+            \return \allTxs
+        \EndFunction
+        \Statex
+        \vspace{-1mm}
+        \Function{\opMinPossibleTs{\txVotesMin, \mrt}}{} \Comment{$\txVotesMin: \rep \rightarrow \tsp$, contains tsps on some tx}
+        \For{$\rep_j \in \allreps$}\label{line:assing-missing-min-begin} \Comment{$\mrt: \rep \rightarrow \tsp$, most recent tsp from each replica}
+            \If{$\txVotesMin[\rep_j] = \bot$}
                 \Let{\txVotesMin}{\txVotesMin \concat [\mrt[\rep_j]]} \label{line:fill-vote-lts}
             \EndIf
         \EndFor\label{line:assing-missing-min-end}
-        \State{\text{sort \txVotesMin in increasing order}}
+        \State{\text{sort \txVotesMin in increasing order of timestamps}}
         \Let{\txVotesMin}{ [ 0, \stackrel{\beta \text{ times}}{\ldots}, 0 ] \concat \txVotesMin} \Comment{omitted altogether if $\beta=0$}\label{line:prepend-zero}
         \return \opMed{$\txVotesMin[:\alpha]$}
     \EndFunction
     \Statex
-\vspace{-1mm}
-    \Function{\opMaxPossibleTs{\tx}}{}\label{line:fn-compute-max-begin}
-        \Let{\txVotesMax}{[\,]}
+    \vspace{-1mm}
+    \Function{\opMaxPossibleTs{\txVotesMax}}{}\label{line:fn-compute-max-begin}
         \For{$\rep_j \in \allreps$}\label{line:assing-missing-max-begin}
-            \If{$\tsps[\tx][\rep_j] \neq \bot$}
-                \Let{\txVotesMin}{\txVotesMin \concat [\tsps[\tx][\rep_j]]}
-            \Else
-                \Let{\txVotesMin}{\txVotesMin \concat [\infty]} \label{line:fill-vote-inf}
+            \If{$\txVotesMax[\rep_j] = \bot$}
+                \Let{\txVotesMax}{\txVotesMax \concat [\infty]} \label{line:fill-vote-inf}
             \EndIf
         \EndFor\label{line:assing-missing-max-end}
-        \State{\text{sort \txVotesMax in increasing order}}
+        \State{\text{sort \txVotesMax in increasing order of timestamps}}
         \Let{\txVotesMax}{\txVotesMax \concat [ \infty, \stackrel{\beta \text{ times}}{\ldots}, \infty ]}\Comment{omitted altogether if $\beta=0$} \label{line:apend-infty}
         \return \opMed{$\txVotesMax[-\alpha:]$}
     \EndFunction\label{line:fn-compute-max-end}
     \Statex
-\vspace{-1mm}
-    \Function{\opMinPossibleTsForNewTx{}}{}\label{line:fn-compute-pp-begin}
-        \Let{\txVotesPerf}{\mrt}
-        \State{\text{sort \txVotesPerf in increasing order}}
-        \Let{\txVotesPerf}{ [ 0, \stackrel{\beta \text{ times}}{\ldots}, 0 ] \concat \txVotesPerf}\Comment{omitted altogether if $\beta=0$}
-        \return \opMed{$\txVotesPerf[:\alpha]$}
+    \vspace{-1mm}
+    \Function{\opMinPossibleTsForNewTx{\mrt}}{}\label{line:fn-compute-pp-begin}
+        \State{\text{sort \mrt in increasing order}}
+        \Let{\mrt}{ [ 0, \stackrel{\beta \text{ times}}{\ldots}, 0 ] \concat \mrt}\Comment{omitted altogether if $\beta=0$}
+        \return \opMed{$\mrt[:\alpha]$}
     \EndFunction\label{line:fn-compute-pp-end}
-\vspace{-1mm}
+    \vspace{-1mm}
     \Statex
     \Function{\opMed{Y}}{}\label{}
         \return $Y[\lfloor \,|Y|/2 \, \rfloor]$
