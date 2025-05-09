@@ -91,6 +91,7 @@ When received by a client, a \heartBeat is handled as a vote (i.e., it triggers 
 \subsection{Client code}
 
 \input{pod-core-pseudocode/pod-core-client-code-1}
+\input{pod-core-pseudocode/pod-core-client-code-statistics}
 
 \dotparagraph{Initialization}
 The state of a client is shown in \Cref{alg:client-1} in lines~\ref{line:client-state-begin}--\ref{line:client-state-end}.
@@ -101,8 +102,9 @@ At initialization the client also sends a \msgconnect{} message to each replica,
 
 \dotparagraph{Past-perfection and transaction certificates}
 A client stores certain votes in \ppcert and \txcert, which will be used to prove the validity of the returned \Pod and for accountability in case of safety violations.
-Specifically, the \emph{past-perfection certificate} \ppcert contains, for each replica, the vote on the most recent timestamp received from that replica. It is initialized to $\bot$ for each replica (\cref{line:client-init-mrt-ppcert}) and updated every time the client receives a new valid vote (\cref{line:upd-ppcert}).
+Specifically, the \emph{past-perfection certificate} \ppcert contains, for each replica, the vote on the most recent timestamp received from that replica. It is implemented as a map from replicas to votes. It is initialized to $\bot$ for each replica (\cref{line:client-init-mrt-ppcert}) and updated every time the client receives a new valid vote (\cref{line:upd-ppcert}).
 The \emph{transaction certificate} \txcert contains, for each transaction, all valid votes received for it (\cref{line:client-store-vote-txcert}).
+It is implemented as a map from transactions to a map from replicas to votes.
 We remark that $\ppcert$ can be derived by taking the union of certificates $\txcert$ for all transactions and keeping the most recent vote for each replica, but we define $\ppcert$ explicitly for clarity and readability.
 
 %\vspace{-3mm}
@@ -121,6 +123,7 @@ If any of these checks fail, the client ignores the vote, since both of these ca
 The \identify{} function we show in \Cref{alg:identify} can detect such misbehavior. However, in this paper we formalize accountability conditioned on safety being violated (\Cref{def:accountable-safety}), hence we do not further explore this.
 
 
+
 %\vspace{-5mm}
 
 %\vspace{-7mm}
@@ -136,8 +139,6 @@ We will show the details of $\opComputeTxSet{}$ in \Cref{alg:client-statistics}.
 % For \rperf (\cref{line:upd-rperf-begin}) the client uses \opMinPossibleTsForNewTx{}, which returns the earliest round that \emph{any} client can ever assign to a transaction \emph{not yet seen} by the client.
 As per the pod interface, \opreadall{} also returns auxiliary data \cert, which in the implementation of \podtm-core has two parts: the past-perfection certificate \ppcert and a list of transaction certificates \txcert (\cref{line:client-construct-cert}).
 Note that $\tsps.\opKeys{}$ on \cref{line:loop-over-txs} returns all entries in \tsps.
-
-\input{pod-core-pseudocode/pod-core-client-code-statistics}
 
 \dotparagraph{Computing the trace values and the past-perfect round}
 In \Cref{alg:client-statistics} we show function \opComputeTxSet{}, used to compute the current transaction set from the timestamps \tsps received so far.
@@ -169,13 +170,13 @@ The function \opValid{} for \podtm-core is shown in \Cref{alg:pod-core-valid}.
 The idea is to have the verifier repeat the logic of an honest client.
 The verifier is initialized in the same way as in \Cref{alg:client-1} -- importantly, it knows the identifiers and public keys of pod replicas.
 Function \opValid{} takes as input a pod data structure \Pod and auxiliary data \cert,
-which is expected to contain two parts, a \emph{past-perfection certificate} \ppcert and a set of \emph{transaction certificates} $\txcerti{i}$, for $i \in [0, |\Pod.\txSet|)$ (\cref{line:valid-extract-cert}).
+which is expected to contain two parts, a \emph{past-perfection certificate} \ppcert and a collection of \emph{transaction certificates} $\txcert$, once for each transaction in \Pod.\txSet (\cref{line:valid-extract-cert}).
 Both contain vote messages, as constructed by a pod client in lines \ref{line:upd-ppcert} and \ref{line:client-store-vote-txcert} of \Cref{alg:client-1}.
 The verifier processes each vote in order of increasing sequence number \sn using function \opProcessVote{}. If any vote is invalid, \opValid{} returns $\false$.
 Observe that if the votes are valid the verifier will have updated its local \tsps and \mrt variables with the same values as the pod client that constructed \Pod.
 Finally, the verifier computes the transaction set \txSet and the past-perfect round \rperf (using its local \tsps and \mrt variables) and requires that the values match the ones in \Pod (lines~\ref{line:valid-check-begin}--\ref{line:valid-check-end}).
 
-Finally, the verifier also verifies the past-perfection certificate. This is required to contain exactly $n = |\allreps|$ votes, one for each replica, with valid signatures, and the sequence number of each vote must be the maximum sequence number among all votes from that replica (lines~\ref{line:valid-check-ppcert-begin}--\ref{line:valid-check-ppcert-end}).
+Finally, the verifier also verifies the past-perfection certificate. Given that the previous checks have passed, we require that each vote in \ppcert is contained in one of the transaction certificates in \txcert and has the maximum sequence number received from the client that sent the vote (lines~\ref{line:valid-check-ppcert-begin}--\ref{line:valid-check-ppcert-end}).
 As we have remarked earlier, \ppcert can be derived from \txcert by taking the union of certificates $\txcert$ for all transactions and keeping the most recent vote for each replica, in which case the checks on lines~\ref{line:valid-check-ppcert-begin}--\ref{line:valid-check-ppcert-end} can be omitted. We maintain the past-perfection certificate for readability and simplicity in the proofs.
 
 
