@@ -182,25 +182,24 @@ As we have remarked earlier, \ppcert can be derived from \txcert by taking the u
 
 \subsection{Analysis}
 
-\begin{theorem}[\podtm-core security under Byzantine faults]\label{thm:pod-security-byzantine} Assuming that the network is asynchronous with actual network delay $\delta$ (and unknown delay upper bound), \beta is the number of Byzantine replicas, $\gamma=0$ is the number of omission-faulty replicas and $n \geq 5 \beta + 1$ is the total number of replicas. Protocol \podtm-core (\Cref{const:pod-core}) instantiated with a EUF-CMA secure signature scheme is a responsive secure \podtm (\Cref{def:podsec}) with Confirmation within $\parConf = 2 \delta$, Past-perfection within $\parPerf = \delta$ and  \beta-accountable safety (\Cref{def:accountable-safety}) with the \identify{} function described in \Cref{alg:identify}, \ewnp.
-
-
+\begin{theorem}[\podtm-core security]\label{thm:pod-security}
+    Assume that the network is asynchronous with actual network delay some unknown $\delta$ (and unknown delay upper bound) \oa{Let's make this more formal}, \beta is the number of Byzantine replicas, \gamma is the number of omission-faulty replicas, $\alpha = n - \beta - \gamma$ is the confirmation threshold, and $n \geq 5 \beta + 3 \gamma + 1$ is the total number of replicas. Protocol \podtm-core (\Cref{const:pod-core}) instantiated with a EUF-CMA secure signature scheme is a responsive secure \podtm (\Cref{def:podsec}) with Confirmation within $\parConf = 2 \delta$, Past-perfection within $\parPerf = \delta$ and  \beta-accountable safety (\Cref{def:accountable-safety}) with the \identify{} function described in \Cref{alg:identify}, \ewnp.
 \end{theorem}
 \begin{proof}
-    Shown in Appendix~\ref{app:pod-security-byzantine}.
+    Shown in Appendix~\ref{app:pod-security}.
 \end{proof}
 
-\begin{theorem}[\podtm-core security under Omission faults]\label{thm:pod-security-crash}
-	Assuming that the network is asynchronous with actual network delay $\delta$ (and unknown delay upper bound), $\beta=0$ is the number of Byzantine replicas, $\gamma$ is the number of omission-faulty replicas and $n \geq 3 \gamma + 1$ is the total number of replicas.
-    Protocol \podtm-core (\Cref{const:pod-core}) instantiated with a EUF-CMA secure signature scheme is a responsive secure \podtm (\Cref{def:podsec}) with Confirmation within $\parConf = 2 \delta$ and Past-perfection within $\parPerf = \delta$, \ewnp.
-\end{theorem}
-\begin{proof}
-    Shown in Appendix~\ref{app:pod-security-crash}.
-\end{proof}
+% \begin{theorem}[\podtm-core security under Omission faults]\label{thm:pod-security-crash}
+% 	Assuming that the network is asynchronous with actual network delay $\delta$ (and unknown delay upper bound), $\beta=0$ is the number of Byzantine replicas, $\gamma$ is the number of omission-faulty replicas and $n \geq 3 \gamma + 1$ is the total number of replicas.
+%     Protocol \podtm-core (\Cref{const:pod-core}) instantiated with a EUF-CMA secure signature scheme is a responsive secure \podtm (\Cref{def:podsec}) with Confirmation within $\parConf = 2 \delta$ and Past-perfection within $\parPerf = \delta$, \ewnp.
+% \end{theorem}
+% \begin{proof}
+%     Shown in Appendix~\ref{app:pod-security-crash}.
+% \end{proof}
 
-\begin{remark}
-	Notice that \Cref{thm:pod-security-crash} does not capture \beta-accountable safety (\Cref{def:accountable-safety}) because there are no safety violations when all corrupted replicas are only omission-faulty.
-\end{remark}
+% \begin{remark}
+% 	Notice that \Cref{thm:pod-security-crash} does not capture \beta-accountable safety (\Cref{def:accountable-safety}) because there are no safety violations when all corrupted replicas are only omission-faulty.
+% \end{remark}
 % \subsection{Optimizations}
 % \begin{enumerate}
 %     \item Validators with secondaries to handle read operations.

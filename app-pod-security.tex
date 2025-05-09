@@ -1,7 +1,7 @@
-\section{Security of Protocol \podtm-core under Byznatine faults}\label{app:pod-security-byzantine}
-In order to prove Theorem~\ref{thm:pod-security-byzantine} and establish the security of Protocol \podtm-core shown Construction~\ref{const:pod-core}, we first prove some useful intermediate results. We remind that $n = \alpha + \beta + \gamma$, where $n$ denotes the total number of replicas, $\beta$ denotes the number of Byzantine replicas, \gamma denotes the number of omission-faulty replicas in an execution, and \alpha denotes the number of replicas required to confirm a transaction.
+\section{Security of Protocol \podtm-core under Byznatine faults}\label{app:pod-security}
+In order to prove Theorem~\ref{thm:pod-security} and establish the security of Protocol \podtm-core shown Construction~\ref{const:pod-core}, we first prove some useful intermediate results. We remind that $n = \alpha + \beta + \gamma$, where $n$ denotes the total number of replicas, $\beta$ denotes the number of Byzantine replicas, \gamma denotes the number of omission-faulty replicas in an execution, and \alpha denotes the number of replicas required to confirm a transaction.
 
-\begin{lemma}\label{lem:assign-min-max}
+\begin{lemma}[The timestamps of minimum, maximum and \confirmed rounds]\label{lem:assign-min-max}
 	Regarding \Cref{alg:client-statistics}, we have the following.
 	Assume we keep all received timestamps for a transaction \tx ($n$ values in total) in a structure \txVotes, filling in a special  value ($0$  or $\infty$) for missing votes, sorted in increasing order.
 	Assume \mrt is also sorted in increasing order of timestamps.
@@ -16,8 +16,8 @@ In order to prove Theorem~\ref{thm:pod-security-byzantine} and establish the sec
 	Function \opMaxPossibleTs{} appends \beta times the $\infty$ value at the end of the list and returns the median of the last \alpha values of that list, that is, it ignores the first $n - \alpha  + \beta$ values and returns the timestamp at index $n - \alpha  + \beta + \lfloor \alpha / 2 \rfloor$.
 \end{proof}
 
-\begin{lemma}\label{lem:rperf-value-of-honest}
-	Assuming $n \geq 5 \beta + 1$ and $\gamma = 0$ (equiv., $\alpha \geq 4\beta + 1$),
+\begin{lemma}[\rperf bounded by honest timestamp]\label{lem:rperf-value-of-honest}
+	Assuming $n \geq 5 \beta + 3 \gamma + 1$ (equiv., $\alpha \geq 4\beta + 2 \gamma + 1$),
 	% if $\opValid{\Pod, \cert} = \true$ for some pod data structure \Pod and auxiliary data $\cert = (\ppcert, \{\txcerti{i}\}_{i=0}^m)$,
 	for a valid pod \Pod with auxiliary data $\cert = (\ppcert, \{\txcerti{i}\}_{i=0}^m)$,
 	there exists some honest replica $\rep_j$, such that the most-recent timestamp \mrt from $\rep_j$ included in $\ppcert$ satisfies $\mrt \leq \Pod.\rperf$.
@@ -26,10 +26,11 @@ In order to prove Theorem~\ref{thm:pod-security-byzantine} and establish the sec
 \begin{proof}
 	Since $\opValid{\Pod, \cert} = \true$, the past-perfect round $\Pod.\rperf$ is the value returned by \opMinPossibleTsForNewTx{} of \Cref{alg:client-statistics}.
 	\oa{First sentence added.}
-	From \Cref{lem:assign-min-max} we have that \rperf is the timestamp at index ($\lfloor \alpha / 2 \rfloor - \beta$) of sorted \mrt.
-	The condition $\alpha \geq 4\beta + 1$ implies that $\beta < \lfloor \alpha / 2 \rfloor - \beta$,
-	hence at leastone of the indexes between $0$ and $\lfloor \alpha / 2 \rfloor - \beta$ (inclusive) will
-	contain the timestamp sent to the client by an honest replica.
+	From \Cref{lem:assign-min-max} we have that \rperf is the timestamp at index $\lfloor \alpha / 2 \rfloor - \beta$ of sorted \mrt.
+	The condition $\alpha \geq 4\beta + 2 \gamma + 1$ implies that $\beta + \gamma \leq \lfloor \alpha / 2 \rfloor - \beta$,
+	hence the number of not honest replicas ($\beta + \gamma$) cannot fill all positions between $0$ and $\lfloor \alpha / 2 \rfloor - \beta$,
+	hence at least one of the indexes between $0$ and $\lfloor \alpha / 2 \rfloor - \beta$ (inclusive) will
+	contain the timestamp created and sent by an honest replica.
 \end{proof}
 % \begin{lemma}\label{lemma:number-votes-in-cert}
 	%     For a $\Pod.\rperf$, we have that
@@ -54,28 +55,28 @@ In order to prove Theorem~\ref{thm:pod-security-byzantine} and establish the sec
 
 \noindent
 
-We now recall Theorem~\ref{thm:pod-security-byzantine}, which we prove through a series of lemmas.
+We now recall Theorem~\ref{thm:pod-security}, which we prove through a series of lemmas.
 
-\begin{customthm}{\ref{thm:pod-security-byzantine}}[\podtm-core security under Byzantine faults]
-	Assuming that the network is asynchronous with actual network delay $\delta$ (and unknown delay upper bound), \beta is the number of Byzantine replicas, $\gamma=0$ is the number of omission-faulty replicas and $n \geq 5 \beta + 1$ is the total number of replicas. Protocol \podtm-core (\Cref{const:pod-core}) instantiated with a EUF-CMA secure signature scheme is a responsive secure \podtm (\Cref{def:podsec}) with Confirmation within $\parConf = 2 \delta$, Past-perfection within $\parPerf = \delta$ and  \beta-accountable safety (\Cref{def:accountable-safety}) with the \identify{} function described in \Cref{alg:identify}, \ewnp.
+\begin{customthm}{\ref{thm:pod-security}}[\podtm-core security]
+	Assume that the network is asynchronous with actual network delay some unknown $\delta$ (and unknown delay upper bound) \oa{Let's make this more formal}, \beta is the number of Byzantine replicas, \gamma is the number of omission-faulty replicas, $\alpha = n - \beta - \gamma$ is the confirmation threshold, and $n \geq 5 \beta + 3 \gamma + 1$ is the total number of replicas. Protocol \podtm-core (\Cref{const:pod-core}) instantiated with a EUF-CMA secure signature scheme is a responsive secure \podtm (\Cref{def:podsec}) with Confirmation within $\parConf = 2 \delta$, Past-perfection within $\parPerf = \delta$ and  \beta-accountable safety (\Cref{def:accountable-safety}) with the \identify{} function described in \Cref{alg:identify}, \ewnp.
 \end{customthm}
 \begin{proof}
 	The proof follows from Lemmas~\ref{lem:pod-confirmation}--\ref{lem:pod-accountable-safety}, presented and proven in the remainder of this section.
 \end{proof}
 
 \begin{lemma}[Confirmation within $\parConf$]\label{lem:pod-confirmation}
-	\Cref{const:pod-core}, assuming $n \geq 5 \beta + 1$ and $\gamma = 0$, satisfies the \emph{confirmation within $\parConf$} property for $\parConf = 2 \delta$.
+	For the conditions stated in \Cref{thm:pod-security}, \Cref{const:pod-core} satisfies the \emph{confirmation within $\parConf$} property for $\parConf = 2 \delta$.
 \end{lemma}
 \begin{proof}
 	Assume an honest client \client calls \opwrite{\tx} at round \round.
 	It sends a message \msgwrite{\tx} to all replicas at round \round (line~\ref{line:send-write-tx}).
 	An honest replica receives this by round $\round + \delta$ and sends a \msgrecord{} message back to all connected clients (line~\ref{line:send-vote}).
 	An honest client $\client'$ receives the vote by round $\round + 2\delta$.
-	As are at least \alpha honest replicas, $\client'$ receives at least \alpha such votes, hence the condition in line~\ref{line:confirm-tx-begin} is satisfied and $\client'$ observes \tx as \confirmed.
+	As are at least \alpha honest (not Byzantine and not omission-faulty) replicas, $\client'$ receives at least \alpha such votes, hence the condition in line~\ref{line:confirm-tx-begin} is satisfied and $\client'$ observes \tx as \confirmed.
 \end{proof}
 
 \begin{lemma}[Past-perfection within $\parPerf$]\label{lem:past-perfection-liveness}
-	\Cref{const:pod-core}, assuming $n \geq 5 \beta + 1$ and $\gamma = 0$, satisfies the \emph{past-perfection within $\parPerf$} property for $\parPerf = \delta$.
+	For the conditions stated in \Cref{thm:pod-security}, \Cref{const:pod-core} satisfies the \emph{past-perfection within $\parPerf$} property for $\parPerf = \delta$.
 \end{lemma}
 \begin{proof}
 	Assume an honest client \client at round \round has view $\podView{c}{\round}$.
@@ -94,7 +95,7 @@ We now recall Theorem~\ref{thm:pod-security-byzantine}, which we prove through a
 	%     % This implies that \tx got assigned an $\rconf \neq \bot$ in line~\ref{line:assign-median}, which implies the condition in line~\ref{line:confirm-tx-begin} was at some point true. As the structure \tsps is persisted across calls to \opread{}, any subsequent \opread{} will return \tx as \confirmed.
 	% \end{proof}
 \begin{lemma}[Past-perfection safety]\label{lem:pod-pp-safety}
-	\Cref{const:pod-core}, assuming $n \geq 5 \beta + 1$ and $\gamma = 0$, satisfies the \emph{past-perfection} safety property, except with negligible probability.\oa{Updated}
+	For the conditions stated in \Cref{thm:pod-security}, \Cref{const:pod-core} satisfies the \emph{past-perfection} safety property, except with negligible probability.\oa{Updated}
 \end{lemma}
 \begin{proof}
 	Assume the adversary outputs valid $(\Pod_1, \cert_1)$ and $(\Pod_2, \cert_2)$ that violate the property,
@@ -127,7 +128,7 @@ We now recall Theorem~\ref{thm:pod-security-byzantine}, which we prove through a
 	\end{equation}
 	%
 	such that $\tsp_i < \Pod_1.\rperf$.
-	We will show that, if at most \beta replicas are adversarial, this leads to a contradiction.
+	We will show that, if at most \beta replicas are Byzantine, this leads to a contradiction.
 	% Observe that an honest replica cannot be in both $\allreps_1$ and $\allreps_2$, because that would imply that it omitted sending a vote to \client.
 	Observe from the cardinality of $\allreps_1$ and $\allreps_2$ that at least $\beta + 1$ replicas must be in both sets, hence at least one honest replica must be in both sets (except if the adversary forges a signature under the public key of an honest replica, which happens with negligible probability).
 	For that replica, the vote in (\ref{eq:proof-pp-vote2}) must be one of the votes in (\ref{eq:proof-pp-set1}) since $\tsp_i < \Pod_1.\rperf$ and $\tsp_{i, m_i} \geq \Pod_1.\rperf$.
@@ -143,7 +144,7 @@ We now recall Theorem~\ref{thm:pod-security-byzantine}, which we prove through a
 	% \end{proof}
 
 \begin{lemma}[Confirmation bounds]\label{lem:bounds-safety}
-	\Cref{const:pod-core}, assuming $n \geq 5 \beta + 1$ and $\gamma = 0$, satisfies the \emph{confirmation bounds} safety property, except with negligible probability.\oa{TODO. Mention forgery.}
+	For the conditions stated in \Cref{thm:pod-security}, \Cref{const:pod-core} satisfies the \emph{confirmation bounds} safety property, except with negligible probability.\oa{TODO: Update to use \cert. Mention forgery.}
 \end{lemma}
 \begin{proof}
 	Assume client $\client_1$ computes \rmin and client $\client_2$ computes $\rconf < \rmin$ for \tx.
@@ -166,7 +167,7 @@ We now recall Theorem~\ref{thm:pod-security-byzantine}, which we prove through a
 	% The accountability properties are satisfied using
 	% \identify{}, for the \emph{accountability from the  view of a single party} property,
 	% and \identify{$\podView{\client_1}{\round_1}$, $\podView{\client_2}{\round_2}$}, for the \emph{accountability from the  view of two replicas} properties.
-	\Cref{const:pod-core}, assuming $n \geq 5 \beta + 1$ and $\gamma = 0$, satisfies accountable safety with resilience \beta.
+	For the conditions stated in \Cref{thm:pod-security}, \Cref{const:pod-core} satisfies accountable safety with resilience \beta.
 \end{lemma}
 \begin{proof}
 	We show that \identify{} (\Cref{alg:identify}) satisfies the \emph{correctness} and \emph{no-framing} properties required by \Cref{def:accountable-safety}, in three steps.
@@ -203,7 +204,7 @@ We now recall Theorem~\ref{thm:pod-security-byzantine}, which we prove through a
 	Summarizing, we have shown for at least $\beta + 1$ replicas $\rep_i \in \allreps_1 \cap \allreps_2$, certificate $\cert_1$ and $\cert_2$ contain votes $(\tx_1, \tsp_1, \sn_1, \sig_1, \rep_i)$ and $(\tx_2, \tsp_2, \sn_2, \sig_2, \rep_i)$, such that $\sn_1 = \sn_2$ but $\tx_1 \neq \tx_2$ or $\tsp_1 \neq \tsp_2$.
 	On input a set $\tran$ that contains these votes, function \identify{\tran} returns $\allreps_1 \cap \allreps_2$.
 
-	\dotparagraph{2} \oa{TODO}
+	\dotparagraph{2} \oa{TODO: Use \cert, mention forgery.}
 	If the confirmation-bounds property is violated, there exists a partial transcript \tran, such that \Cref{alg:identify} on input \tran returns at least \beta adversarial replicas.
 
 	\noindent
@@ -242,14 +243,13 @@ We now recall Theorem~\ref{thm:pod-security-byzantine}, which we prove through a
 	The \identify{} function never outputs honest replicas.
 
 	\noindent
-	\emph{Proof:} The function only adds a replica to \cheaters if given as input two valid vote messages from that replica, in which it assigns the same sequence number to two different votes (line~\ref{line:identify-cheat} on \Cref{alg:identify}). An honest replica always increments \nextsn after each vote it inserts to its log (line~\ref{line:rep-increment-sn} on \Cref{alg:pod-core-replica}), hence, \ewnp, no such valid messages can be constructed for an honest replica.
-	\oa{Write where this negl. prob comes from.( forgery)}
+	\emph{Proof:} The function only adds a replica to \cheaters if given as input two vote messages from that replica, where the same sequence number is assigned to two different votes (line~\ref{line:identify-cheat} on \Cref{alg:identify}). An honest replica always increments \nextsn after each vote it inserts to its log (line~\ref{line:rep-increment-sn} on \Cref{alg:pod-core-replica}), hence, the adversary can only construct such verifying votes by forging a signature under the public key of an honest replica, which happens with negligible probability.
 \end{proof}
 
 
 \begin{theorem}[$\parTemp$-timeliness for honest transactions]
 	\sloppy{
-		\Cref{const:pod-core}, assuming $n \geq 5 \beta + 1$ and $\gamma = 0$, satisfies \emph{\parTemp-timeliness for honest transactions}, as per \Cref{def:pod-timely}, for $\parTemp = \delta$.
+		\Cref{const:pod-core}, assuming $n \geq 5 \beta + 1$ and $\gamma = 0$, satisfies \emph{\parTemp-timeliness for honest transactions}, as per \Cref{def:pod-timely}, for $\parTemp = \delta$.\oa{TODO: Update to use \cert, mention forgery.}
 	}
 \end{theorem}
 \begin{proof}
@@ -257,11 +257,12 @@ We now recall Theorem~\ref{thm:pod-security-byzantine}, which we prove through a
 	It sends a message \msgwrite{\tx} to all replicas at round \round (line~\ref{line:send-write-tx}).
 	An honest replica receives this by round $\round + \delta$ and assigns its current round $\round' \in (r, \round + \delta]$ as the timestamp (line~\ref{line:rep-assign-tsp}).
 	\begin{enumerate}
-		\item Regarding \rconf, when a client calls \opreadall{}, and since by assumption \tx is confirmed, it will have received votes on \tx from at least \alpha replicas. All honest replicas have sent timestamps for \tx in the interval $ (r, \round + \delta]$. Since \rconf is computed as the median of \alpha timestamps and $\alpha \geq 4\beta + 1$,\footnote{For this argument, $\alpha \geq 2\beta + 1$ would also be enough. The condition $\alpha \geq 4\beta + 1$ is necessary in order for \rmin and \rmax of a confirmed transaction to be timestamps returned by honest replicas.}
-		it will be a timestamp returned by an honest replica, or it will lie between timestamps returned by honest replicas. Hence, $\rconf \in (r, \round + \delta]$.
+		\item Regarding \rconf, when a client calls \opreadall{}, and since by assumption \tx is confirmed, it will have received votes on \tx from at least \alpha replicas. All honest replicas have sent timestamps for \tx in the interval $ (r, \round + \delta]$. Since \rconf is computed as the median of \alpha timestamps and $\alpha \geq 4\beta + 2\gamma + 1$,\footnote{For this argument on \rconf, $\alpha \geq 2\beta + 2\gamma + 1$ would also be enough. The condition $\alpha \geq 4\beta + 2\gamma + 1$ is necessary in order for \rmin and \rmax of a confirmed transaction to be timestamps returned by honest replicas.}
+		we get $\lfloor \alpha / 2 \rfloor > 2\beta + \gamma$,
+		hence \rconf will be a timestamp returned by an honest replica, or it will lie between timestamps returned by honest replicas. Hence, $\rconf \in (r, \round + \delta]$.
 
-		\item Regarding \rmax, from \Cref{lem:assign-min-max}, at least $\lceil \alpha/2 \rceil -2 \beta $ replicas have sent to \client a timestamp greater or equal than \rmax and, since $\alpha \geq 4\beta + 1$, at least one of those is a timestamp returned by an honest replica, hence  $\rmax \in (r, \round + \delta]$.
+		\item Regarding \rmax, from \Cref{lem:assign-min-max} (\rmax is the timestamp at index $n - \alpha + \lfloor \alpha / 2 \rfloor + \beta$ of \txVotes), there areat least $\alpha - \lfloor \alpha/2 \rfloor - \beta + 1 > \lfloor \alpha/2 \rfloor - \beta$ timestamps in \txVotes that bound \rmax from above. Since $\alpha \geq 4\beta + 2 \gamma + 1$, we get that $\lfloor \alpha / 2 \rfloor > 2\beta + \gamma$, hence $\lfloor \alpha / 2 \rfloor - \beta > \beta + \gamma$, hence at least one of those timestamps that bound \rmax is returned by an honest replica, hence  $\rmax \in (r, \round + \delta]$.
 
-		\item Similarly, from \Cref{lem:assign-min-max} we get that \rmin is a timestamp returned by an honest replica, hence $\rmin \in (r, \round + \delta]$ and $\rmax - \rmin < \parTemp$.
+		\item Similarly, from \Cref{lem:assign-min-max} we get that \rmin is a timestamp returned by an honest replica, hence $\rmin \in (r, \round + \delta]$ and $\rmax - \rmin < \parTemp$. \oa{TODO: Maybe more detailed.}
 	\end{enumerate}
 \end{proof}

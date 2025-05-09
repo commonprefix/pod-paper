@@ -22,7 +22,7 @@
         \EndFunction
         \Statex
         \vspace{-1mm}
-        \Function{\opMinPossibleTs{\txVotesMin, \mrt}}{} \Comment{$\txVotesMin: \rep \rightarrow \tsp$, contains tsps on some tx}
+        \Function{\opMinPossibleTs{\txVotesMin, \mrt}}{} \Comment{$\txVotesMin: \rep \rightarrow \tsp$, contains timestamps on tx}
         \For{$\rep_j \in \allreps$}\label{line:assing-missing-min-begin} \Comment{$\mrt: \rep \rightarrow \tsp$, most recent tsp from each replica}
             \If{$\txVotesMin[\rep_j] = \bot$}
                 \Let{\txVotesMin}{\txVotesMin \concat [\mrt[\rep_j]]} \label{line:fill-vote-lts}
