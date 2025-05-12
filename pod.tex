@@ -102,11 +102,11 @@ A protocol is a \emph{secure} \podtm if it implements the \podtm interface of De
     the adversary cannot output $(\Pod_1, \cert_1)$ and $(\Pod_2, \cert_2)$ to the network, such that $\opValid{\Pod_1, \cert_1} \land \opValid{\Pod_2, \cert_2}$ and there exists a transaction $\tx$ such that $(\tx, \rmin^1, \rmax^1, \rconf^1) \in \Pod_1.\txSet$ and $(\tx, \rmin^2, \rmax^2, \rconf^2) \in \Pod_2.\txSet$ and $\rmin^1 > \rconf^2$ or $\rmax^1 < \rconf^2$.
     }
 
-    \oa{\item[(Safety) Censorship resistance:]}
-	If the adversary makes progress (outputs some past-perfect round), then it must output all transactions confirmed up that past perfect round, minus some propagation period of $X$.
-	Formally, there is a parameter $X$ such that,
-    if the adversary outputs $(\Pod, \cert)$ to the network with $\opValid{\Pod, \cert}$, then \Pod contains all transaction with confirmed round $\rconf \geq \Pod.\rperf - X$.
-    \oa{This is not exactly true, the adversary may see a transaction with $\alpha - \beta$ votes. It would be true if the confirmation threshold was $\alpha  - \beta$. What is its connection with the past-perfection safety property?}
+    % \oa{\item[(Safety) Censorship resistance:]}
+	% If the adversary makes progress (outputs some past-perfect round), then it must output all transactions confirmed up that past perfect round, minus some propagation period of $X$.
+	% Formally, there is a parameter $X$ such that,
+    % if the adversary outputs $(\Pod, \cert)$ to the network with $\opValid{\Pod, \cert}$, then \Pod contains all transaction with confirmed round $\rconf \geq \Pod.\rperf - X$.
+    % \oa{This is not exactly true, the adversary may see a transaction with $\alpha - \beta$ votes. It would be true if the confirmation threshold was $\alpha  - \beta$. What is its connection with the past-perfection safety property?}
 \end{description}
 \end{definition}
 
@@ -122,16 +122,16 @@ Previous work has observed a similar property as orthogonal to safety and livene
     A \podtm protocol is \emph{\parTemp-timely} if it is a secure \podtm, as per Definition~\ref{def:podsec}, and for any honest clients $\client_1,\client_2$, if $\client_1$ writes transaction \tx in round $\round$, then $\client_2$ computes \rmin, \rmax, \rconf for \tx such that:
     % (observe that, from the \emph{confirmation within \parConf} property, \tx will become confirmed):
     \begin{enumerate}
-        %\item $\rconf \in (\round, \round + \parTemp]$
+        \item $\rconf \in (\round, \round + \parTemp]$
         \item $\rmax \in (\round, \round + \parTemp]$
         \item $\rmax - \rmin < \parTemp$, implying that $\rmin \neq 0$ and $\rmax \neq \infty$.
     \end{enumerate}
 \end{definition}
 
 
-Moreover, a \podtm protocol allows the values \rmin, \rmax, \rconf to change during an execution -- for example, clients in construction \podtm-core will update them when they receive votes from replicas.ß
+Moreover, a \podtm protocol allows the values \rmin, \rmax, \rconf to change during an execution -- for example, clients in construction \podtm-core will update them when they receive votes from replicas.
 The properties we have defined so far do not impose any restriction on how they evolve.
-For this reason, in Appendix~\ref{app:monotonicity} we define the additional property of \podtm \emph{Monotonicity}.
+For this reason, in Appendix~\ref{app:monotonicity} we define the additional property of \podtm \emph{monotonicity}.
 
 We conclude this section with some visual examples in Figures \ref{fig:temperature} and \ref{fig:example-output}.
 % \begin{figure}[h]

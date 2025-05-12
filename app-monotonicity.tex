@@ -3,7 +3,7 @@
 
 The property of \podtm monotonicity requires that, as time advances, $\rmin$ does not decrease, $\rmax$ does not increase and confirmed transactions remain confirmed.
 
-\oa{Update these with \cert}
+\oa{As these properties speak about a single honest client, I do not think we can formulate them in terns of the \opValid{} logic.}
 
 \begin{definition}[\podtm monotonicity]
 	A \podtm protocol satisfies \emph{pod monotonicity}, and is called a \emph{monotone \podtm}, if it is a secure \podtm, as per Definition~\ref{def:podsec}, and the following properties hold for any rounds $\round_1,\round_2 > \round_1$ and for any honest client~\client:
@@ -59,10 +59,10 @@ In the remarks below, we observe that \podtm monotonicity implies a number of us
 %	it holds that $\podView{\client}{\round_2}.\rperf \geq \podView{\client}{\round_1}.\rperf$.
 %\end{remark}
 
-\begin{remark}[Strong confirmation-bounds monotonicity]
-	Properties 2 and 3 of \podtm monotonicity imply that if an honest client computes $\rmin$ and $\rmax$ for \tx in round $\round_1$, then the same client will later obtain $\rmin'$ and $\rmax'$ for \tx in round $\round_2 > \round_1$ such that $\rmin' \geq \rmin$ and $\rmax' \leq \rmax$.
-	% \oa{What is the difference between this and the \emph{confirmation-bounds monotonicity}?}
-\end{remark}
+% \begin{remark}[Strong confirmation-bounds monotonicity]
+% 	Properties 2 and 3 of \podtm monotonicity imply that if an honest client computes $\rmin$ and $\rmax$ for \tx in round $\round_1$, then the same client will later obtain $\rmin'$ and $\rmax'$ for \tx in round $\round_2 > \round_1$ such that $\rmin' \geq \rmin$ and $\rmax' \leq \rmax$.
+% 	% \oa{What is the difference between this and the \emph{confirmation-bounds monotonicity}?}
+% \end{remark}
 
 \begin{remark}
 	Observe that the \emph{confirmation monotonicity} property in Remark~\ref{rem:confstick} is a specific version of a more general \emph{common subset} property, which would demand the condition for any two honest clients $\client_1, \client_2$.
