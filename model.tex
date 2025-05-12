@@ -44,11 +44,11 @@ The environment is constrained to work in a prespecified, polynomial number of r
 The environment begins by spawning all honest parties as well as the adversary, and initializing
 the current round to $0$. Upon spawning
 the honest parties, the environment must call the \emph{init()} function of each party
-in a round robin fashion. It then sets the \emph{network inbox} of each honest party to the empty sequence.
+in a round-robin fashion. It then sets the \emph{network inbox} of each honest party to the empty sequence.
 It then proceeds to iterate over all rounds, one by one, incrementing
 the round variable by one during each iteration, starting with round $1$ in the first iteration.
 For each round it iterates
-over, it invokes all honest parties one by one in a round robin fashion. In each such honest party invocation, the environment
+over, it invokes all honest parties one by one in a round-robin fashion. In each such honest party invocation, the environment
 looks at the honest party's \emph{network inbox} and delivers any messages that are present by invoking
 the respective \emph{upon} functionalities specified by the honest protocol, parametrized by the message and
 the sender, once per message in the inbox. During the invocation of such \emph{upon} functionalities,
@@ -63,9 +63,11 @@ cleans the \emph{network inboxes} of all honest parties in preparation for the n
 Subsequently, the adversary is invoked (i.e., she is a rushing adversary), by handing her all the network outboxes of all honest parties.
 The adversary decides the network inboxes of all honest parties for the next round.
 The adversary can include, in these network inboxes newly prepared for the next round, messages that were present in network outboxes
-of honest parties in previous rounds. The adversary can also reorder messages (potentially providing a different reordering for each receipient),
-add new messages of her own (potentially different for each receipient), as well as choose not to include messages in the network inboxes,
-subject to the constrains in the next paragraph.
+of honest parties in previous rounds. The adversary can also reorder messages (potentially providing a different reordering for each recipient),
+add new messages of her own (potentially different for each recipient), as well as choose not to include messages in the network inboxes,
+subject to the constraints in the next paragraph.
+
+\todo{We are not using all these details in the proofs. @Dio, should we?}
 
 \dotparagraph{\textbf{Modeling network}}
 We denote by $\delta \in \CN$ the actual delay (measured in number of rounds) it takes to deliver a message between two honest parties,
