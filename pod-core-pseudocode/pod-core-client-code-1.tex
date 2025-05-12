@@ -11,7 +11,7 @@
             \State{$\tsps: \tx \rightarrow ( \rep \rightarrow \tsp)$}     \Comment{Timestamp received for each tx from each replica}
             \State{$\Pod = (\allTxs, \rperf)$}                   \Comment{The \podtm observed by the client so far}
             \State{$\ppcert: \rep \rightarrow \vote$} \Comment{Past-perfection certificate: the most recent vote from each replica}
-            \State{$\txcert: \tx \rightarrow ( \rep \rightarrow \tsp)$} \Comment{Transaction certificate: for each transaction keep all votes received} \label{line:client-state-end}
+            \State{$\alltxcert: \tx \rightarrow \txcert$, where $\txcert: \rep \rightarrow \vote$} \label{line:client-state-end} \Comment{Transaction certificate: for each transaction, all votes}
         % \State{$\sigs: \tx \rightarrow ( \rep \rightarrow \sig)$}     \Comment{The signature received for each transaction from each replica}
         %\rmin \in \BN, \rmax \in \BN \cup \{\infty\}, \rconf \in \BN \cup \{\bot\}, \txcert \in \zo^*
         \Statex
@@ -22,12 +22,12 @@
         \EndOn\label{line:client-init-end}
         \Statex
         \vspace{-1mm}
-        \On{$\msgrecord{(\tx, \tsp, \sn, \sig, \rep_j)} \leftarrow \rep_j$} \Comment{Called when client receives vote from replica $\rep_j$}
+        \On{$\msgrecord{(\tx, \tsp, \sn, \sig, \rep_j)} \leftarrow \rep_j$} \Comment{Called when client receives vote from replica $\rep_j$}\label{line:receive-vote-begin}
             \If{\opProcessVote{$\tx, \tsp, \sn, \sig, \rep_j$}}
                 \Let{\ppcert[\rep_j]}{(\tx, \tsp, \sn, \sig, \rep_j)} \label{line:upd-ppcert}   \Comment{Keep most recent vote from $\rep_j$ in \ppcert}
-                \Let{\txcert[\tx][\rep_j]}{(\tx, \tsp, \sn, \sig, \rep_j)} \label{line:client-store-vote-txcert}  \Comment{Keep all votes for \tx in \txcert}
+                \Let{\alltxcert[\tx][\rep_j]}{(\tx, \tsp, \sn, \sig, \rep_j)} \label{line:client-store-vote-txcert}  \Comment{Keep all votes for \tx in \txcert}
             \EndIf
-        \EndOn
+        \EndOn\label{line:receive-vote-end}
 
         \Statex
         \vspace{-1mm}
@@ -39,7 +39,7 @@
         \Function{$\opreadall{}$}{} \label{line:read-begin} \Comment{Part of \podtm interface, used to read all transactions}
             \Let{\txSet}{\opComputeTxSet{\tsps, \mrt}}  \Comment{Shown in \Cref{alg:client-statistics}}
             \Let{\rperf}{\opMinPossibleTsForNewTx{\mrt}}\label{line:upd-rperf-begin} \Comment{Shown in \Cref{alg:client-statistics}}
-            \State{\Pod $\leftarrow$ (\txSet, \rperf) ;\; \cert $\leftarrow$ (\ppcert, \txcert)} \label{line:client-construct-cert}
+            \State{\Pod $\leftarrow$ (\txSet, \rperf) ;\; \cert $\leftarrow$ (\ppcert, \alltxcert)} \label{line:client-construct-cert}
             \return{ $(\Pod, \cert)$}\label{line:return-pod}
         \EndFunction\label{line:read-end}
         \Statex
@@ -60,7 +60,7 @@
         \EndFunction
         \Statex
         \vspace{-1mm}
-        \Function{\opProcessVote{$\tx, \tsp, \sn, \sig, \rep_j$}}{}\label{line:receive-vote-begin}
+        \Function{\opProcessVote{$\tx, \tsp, \sn, \sig, \rep_j$}}{}
             \State{\textbf{require} \opVerify{$\pk_j, (\tx, \tsp, \sn), \sig$}} \Comment{Otherwise, vote is invalid} \label{line:client-verify-sig-begin}
             \State{\textbf{require} $\sn = \nextsn[\rep_j]$} \Comment{Otherwise, vote cannot be processed yet}\label{line:client-check-sn}
                 % \State{\textbf{return}}     \Comment{Vote cannot be processed yet, backlog and try again}
@@ -83,6 +83,6 @@
             %     \return \Comment{Dupl. timestamp} \label{line:raise-dup-tsp}
             % \EndIf
             \Let{\tsps[\tx][\rep_j]}{\tsp} \label{line:rec-tsp}
-        \EndFunction\label{line:receive-vote-end}
+        \EndFunction
     \end{algorithmic}
     \end{algorithm}

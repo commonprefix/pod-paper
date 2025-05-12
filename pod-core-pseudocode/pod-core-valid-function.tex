@@ -6,9 +6,9 @@
         \Statex
         \vspace{-1mm}
         \Function{\opValid{\Pod, \cert}}{}
-            \Let{(\ppcert, \txcert) }{\cert} \label{line:valid-extract-cert} \Comment{$\ppcert: \rep \rightarrow \vote, \; \txcert: \tx \rightarrow ( \rep \rightarrow \tsp)$}
+            \Let{(\ppcert, \alltxcert) }{\cert} \label{line:valid-extract-cert} \Comment{$\ppcert: \rep \rightarrow \vote, \; \alltxcert: \tx \rightarrow \txcert, \; \txcert: \rep \rightarrow \vote$}
             \State{\opInitClient{}} \Comment{shown in \Cref{alg:client-1}}
-            \Let{\allVotes}{\bigcup_{\tx \in \txcert} \left(\txcert[\tx].\opValues{}\right)}
+            \Let{\allVotes}{\bigcup_{\tx \in \alltxcert} \left(\alltxcert[\tx].\opValues{}\right)}
             \For{$(\tx, \tsp, \sn, \sig, \rep_j) \in \allVotes$ \textbf{in increasing order of} $\sn$}
                 \State{\textbf{require} \opProcessVote{$\tx, \tsp, \sn, \sig, \rep_j$}} \Comment{shown in \Cref{alg:client-1}, updates local state \tsps, \mrt}
             \EndFor
