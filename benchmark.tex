@@ -1,24 +1,19 @@
 \section{Evaluation} \label{sec:evaluation}
-
-\oa{Update with justification}
-
-To validate our theoretical results regarding optimal latency in Protocol \podtm-core, we implement\footnote{Our prototype implementation is available at \url{https://github.com/commonprefix/pod-experiments}} prototype replicas and clients in Rust 1.85.
-We benchmark this prototype by measuring the
+To validate our theoretical results regarding optimal latency in Protocol \podtm-core, we implement\footnote{Our prototype implementation is available at \url{https://github.com/commonprefix/pod-experiments}} a prototype \podtm-core in Rust 1.85.
+Our benchmarks measure the
 end-to-end confirmation latency of a transaction from the moment it is written by client until it is read as
 confirmed by another client in a different continent, both interacting with replicas distributed around the world.
 Specifically, the latency is computed as the difference between the timestamp
 recorded by the reading client upon receiving sufficiently many votes (quorum size $\alpha$) from different replicas and the initial timestamp recorded by the writing client.
 We present the results in \Cref{fig:latency}.
 
-
-
-
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=\textwidth]{figures/latency.pdf}
+    \includegraphics[width=0.9\textwidth]{figures/latency.pdf}
+    \vspace{-5mm}
     \caption{End-to-end confirmation latency from a writing client to a reading client as a transaction traverses across $n = 15, \ldots, 1000$ replicas,
     for two reading clients:
-    (1) a client that expects up to $\gamma = \lceil\frac{1}{3}n\rceil$ omission faults (blue line, below), and (2) a client that expects up to $\beta = \lceil\frac{1}{5}n\rceil$ Byzantine faults (orange line, above).
+    (1) a client that expects up to $\gamma = \lfloor\frac{1}{3}n\rfloor$ omission faults (blue line, below), and (2) a client that expects up to $\beta = \lfloor\frac{1}{5}n\rfloor$ Byzantine faults (orange line, above).
     We also plot the physical network round-trip time (RTT) between the reading client and the writing client, which is 76ms (dashed red line).
     A 95\% confidence interval is shown for each experiment (shaded area).}
     \label{fig:latency}
@@ -37,7 +32,7 @@ the replica's unique secret signing key.
 
 We implement two types of clients. The writing client establishes connections to all replicas, records
 the timestamp (in its local view) right before sending the transaction and sends transaction
-payloads to each connected replica. The reading client maintains connections to all replicas, validates incoming signed
+payloads to each replica. The reading client maintains connections to all replicas, validates incoming signed
 transactions, and records the timestamp (in its local view) upon receiving a quorum of valid signatures for a particular transaction.
 We deploy the reading
 client in eu-west-2 (London) and the writing client in us-east-1 (N. Virginia), both initialized with the complete
@@ -60,6 +55,7 @@ of the number of replicas.
 The reading client reports a transaction as confirmed as soon as the fastest
 $\alpha$ replicas have responded, which gives rise to the happy artifact that the 1 - $\alpha$ slowest replicas
 do not slow down confirmation.
-Even with 1000 replicas the mean confirmation latency
-is 138ms for the omission fault experiment and 375ms for the Byzantine experiment. Which approximates
-the physical network RTT between the reading client and the writing client that stands at 76ms.
+This also explains why the omission-fault experiment exhibits lower latency than the Byzantine experiment.
+Even with 1000 replicas the mean confirmation latency is 138ms for the omission-fault experiment and 375ms for the Byzantine experiment.
+This approximates
+the physical network round-trip time between the reading client and the writing client that stands at 76ms.
