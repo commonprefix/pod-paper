@@ -52,6 +52,12 @@
 	\oldalgorithmic}% Do what was always done with algorithmic environment
 \renewcommand{\theHALG@line}{ALG@line.\thealgorithmicH.\arabic{ALG@line}}
 \makeatother
+%end fix
+
+% Fix for function names in algorithms - remove \textsc formatting
+% The algpseudocode package uses \textproc which is defined as \textsc
+% Redefine it to use normal text formatting instead
+\renewcommand{\textproc}[1]{#1}
 
 \hyphenation{block-chain}
 \hyphenation{block-chains}
