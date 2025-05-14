@@ -28,10 +28,11 @@ We write $\tx \in \Pod.\txSet$ if an entry $(\tx, \cdot, \cdot, \cdot)$ exists i
 We remark that transactions in \txSet may be \confirmed on unconfirmed. Moreover, \rperf will be used to define a completeness property on \txSet (the \emph{past-perfection} property of \podtm).
 
 \begin{definition}[Auxiliary data]
-    We associate with a pod data structure $\Pod$ a tuple of auxiliary data $\cert = (\ppcert, \{\txcerti{i}\}_{i=0}^m)$, where $m \geq 0$,
-    $\ppcert \in \zo^*$, and $\txcerti{i} \in \zo^*$.
-    In \podtm-core, \ppcert will be treated as a \emph{past-perfection certificate} and each \txcert as a \emph{transaction certificate}, and $m$ will be the number of transactions in $\Pod.\txSet$.
-    Both will contain digital signatures, used to achieve accountability and prove validity of a pod data structure (defined below).
+    We associate with a pod data structure $\Pod$ some auxiliary data \cert, which will be used to validate \Pod.
+    The exact implementation of \cert is irrelevant for the definition of \podtm;
+    however, it may be helpful to mention that in \podtm-core it will be a tuple $\cert = (\ppcert, \alltxcert)$.
+    $\ppcert$ will be called the \emph{past-perfection certificate} and \alltxcert will be a map from each transaction \tx in $\Pod.\txSet$ to a \emph{transaction certificate} \txcert for \tx.
+    Both will contain digital signatures.
 \end{definition}
 
 %We now define the \podtm protocol interface and associated concepts.
