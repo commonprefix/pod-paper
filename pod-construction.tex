@@ -75,7 +75,7 @@ Looking forward, we only analyze the cases where either $\beta$ or $\gamma$ are 
 % \vspace{-5mm}
 
 The state of a replica (lines \ref{line:rep-state-begin}--\ref{line:rep-state-end} of \Cref{alg:pod-core-replica}) contains, among others, the transaction log \repLog, which is implemented as a sequence of votes $(\tx, \tsp, \sn, \sigma, \rep_i)$ created by the replica, where \tsp is the timestamp assigned by the replica to \tx, \sn is a sequence number, and \sig is its signature.
-A functionality \opTime{} allows the replica to determine the current round number.
+% A functionality \opTime{} allows the replica to determine the current round number.
 When the replica receives a \msgconnect{} message from a client \client, it appends \client to its set of connected clients and sends to \client all entries in \repLog (lines \ref{line:rep-receive-connect-begin}--\ref{line:rep-receive-connect-end}).
 
 When it receives  \msgwrite{\tx}, a replica first checks whether it has already seen \tx, in which case the message is ignored. Otherwise, it assigns \tx a timestamp \tsp equal its local round number and the next available sequence number \sn, and signs the message $(\tx, \tsp, \sn)$ (\cref{line:rep-assign-tsp}).
