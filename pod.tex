@@ -120,7 +120,7 @@ To this purpose we define an additional property of \podtm, called \emph{timelin
 Previous work has observed a similar property as orthogonal to safety and liveness~\cite{EPRINT:TziSriZin23}.
 
 \begin{definition}[\podtm \parTemp-timeliness for honest transactions]\label{def:pod-timely}
-    A \podtm protocol is \emph{\parTemp-timely} if it is a secure \podtm, as per Definition~\ref{def:podsec}, and for any honest clients $\client_1,\client_2$, if $\client_1$ writes transaction \tx in round $\round$, then $\client_2$ computes \rmin, \rmax, \rconf for \tx such that:
+    A \podtm protocol is \emph{\parTemp-timely} if it is a secure \podtm, as per Definition~\ref{def:podsec}, and for any honest clients $\client_1,\client_2$, if $\client_1$ writes transaction \tx in round $\round$ and $\client_2$ has view $\podView{\client_2}{\round'}$ in round $\round'$, such that $(\tx, \rmin, \rmax, \rconf) \in \podView{\client_2}{\round'}.\txSet$, then:
     % (observe that, from the \emph{confirmation within \parConf} property, \tx will become confirmed):
     \begin{enumerate}
         \item $\rconf \in (\round, \round + \parTemp]$
