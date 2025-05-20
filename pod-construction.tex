@@ -57,7 +57,7 @@ For a map $x$, the operations $x.\opKeys$ and $x.\opValues$ return all keys and 
 With $\emptyset$ we denote an empty map.
 
 \begin{protocol}[\podtm-core]\label{const:pod-core}
-     Protocol \podtm-core is executed by $n$ replicas that follow the steps of \Cref{alg:pod-core-replica} and an unknown number of clients that follow the steps of Algorithms \ref{alg:client-1} and \ref{alg:client-statistics} with parameters \beta, \gamma and \alpha, where \beta denotes the number of Byzantine replicas and \gamma the number of omission-faulty replicas (in addition to the Byzantine) and $\alpha = n - \beta - \gamma$.
+     Protocol \podtm-core is executed by $n$ replicas that follow the steps of \Cref{alg:pod-core-replica} and an unknown number of clients that follow the steps of Algorithms \ref{alg:client-1} and \ref{alg:client-statistics} with parameters \beta, \gamma and \alpha, where \beta denotes the number of Byzantine replicas and \gamma the number of omission-faulty replicas (in addition to the Byzantine) and $\alpha = n - \beta - \gamma$ is the number of honest replicas.
     % and discuss its main points, first for the client and then for the replica construction, in the following paragraphs.
     % The construction tolerates up to \beta Byzantine replicas and requires $\alpha \geq 4 \beta + 1$, i.e., $n \geq 5 \beta + 1$.
     % It achieves \emph{accountable safety} (see \Cref{sec:accountable-safety}) with an \identify{} function described in \Cref{alg:identify}.
@@ -179,7 +179,7 @@ As we have remarked earlier, \ppcert can be derived from \alltxcert by taking th
 \subsection{Analysis}
 
 \begin{theorem}[\podtm-core security]\label{thm:pod-security}
-    Assume that the network is asynchronous with actual network delay some unknown $\delta$ (and unknown delay upper bound) \todo{Let's make this more formal}, \beta is the number of Byzantine replicas, \gamma is the number of omission-faulty replicas, $\alpha = n - \beta - \gamma$ is the confirmation threshold, and $n \geq 5 \beta + 3 \gamma + 1$ is the total number of replicas. Protocol \podtm-core (\Cref{const:pod-core}) instantiated with a EUF-CMA secure signature scheme is a responsive secure \podtm (\Cref{def:podsec}) with Confirmation within $\parConf = 2 \delta$, Past-perfection within $\parPerf = \delta$ and  \beta-accountable safety (\Cref{def:accountable-safety}) with the \identify{} function described in \Cref{alg:identify}, \ewnp.
+    Assume that the network is partially synchronous with unknown actual network delay $\delta$ (and unknown delay upper bound) \todo{Let's make this more formal}, \beta is the number of Byzantine replicas, \gamma is the number of omission-faulty replicas, $\alpha = n - \beta - \gamma$ is the confirmation threshold, and $n \geq 5 \beta + 3 \gamma + 1$ is the total number of replicas. Protocol \podtm-core (\Cref{const:pod-core}) instantiated with a EUF-CMA secure signature scheme is a responsive secure \podtm (\Cref{def:podsec}) with Confirmation within $\parConf = 2 \delta$, Past-perfection within $\parPerf = \delta$ and  \beta-accountable safety (\Cref{def:accountable-safety}) with the \identify{} function described in \Cref{alg:identify}, \ewnp.
 \end{theorem}
 \begin{proof}
     Shown in Appendix~\ref{app:pod-security}.
