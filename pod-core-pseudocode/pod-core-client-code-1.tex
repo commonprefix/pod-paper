@@ -60,7 +60,7 @@
         \EndFunction
         \Statex
         \vspace{-1mm}
-        \Function{\opProcessVote{$\tx, \tsp, \sn, \sig, \rep_j$}}{}
+        \Function{\opProcessVote{$\tx, \tsp, \sn, \sig, \rep_j$}}{} \Comment{Validate vote and update local state}
             \State{\textbf{require} \opVerify{$\pk_j, (\tx, \tsp, \sn), \sig$}} \Comment{Otherwise, vote is invalid} \label{line:client-verify-sig-begin}
             \State{\textbf{require} $\sn = \nextsn[\rep_j]$} \Comment{Otherwise, vote cannot be processed yet}\label{line:client-check-sn}
                 % \State{\textbf{return}}     \Comment{Vote cannot be processed yet, backlog and try again}

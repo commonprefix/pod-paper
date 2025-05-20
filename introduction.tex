@@ -20,7 +20,7 @@ In this context, this work is motivated by the following question.
 We give a positive answer to this question with a protocol realizing \podtm, a new notion of consensus that trades off traditional agreement properties for optimal latency, while retaining sufficient security guarantees to realize important tasks (\textit{e.g.}, decentralized auctions).
 
 \subsection{Our Contributions}
-In order to motivate the notion of \podtm, we first introduce the architecture of our Protocol \podtm-core, which realizes this notion. To achieve the single-roundtrip latency, our first key design decision is to eliminate inter-replica communication entirely. Instead, writers send their transactions directly to all replicas. Each replica maintains its own \emph{replica log}, processes incoming transactions independently, and transmits its log to readers on request. Readers then process these replica logs to extract transactions and relevant associated information. See Figure~\ref{fig:architecture} for a summary of the \podtm-core architecture.
+In order to motivate the notion of \podtm, we first introduce the architecture of our protocol, \podtm-core, which realizes this notion. To achieve the single-roundtrip latency, our first key design decision is to eliminate inter-replica communication entirely. Instead, writers send their transactions directly to all replicas. Each replica maintains its own \emph{replica log}, processes incoming transactions independently, and transmits its log to readers on request. Readers then process these replica logs to extract transactions and relevant associated information. See Figure~\ref{fig:architecture} for a summary of the \podtm-core architecture.
 
 \begin{figure}[h]
     \centering
@@ -40,12 +40,11 @@ Specifically, a secure \podtm delivers the following guarantees (formally define
 \end{itemize}
 
 In particular, our Protocol \podtm-core, presented in \Cref{sec:pod-core-const}, realizes the notion of \podtm with the properties above, supporting a continuum of two adversarial models: up to \beta Byzantine replicas and up to \gamma omission-faulty replicas, out of a total of $n > 5 \beta + 3 \gamma$ replicas.
-Our Protocol \podtm-core requires no expensive cryptographic primitives or setup beyond digital signatures and a PKI registering replicas' public keys. We showcase Protocol \podtm-core's efficiency by means of experiments with a prototype implementation presented in \Cref{sec:evaluation}. Our experiments show that even with 1000 replicas distributed around the world, the latency achieved by our protocol is just under double (resp. about 5 times) the round-trip time between writer and reader clients with security against omission-faulty (resp. Byzantine) replicas.
+Protocol \podtm-core requires no expensive cryptographic primitives or setup beyond digital signatures and a PKI registering replicas' public keys. We showcase \podtm-core's efficiency by means of experiments with a prototype implementation presented in \Cref{sec:evaluation}. Our experiments show that even with 1000 replicas distributed around the world, the latency achieved by our protocol is just under double (resp. about 5 times) the round-trip time between writer and reader clients with security against omission-faulty (resp. Byzantine) replicas.
 
 
 \subsection{Technical Overview}
-We consider that time proceeds in \emph{rounds}, and that parties (replicas and clients) know the current round, so we can express timestamps in terms of rounds. The output of \podtm associates each transaction $\tx$ with timestamp values $\rmin \geq 0$ (minimum round), $\rmax \leq \infty$ (maximum round) and $\rconf$ (\confirmed round). We call these values the \emph{trace} of \tx, and they evolve over time.
-
+We consider that time proceeds in \emph{rounds}, and that parties (replicas and clients) know the current round, so we can express \emph{timestamps} in terms of rounds. The output of \podtm associates each transaction $\tx$ with timestamp values $\rmin \geq 0$ (minimum round), $\rmax \leq \infty$ (maximum round) and $\rconf$ (\emph{confirmed round}). We call these values the \emph{trace} of \tx, and they evolve over time.
 Initially we have $\rconf=\perp$ but later we get $\rconf \neq \perp$, when a transaction is \emph{confirmed}. The protocol guarantees \emph{confirmation within $u$ rounds}, meaning that, at most $u$ rounds after $\tx$ was written, every party who reads the \podtm will see $\tx$ as confirmed with some $\rconf \neq \perp$.
 The protocol also guarantees that $\rmin \leq \rconf \leq \rmax$, a property we call \emph{confirmation bounds}:
 while each party reads different values $\rmin,\rmax,\rconf$ for the same $\tx$, \podtm guarantees that values read by different parties stay within these limits.

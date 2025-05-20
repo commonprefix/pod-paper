@@ -23,11 +23,11 @@ We assume that replicas are known to all parties and register their public keys 
 We call a party (replica or client) \emph{honest}, if it follows the protocol, and \emph{malicious} otherwise.
 % Our constructions assume limits on \alpha and \beta, but make no honesty assumptions on clients.
 We assume \emph{static corruptions},  \textit{i.e.}, the set of malicious replicas is decided before the execution starts and remains constant.
-In this work uses a combination of two adversarial models, the \emph{Byzantine} and the \emph{omission} models.  In this case, the adversary has access to the internal state and secret keys of all corrupted parties.
-In the \emph{Byzantine} model, corrupted replicas are malicious and may deviate arbitrarily from the protocol. We denote by $\beta \in [0,n]$ the  number of Byzantine replicas in an execution.
-In the \emph{omission} model, corrupted replicas may only deviate from the protocol by dropping messages that they were supposed to send, but follow the protocol otherwise. Observe that this includes crash faults, where replicas crash (\textit{i.e.} stop execution) and remain crashed until the end of the execution of an algorithm.
+In this work uses a combination of two adversarial models, the \emph{Byzantine} and the \emph{omission} models.
+In the \emph{Byzantine} model, corrupted replicas are malicious and may deviate arbitrarily from the protocol. The adversary has access to the internal state and secret keys of all corrupted parties. We denote by $\beta \in \BN$ the  number of Byzantine replicas in an execution.
 The Byzantine adversary is modelled as a probabilistic polynomial time overarching entity that is invoked in the stead of every corrupted party.
 That is, whenever the turn of a corrupted party comes to be invoked by the environment, the adversary is invoked instead.
+In the \emph{omission} model, corrupted replicas may only deviate from the protocol by dropping messages that they were supposed to send, but follow the protocol otherwise. Observe that this includes crash faults, where replicas crash (\textit{i.e.} stop execution) and remain crashed until the end of the execution of an algorithm. We denote by $\gamma \in \BN$ the number of omission-faulty replicas in an execution.
 
 % \oa{We allow \emph{dynamic corruptions}, i.e., the set of malicious replicas can differ in each round, as long as not larger than \beta.}
 
@@ -52,22 +52,22 @@ over, it invokes all honest parties one by one in a round-robin fashion. In each
 looks at the honest party's \emph{network inbox} and delivers any messages that are present by invoking
 the respective \emph{upon} functionalities specified by the honest protocol, parametrized by the message and
 the sender, once per message in the inbox. During the invocation of such \emph{upon} functionalities,
-the honest party may send a message to another party by invoking the \emph{send()} function (with the message
-and the recipient as arguments), which places the message on the \emph{network outbox} of the sending honest party.
+the honest party may send a message to another party,
+% by invoking the \emph{send()} function (with the message and the recipient as arguments),
+which places the message on the \emph{network outbox} of the sending honest party.
 During the \emph{upon} invocation, the honest party may also invoke the \emph{round()} function, which returns the current round number.
 The \emph{round()} function works
 by asking the environment for the current round, and the environment is compelled to answer truthfully.
 This means that \emph{the clocks of honest parties are synchronized}.
 At the end of the round, after all honest parties have been invoked, the environment
 cleans the \emph{network inboxes} of all honest parties in preparation for the next round.
-Subsequently, the adversary is invoked (i.e., she is a rushing adversary), by handing her all the network outboxes of all honest parties.
+Subsequently, the adversary is invoked (i.e., it is a rushing adversary), by handing it all the network outboxes of all honest parties.
 The adversary decides the network inboxes of all honest parties for the next round.
-The adversary can include, in these network inboxes newly prepared for the next round, messages that were present in network outboxes
-of honest parties in previous rounds. The adversary can also reorder messages (potentially providing a different reordering for each recipient),
-add new messages of her own (potentially different for each recipient), as well as choose not to include messages in the network inboxes,
+The adversary can include messages that were present in network outboxes
+of honest parties in previous rounds, reorder messages (potentially providing a different reordering for each recipient),
+add new messages of its own (potentially different for each recipient), as well as choose not to include messages in the network inboxes,
 subject to the constraints in the next paragraph.
 
-\todo{We are not using all these details in the proofs. @Dio, should we?}
 
 \dotparagraph{\textbf{Modeling network}}
 We denote by $\delta \in \CN$ the actual delay (measured in number of rounds) it takes to deliver a message between two honest parties,
