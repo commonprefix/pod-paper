@@ -14,9 +14,6 @@
 %     It follows from the \emph{past-perfection within $\parPerf = \delta$} property of \podtm.
 % \end{proof}
 
-
-\todo{Use new notation}
-
 In this section, we recall and prove \Cref{thm:bidset-construction-secure}.
 
 \begin{customthm}{\ref{thm:bidset-construction-secure}}[Bidset security]
@@ -70,7 +67,7 @@ In this section, we recall and prove \Cref{thm:bidset-construction-secure}.
 
     \noindent
     Assume an honest bidder calls \opSubmitBid{\bid} at time \tzero and the network is synchronous.
-    The transaction \tx containing \bid becomes confirmed, and any honest party can observe $(\tx, \rconf, \cdot, \cdot, \txcert)$ in their view of the \podtm, where \txcert is the auxiliary data associated by \tx, as returned by \podtm-core.
+    The transaction \tx containing \bid becomes confirmed, and any honest party can observe $(\tx, \rconf, \cdot, \cdot)$ and the corresponding transaction certificate \txcert in their view of the \podtm, as returned by \podtm-core.
     Assume \bid is censored, i.e., an event \opResult{\bag, \bidcert} is output by an honest consumer, such that $\bid \not \in \bag$.
     Let \sig be the signature of the sequencer in the corresponding \msgbidresult{(\bag, \bidcert, \sigma)} message written on \podInst.
     We will show how the sequencer can be made accountable, using $(\txcert, \bag, \bidcert, \sigma)$ as evidence \tran.
@@ -79,11 +76,11 @@ In this section, we recall and prove \Cref{thm:bidset-construction-secure}.
     % and performs the following checks:
     In order for $(\txcert, \bag, \bidcert, \sigma)$ to be valid evidence, the following must hold:
 
-    \emph{Requirement 1}: The signature \sig must be a valid signature, produced by the sequencer on message $(\bag, \bidcert)$, as per \cref{line:bidset-sequencer-sign} of the sequencer code (\cref{line:bidset-identify-check-sig}).
+    \emph{Requirement 1}: The signature \sig must be a valid signature, produced by the sequencer on message $(\bag, \bidcert)$, as per \cref{line:bidset-sequencer-sign} of the sequencer code (checked on \cref{line:bidset-identify-check-sig} of \Cref{alg:identify-bidset} -- we remind that notation `\textbf{require} $P$' returns $\false$ if $P$ evaluates to $\false$).
 
     % \emph{Requirement 2}: All votes in \bidcert must be valid votes from different replicas that run the \podInst instance (\ref{line:bidset-identify-check-votes-ppcert}).
 
-    \emph{Requirement 2}: \txcert must contain at least \alpha votes (\cref{line:bidset-identify-check-large-txcert}), on the same transaction $\tx^*$ (\cref{line:bidset-identify-check-same-tx}), signed by a \podInst replica (\cref{line:bidset-identify-check-votes-txcert}).
+    \emph{Requirement 2}: \txcert must contain at least \alpha votes (checked on \cref{line:bidset-identify-check-large-txcert} of \Cref{alg:identify-bidset}), on the same transaction $\tx^*$ (checked on \cref{line:bidset-identify-check-same-tx}), signed by a \podInst replica (checked on \cref{line:bidset-identify-check-votes-txcert}).
 
     If any of these requirements are not met, \tran does not constitute valid evidence and the function exits. Otherwise, let $\rconf^*$ be the median of all votes in \txcert. The function makes the following checks, and if any of them fails, then the sequencer is accountable.
 
