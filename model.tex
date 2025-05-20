@@ -73,15 +73,16 @@ subject to the constraints in the next paragraph.
 We denote by $\delta \in \CN$ the actual delay (measured in number of rounds) it takes to deliver a message between two honest parties,
 a number which is \emph{finite} but \emph{unknown} to all parties.
 We denote by $\Delta \in \CN$ an upper bound on this delay, \textit{i.e.}, $\delta \leq \Delta$, which is also \emph{finite}.
+In the \emph{synchronous} model, $\Delta$ is \emph{known} to all parties.
+% (namely, the honest code is parametrized by $\Delta$).
+In the \emph{partially synchronous} model, $\Delta$ is \emph{unknown} but still finite, \textit{i.e.}, all messages are eventually delivered.
 The environment is constrained to deliver all honest network messages within $\delta$. Namely, for each message $m$ sent
 by an honest party at round $r$, the environment observes and remembers the inboxes (decided by the adversary)
 of all honest parties during rounds $r + 1, \ldots, r + \delta$. If none of these inboxes contains $m$, the environment
 appends $m$ to the network inbox of the recieving party prior to invoking it at round $r + \delta$, thereby forcing the
 inclusion of this message.
 % In this work, we present a general protocol, which we then analyze in the \emph{synchronous} and in the \emph{asynchronous} models, providing different guarantees in each world.
-In the \emph{synchronous} model, $\Delta$ is \emph{known} to all parties (namely, the honest code is parametrized by $\Delta$).
-In the \emph{partially synchronous} model, $\Delta$ is \emph{unknown} but still finite, \textit{i.e.}, all messages are eventually delivered.
-We new define responsive protocols, which is the case of our main protocol \podtm-core.
+We now define responsive protocols, which is the case of our main protocol \podtm-core.
 
 %this is very fluffy, we should make it precise for the DISC submission.
 \begin{definition}[Responsive Protocol (Informal)]
