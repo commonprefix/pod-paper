@@ -1,0 +1,73 @@
+\section{Definition of \podtm monotonicity}\label{app:monotonicity}
+% We define \emph{\podtm monotonicity} as an intermediate notion that stands between a simple secure \podtm and a $\theta$-timely \podtm. \oa{I am not sure this is true, or at least intuitive. I would remove this sentence.}
+
+The property of \podtm monotonicity requires that, as time advances, $\rmin$ does not decrease, $\rmax$ does not increase and confirmed transactions remain confirmed.
+
+\begin{definition}[\podtm monotonicity]
+	A \podtm protocol satisfies \emph{pod monotonicity}, and is called a \emph{monotone \podtm}, if it is a secure \podtm, as per Definition~\ref{def:podsec}, and the following properties hold for any rounds $\round_1,\round_2 > \round_1$ and for any honest client~\client:
+	\begin{description}
+		\item [Past-perfection monotonicity:] It holds that $\podView{\client}{\round_2}.\rperf \geq \podView{\client}{\round_1}.\rperf$.
+		\item [Transaction monotonicity:] If  transaction $\tx$ appears in $\podView{\client}{\round_1}.\txSet$, then $\tx$ appears in $\podView{\client}{\round_2}.\txSet$.
+		\item [Confirmation-bounds monotonicity:] For every $\tx$ that appears in $\podView{\client}{\round_1}.\txSet$ with $\rmin,\rmax,\rconf$ and appears in  $\podView{\client}{\round_2}.\txSet$ with $\rmin',\rmax',\rconf'$,  it holds that $\rmin'\geq \rmin$, $\rmax' \leq \rmax$.
+		% $\rconf' \geq \rconf$.
+
+	\end{description}
+\end{definition}
+
+We now observe that a monotone \podtm protocol can be obtained from any secure \podtm protocol with stateful clients, and that monotonicity implies certain specific properties that may be useful for applications. In particular, our \podtm-core protocol naturally satisfies this property.
+
+\begin{remark}
+	Every secure \podtm can be transformed into a monotone \podtm if parties are stateful. Let $\round_1$ be the last round when an honest client $\client$ read the \podtm obtaining view $\podView{\client}{\round_1}$, which is stored as state until $\client$ reads the \podtm again. At any round $\round_2>\round_1$, if $\client$ reads the \podtm and obtains $\podView{\client}{\round_2}$, $\client$ can define a view $\overline{\podView{\client}{\round_2}}$ satisfying the properties of \podtm monotonicity:
+
+	\begin{enumerate}
+		\item If $\tx$ appears in $\podView{\client}{\round_1}$ with $\tx.\rmin,\tx.\rmax,\tx.\rconf,\tx.\txcert$, then $\tx$ appears in $\overline{\podView{\client}{\round_2}}$ with $\tx.\overline{\rmin}=\rmin,\tx.\overline{\rmax}=\rmax,\tx.\overline{\rconf}=\rconf,\tx.\overline{\txcert}=\txcert$.
+		\item If $\tx$ appears in $\podView{\client}{\round_2}$ with $\tx.\rmin',\tx.\rmax',\tx.\rconf',\tx.\txcert'$ and does not appear in $\podView{\client}{\round_1}$, then $\tx$ appears in $\overline{\podView{\client}{\round_2}}$ with $\tx.\overline{\rmin}=\rmin',\tx.\overline{\rmax}=\rmax',\tx.\overline{\rconf}=\rconf',\tx.\overline{\txcert}=\txcert'$.
+		\item For every $\tx$ that appears in $\podView{\client}{\round_1}.\txSet$ and in  $\podView{\client}{\round_2}.\txSet$ such that $\rmin'\geq \rmin$, $\rmax' \leq \rmax$, $\rconf' \geq \rconf$, update $\tx.\overline{\rmin}=\rmin',\tx.\overline{\rmax}=\rmax',\tx.\overline{\rconf}=\rconf',\tx.\overline{\txcert}=\txcert'$.
+		\item If  $\podView{\client}{\round_2}.\rperf > \podView{\client}{\round_1}.\rperf$, then $\overline{\podView{\client}{\round_2}}.\rperf=\podView{\client}{\round_2}.\rperf $. Otherwise, $\overline{\podView{\client}{\round_2}}.\rperf=\podView{\client}{\round_1}.\rperf $.
+
+	\end{enumerate}
+\end{remark}
+
+
+% \item{Accountability:}
+% \begin{description}
+	%     \item [Accountability:]
+	%     If one or more replicas equivocate, then there exist
+	%     views $\podView{\client_1}{\round_1}$ and $\podView{\client_2}{\round_2}$, for some clients $\client_1,\client_2$ and rounds $\round_1, \round_2$ such that $\identify{\podView{\client_1}{\round_1},\podView{\client_2}{\round_2}} \rightarrow \cheaters$ outputs a non-empty set $\cheaters$ of equivocating replicas. If a safety property is violated, $\cheaters$ contains at least $\beta+1$ replicas who have caused the violation.
+	% \end{enumerate}
+
+
+
+
+
+
+
+
+
+In the remarks below, we observe that \podtm monotonicity implies a number of useful properties about the monotonicity of past perfection and the values $\rmin,\rmax,\rconf$ associated to a transaction in the \podtm.
+
+\begin{remark}[Confirmation monotonicity]\label{rem:confstick}
+	Properties 2 and 3 of \podtm monotonicity imply that  for any honest client $\client$ and rounds $\round_1, \round_2 > \round_1$,
+	if $\tx \in \podView{\client}{\round_1}$ and $\tx.\rconf \neq \bot$, then $\tx \in \podView{\client}{\round_2}$ and $\tx.\rconf \neq \bot$.
+\end{remark}
+
+%\begin{remark}[Past-perfection Monotonicity]
+%	Property 1 of \podtm monotonicity imply that the past-perfect round obtained by honest clients can only grow.
+%	That is, for any honest client \client and rounds $\round_1, \round_2 \geq \round_1$,
+%	it holds that $\podView{\client}{\round_2}.\rperf \geq \podView{\client}{\round_1}.\rperf$.
+%\end{remark}
+
+% \begin{remark}[Strong confirmation-bounds monotonicity]
+% 	Properties 2 and 3 of \podtm monotonicity imply that if an honest client computes $\rmin$ and $\rmax$ for \tx in round $\round_1$, then the same client will later obtain $\rmin'$ and $\rmax'$ for \tx in round $\round_2 > \round_1$ such that $\rmin' \geq \rmin$ and $\rmax' \leq \rmax$.
+% 	% \oa{What is the difference between this and the \emph{confirmation-bounds monotonicity}?}
+% \end{remark}
+
+\begin{remark}
+	Observe that the \emph{confirmation monotonicity} property in Remark~\ref{rem:confstick} is a specific version of a more general \emph{common subset} property, which would demand the condition for any two honest clients $\client_1, \client_2$.
+	%We provide such a property in \Cref{sec:pod-with-propagation}.
+	% \Cref{const:pod-core} satisfies the \emph{confirmation monotonicity} property.
+	% \emph{ Confirmation monotonicity for honest transactions after $X$:}
+	% For any honest clients $\client_1$, $\client_2$ and rounds $\round_1, \round_2 > \round_1 + X$,
+	% and for any transaction \tx written by an honest client,
+	% if $\tx \in \podView{\client_1}{\round_1}$ and $\tx.\rconf \neq \bot$, then $\tx \in \podView{\client_2}{\round_2}$ and $\tx.\rconf \neq \bot$.
+\end{remark}

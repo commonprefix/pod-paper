@@ -1,0 +1,279 @@
+\section{Security of Protocol \podtm-core under a Continuum of Byzantine and Omission faults}\label{app:pod-security}
+In order to prove Theorem~\ref{thm:pod-security} and establish the security of Protocol \podtm-core shown Construction~\ref{const:pod-core}, we first prove some useful intermediate results. We remind that $n = \alpha + \beta + \gamma$, where $n$ denotes the total number of replicas, $\beta$ denotes the number of Byzantine replicas, \gamma denotes the number of omission-faulty replicas in an execution, and \alpha denotes the number of replicas required to confirm a transaction.
+
+\begin{lemma}[The values for minimum, maximum and \confirmed rounds]\label{lem:assign-min-max}
+	Regarding \Cref{alg:client-statistics}, we have the following.
+	Assume we keep all received timestamps for a transaction \tx ($n$ values in total) in a structure \txVotes, filling in a special  value ($0$  or $\infty$) for missing votes, sorted in increasing order.
+	Assume \mrt is also sorted in increasing order of timestamps.
+	\begin{enumerate}
+		\item \opMinPossibleTs{} returns the timestamp at index $\lfloor \alpha / 2 \rfloor - \beta$ of \txVotes.
+		\item \opMaxPossibleTs{} returns the timestamp at index $n - \alpha + \lfloor \alpha / 2 \rfloor + \beta$ of \txVotes.
+		\item \opMinPossibleTsForNewTx{} returns the timestamp at index $\lfloor \alpha / 2 \rfloor - \beta$ of \mrt.
+	\end{enumerate}
+\end{lemma}
+\begin{proof}
+	Functions \opMinPossibleTs{} and \opMinPossibleTsForNewTx{} prepend \beta times the $0$ value in the beginning of the list and return the median of the first \alpha values, hence they return the timestamp at index $\lfloor \alpha / 2 \rfloor - \beta$.
+	Function \opMaxPossibleTs{} appends \beta times the $\infty$ value at the end of the list and returns the median of the last \alpha values of that list, that is, it ignores the first $n - \alpha  + \beta$ values and returns the timestamp at index $n - \alpha  + \beta + \lfloor \alpha / 2 \rfloor$.
+\end{proof}
+
+\begin{lemma}[\rperf bounded by honest timestamp]\label{lem:rperf-value-of-honest}
+	Assuming $n \geq 5 \beta + 3 \gamma + 1$ (equiv., $\alpha \geq 4\beta + 2 \gamma + 1$),
+	% if $\opValid{\Pod, \cert} = \true$ for some pod data structure \Pod and auxiliary data $\cert = (\ppcert, \{\txcerti{i}\}_{i=0}^m)$,
+	for a valid pod \Pod with auxiliary data $\cert = (\ppcert, \alltxcert)$,
+	there exists some honest replica $\rep_j$, such that the most-recent timestamp \mrt from $\rep_j$ included in $\ppcert$ satisfies $\mrt \leq \Pod.\rperf$.
+\end{lemma}
+\begin{proof}
+	Since $\opValid{\Pod, \cert} = \true$, the past-perfect round $\Pod.\rperf$ is the value returned by \opMinPossibleTsForNewTx{} of \Cref{alg:client-statistics}.
+	From \Cref{lem:assign-min-max} we have that \rperf is the timestamp at index $\lfloor \alpha / 2 \rfloor - \beta$ of sorted \mrt.
+	The condition $\alpha \geq 4\beta + 2 \gamma + 1$ implies that $\beta + \gamma \leq \lfloor \alpha / 2 \rfloor - \beta$,
+	hence the number of not honest replicas ($\beta + \gamma$) cannot fill all positions between $0$ and $\lfloor \alpha / 2 \rfloor - \beta$,
+	hence at least one of the indexes between $0$ and $\lfloor \alpha / 2 \rfloor - \beta$ (inclusive) will
+	contain the timestamp created and sent by an honest replica.
+\end{proof}
+% \begin{lemma}\label{lemma:number-votes-in-cert}
+	%     For a $\Pod.\rperf$, we have that
+	%     \begin{enumerate}
+		%         \item
+		%         \item If some transaction $\tx \in \Pod$ is assigned $\rmax \neq \infty$ as the maximum round,
+		%         then \Pod contains votes on \tx from at least $n - \lfloor \alpha / 2 \rfloor - 1$ honest replicas with a timestamp $\tsp \leq \rmax$.
+		%         \item There are at most $\lceil \alpha / 2 \rceil - \beta - 1$ replicas for which the most-recent timestamp satisfies  $\mrt < \rperf$,
+		%         and at least $n - \lceil \alpha / 2 \rceil + \beta + 1$ replicas from which a vote with timestamp $\tsp \geq \Pod.\rperf$ is included in \Pod.
+		%     \end{enumerate}
+	% \end{lemma}
+% \begin{proof}
+	%     \begin{enumerate}
+		%         \item
+		%         \item From \Cref{lem:assign-min-max}, the list with all returned timestamps contains $n - \alpha  + \beta + \lceil \alpha / 2 \rceil - 1$ elements smaller or equal to \rmax,
+		%         and, since $\rmax \neq \infty$, at least $n - \alpha  + \lceil \alpha / 2 \rceil - 1 = n - \lfloor \alpha / 2 \rfloor - 1$
+		%         of them are timestamps returned by honest parties.
+		%         \oa{TODO: The equivalent of this is $2f$. We would ideally like it to be $2f+1$. Check again.}
+		%         \item It follows from \Cref{lem:assign-min-max}, as \rperf is the ($\lceil \alpha / 2 \rceil - \beta$)-th smallest value in \mrt.
+		%     \end{enumerate}
+	% \end{proof}
+
+\noindent
+
+We now recall Theorem~\ref{thm:pod-security}, which we prove through a series of lemmas.
+
+\begin{customthm}{\ref{thm:pod-security}}[\podtm-core security]
+	Assume that the network is partially synchronous with actual network delay $\delta$, that \beta is the number of Byzantine replicas, \gamma the number of omission-faulty replicas, $\alpha = n - \beta - \gamma$ the confirmation threshold, and $n \geq 5 \beta + 3 \gamma + 1$ the total number of replicas. Protocol \podtm-core (\Cref{const:pod-core}), instantiated with a EUF-CMA secure signature scheme, the \opValid{} function shown in \Cref{alg:pod-core-valid}, and the \identify{} function described in \Cref{alg:identify}, is a responsive secure \podtm (\Cref{def:podsec}) with Confirmation within $\parConf = 2 \delta$, Past-perfection within $\parPerf = \delta$ and  \beta-accountable safety (\Cref{def:accountable-safety}), \ewnp.
+\end{customthm}
+\begin{proof}
+	The proof follows from Lemmas~\ref{lem:pod-confirmation}--\ref{lem:pod-accountable-safety}, presented and proven in the remainder of this section.
+\end{proof}
+
+\begin{lemma}[Confirmation within $\parConf$]\label{lem:pod-confirmation}
+	For the conditions stated in \Cref{thm:pod-security}, \Cref{const:pod-core} satisfies the \emph{confirmation within $\parConf$} property (\Cref{def:podsec}) for $\parConf = 2 \delta$.
+\end{lemma}
+\begin{proof}
+	Assume an honest client \client calls \opwrite{\tx} at round \round.
+	It sends a message \msgwrite{\tx} to all replicas at round \round (line~\ref{line:send-write-tx}).
+	An honest replica receives this by round $\round + \delta$ and sends a \msgrecord{} message back to all connected clients (line~\ref{line:send-vote}).
+	An honest client $\client'$ receives the vote by round $\round + 2\delta$.
+	As are at least \alpha honest (not Byzantine and not omission-faulty) replicas, $\client'$ receives at least \alpha such votes, hence the condition in line~\ref{line:confirm-tx-begin} is satisfied and $\client'$ observes \tx as \confirmed.
+\end{proof}
+
+\begin{lemma}[Past-perfection within $\parPerf$]\label{lem:past-perfection-liveness}
+	For the conditions stated in \Cref{thm:pod-security}, \Cref{const:pod-core} satisfies the \emph{past-perfection within $\parPerf$} property (\Cref{def:podsec}) for $\parPerf = \delta$.
+\end{lemma}
+\begin{proof}
+	Assume an honest client \client at round \round has view $\podView{c}{\round}$.
+	From \Cref{lem:rperf-value-of-honest}, there exists some honest replica $\rep_j$, such that the most-recent timestamp $\mrt[\rep_j]$ that $\rep_j$ has sent to \client satisfies $\podView{c}{\round}.\rperf \geq \mrt[\rep_j]$.
+	The honest replica $\rep_j$ sends at least one heartbeat or vote message per round (line~\ref{line:rep-send-vote-heartbeat}), which arrives within $\delta$ rounds, and an honest client updates $\mrt[\rep_j]$ when it receives the heartbeat or vote message.
+	Hence, \client will have $\mrt[\rep_j] \geq \round - \delta$.
+	All together, $\podView{c}{\round}.\rperf \geq \round - \delta$.
+\end{proof}
+
+% \begin{lemma}[Confirmation stickiness]
+	%     \Cref{const:pod-core} satisfies the \emph{confirmation stickiness} property.
+	% \end{lemma}
+% \begin{proof}
+	%     It follows from the fact that clients in \Cref{const:pod-core} are \emph{stateful} and operation \opread{} (lines~\ref{line:read-begin}--\ref{line:read-end}) operates on local state.
+	%     If \opread{} returns a set of transaction \transactions which contains a \confirmed transaction \tx, then \transactions will contain this \tx as confirmed in any subsequent call to \opread{}.
+	%     % This implies that \tx got assigned an $\rconf \neq \bot$ in line~\ref{line:assign-median}, which implies the condition in line~\ref{line:confirm-tx-begin} was at some point true. As the structure \tsps is persisted across calls to \opread{}, any subsequent \opread{} will return \tx as \confirmed.
+	% \end{proof}
+\begin{lemma}[Past-perfection safety]\label{lem:pod-pp-safety}
+	For the conditions stated in \Cref{thm:pod-security}, \Cref{const:pod-core} satisfies the \emph{past-perfection} safety property (\Cref{def:podsec}), except with negligible probability.
+\end{lemma}
+\begin{proof}
+	Assume the adversary outputs valid $(\Pod_1, \cert_1)$ and $(\Pod_2, \cert_2)$ that violate the property,
+	i.e., there exists a transaction $\tx$ such that $(\tx, \rmin^1, \rmax^1, \rconf^1) \not\in \Pod_1.\txSet$ and $(\tx, \rmin^2, \rmax^2, \rconf^2) \in \Pod_2.\txSet$ and $\rconf^2 \neq \bot$ and $\rconf^2 < \Pod_1.\rperf$.
+	Let $\cert_1 = (\ppcert^1, \alltxcert^1)$ and $\cert_2 = (\ppcert^2, \alltxcert^2)$.
+
+	% Assume an honest client $\client$ at round $\round > 0$ reads the \podtm and obtains $(\txSet, \rperf, \ppcert)$.
+	% such that $\tx \not \in \txSet$, for some $\tx \in \zo^*$.
+	% Let $\allreps_1$ be the set of replicas $\rep_i$ for which $\client$ stores at round $\round$ an $\mrt_i \geq \rperf$.
+	Let $\allreps_1$ be the set of replicas $\rep_i$ for which $\ppcert^1$ contains a vote with timestamp $\mrt_i \geq \Pod_1.\rperf$.
+	From \Cref{lem:assign-min-max} (\rperf is computed as the timestamp at index $\lfloor \alpha / 2 \rfloor - \beta$ of sorted \mrt), and since $\Pod_1$ is valid, there exist at least $n - \lfloor a/2 \rfloor + \beta$ such replicas, hence $|\allreps_1| \geq n - \lfloor a/2 \rfloor + \beta$.
+	% Observe that no replica in $\allreps_1$ has sent to $\client$ a vote on \tx (because $\tx \not \in \txSet$),
+	For each $\rep_i \in \allreps_1$, the transaction certificates $\alltxcert^1$ contain the whole log of $\rep_i$ with timestamps up to $\mrt_i$ (\cref{line:client-check-sn} of \Cref{alg:client-1} does not allow gaps in the sequence number of the received votes).
+	That is, for each $\rep_i \in \allreps_1$ the certificates $\alltxcert^1$ contains votes
+	%
+	\begin{equation}\label{eq:proof-pp-set1}
+		(\tx_{i,1}, \tsp_{i,1}, 1, \sigma_{i,1}, \rep_i), (\tx_{i,2}, \tsp_{i,2}, 2, \sigma_{i,2}, \rep_i), \ldots, (\tx_{i,k_i}, \tsp_{i, k_i}, k_i, \sigma_{i, k_i}, \rep_i),
+	\end{equation}
+	%
+	where $k_i$ is the smallest sequence number for which $\tsp_{i, k_i} \geq \Pod_1.\rperf$, and $\tx_{i,j}$ are transactions.
+
+	% Assume another client $\client'$ at some round $\round' > 0$ outputs a \podtm $(\txSet', \cdot, \cdot)$,
+	% such that $(\tx, \cdot, \cdot, \rconf, \txcert) \in \txSet'$ and $\rconf < \rperf$ (where \rperf is the past-perfect round observed by $\client$).
+	Since \tx is confirmed in $\Pod_2$ and $\rconf^2 < \Pod_1.\rperf$, the transaction certificate $\alltxcert^2[\tx]$ must contain votes on \tx with timestamp $\tsp_i$, such that $\tsp_i < \Pod_1.\rperf$, from at least $\lfloor \alpha/2 \rfloor + 1$ replicas.
+	Let $\allreps_2$ be the set of these replicas, with $|\allreps_2| \geq \lfloor \alpha/2 \rfloor + 1$.
+	For each $\rep_i \in \allreps_2$, certificate $\alltxcert^2[\tx]$ contains a vote
+	%
+	\begin{equation}\label{eq:proof-pp-vote2}
+		(\tx, \tsp_i, \sn_i, \sigma_i, \rep_i),
+	\end{equation}
+	%
+	such that $\tsp_i < \Pod_1.\rperf$.
+	We will show that, if at most \beta replicas are Byzantine, this leads to a contradiction.
+	% Observe that an honest replica cannot be in both $\allreps_1$ and $\allreps_2$, because that would imply that it omitted sending a vote to \client.
+	Observe from the cardinality of $\allreps_1$ and $\allreps_2$ that at least $\beta + 1$ replicas must be in both sets, hence at least one honest replica must be in both sets (except if the adversary forges a signature under the public key of an honest replica, which happens with negligible probability).
+	For that replica, the vote in (\ref{eq:proof-pp-vote2}) must be one of the votes in (\ref{eq:proof-pp-set1}) since $\tsp_i < \Pod_1.\rperf$ and $\tsp_{i, m_i} \geq \Pod_1.\rperf$.
+	Hence, one of the $\tx_{i,j}$ in (\ref{eq:proof-pp-set1}) is \tx, and $\tx$ must appear in $\Pod_1.\txSet$, a contradiction.
+\end{proof}
+
+% \begin{lemma}[Past-perfection monotonicity]
+	%     \Cref{const:pod-core} satisfies the \emph{past-perfection monotonicity} property.
+	% \end{lemma}
+% \begin{proof}
+	%     It follows from the fact that clients in \Cref{const:pod-core} use a stateful construction,
+	%     and the fact that the most-recent timestamps can only increase.
+	% \end{proof}
+
+\begin{lemma}[Confirmation bounds]\label{lem:bounds-safety}
+	For the conditions stated in \Cref{thm:pod-security}, \Cref{const:pod-core} satisfies the \emph{confirmation bounds} safety property (\Cref{def:podsec}), except with negligible probability.
+\end{lemma}
+\begin{proof}
+	Assume the adversary outputs $(\Pod_1, \cert_1)$ and $(\Pod_2, \cert_2)$, such that $\opValid{\Pod_1, \cert_1} \land \opValid{\Pod_2, \cert_2}$ and there exists a transaction $\tx$ such that $(\tx, \rmin^1, \rmax^1, \rconf^1) \in \Pod_1.\txSet$ and $(\tx, \rmin^2, \rmax^2, \rconf^2) \in \Pod_2.\txSet$.
+	Let $\cert_1 = (\ppcert^1, \alltxcert^1)$ and $\cert_2 = (\ppcert^2, \alltxcert^2)$, and $\txcert^1 = \alltxcert^1[\tx]$ and $\txcert^2 = \alltxcert^2[\tx]$.
+
+	First assume $\rmin^1 > \rconf^2$.
+	% Assume client $\client_1$ computes \rmin and client $\client_2$ computes $\rconf < \rmin$ for \tx.
+	From \Cref{lem:assign-min-max}, $\txcert^1$ can include at most $\lfloor \alpha / 2 \rfloor - \beta$ votes with a timestamp for \tx smaller than $\rmin^1$.
+	Allowing up to \beta replicas to equivocate, the adversary can obtain at most $\lfloor \alpha / 2 \rfloor$ votes on \tx with a timestamp smaller than $\rmin^1$, except if it forges a digital signature from an honest replica, which happens with negligible probability.
+	In order to compute $\rconf^2 < \rmin^1$ for \tx, the adversary must include in $\txcert^2$ timestamps smaller than $\rmin^1$ from at least $\lfloor \alpha / 2 \rfloor + 1$ replicas.
+
+	Now assume $\rmax^1 < \rconf^2$.
+	% For \rmax, assume $\client_1$ computes \rmax and $\client_2$ computes $\rconf > \rmax$.
+	Using \Cref{lem:assign-min-max}, $\txcert^1$ can include at most $\alpha - \lfloor \alpha / 2 \rfloor - \beta - 1$ votes with a timestamp larger than \rmax,
+	hence the number of honest replicas, from which a vote with timestamp larger than \rmax can be included in $\txcert^2$ is at most $\alpha - \lfloor \alpha / 2 \rfloor - 1$ (since \beta are malicious).
+	If \alpha is odd, this upper bound becomes $\alpha - \lfloor \alpha / 2 \rfloor -1 = \lfloor \alpha / 2 \rfloor $, while at least
+	$\lfloor \alpha / 2 \rfloor + 1$ votes larger that \rmax are required to compute a median larger than \rmax,
+	and if \alpha is even, then $\alpha - \lfloor \alpha / 2 \rfloor - 1 = \lfloor \alpha / 2 \rfloor - 1$, while at least
+	$\lfloor \alpha / 2 \rfloor$ votes larger that \rmax are required to compute a median larger than \rmax.
+	(we remind that \cref{alg:client-statistics} returns as median the value at position $\lfloor \alpha /  2 \rfloor$).
+	In either case, we get a contradiction, except for the negligible probability that the adversary forges a digital signature from an honest replica.
+\end{proof}
+
+\input{pod-core-pseudocode/pod-identify.tex}
+
+\begin{lemma}[\beta-Accountable safety]\label{lem:pod-accountable-safety}
+	% The accountability properties are satisfied using
+	% \identify{}, for the \emph{accountability from the  view of a single party} property,
+	% and \identify{$\podView{\client_1}{\round_1}$, $\podView{\client_2}{\round_2}$}, for the \emph{accountability from the  view of two replicas} properties.
+	For the conditions stated in \Cref{thm:pod-security}, \Cref{const:pod-core} satisfies accountable safety (\Cref{def:accountable-safety}) with resilience \beta, except with negligible probability.
+\end{lemma}
+\begin{proof}
+	We show that \identify{} (\Cref{alg:identify}) satisfies the \emph{correctness} and \emph{no-framing} properties required by \Cref{def:accountable-safety}, in three steps.
+
+	\textbf{1.}
+	If the past-perfection safety property (\Cref{def:podsec}) is violated, there exists a partial transcript \tran, such that \identify{} on input \tran returns at least \beta replicas.
+
+	\noindent
+	\emph{Proof:}
+	% Assume an honest client $\client$ at round $\round > 0$ reads the \podtm and obtains $(\txSet, \rperf, \ppcert)$, such that $\tx \not \in \txSet$, for some $\tx \in \zo^*$,
+	% and another client $\client'$ outputs a \podtm $(\txSet', \cdot, \cdot)$,
+	% such that $(\tx, \cdot, \cdot, \rconf, \txcert) \in \txSet'$ and $\rconf < \rperf$,
+	% thereby violating the past-perfection property for \tx.
+	We resume the proof of \Cref{lem:pod-pp-safety}. There, we constructed sets $\allreps_1, \allreps_2$,
+	% Using the sets $\allreps_1, \allreps_2$ as constructed in the proof of \Cref{lem:pod-pp-safety},
+	such that $\allreps_1 \cap \allreps_2 \geq \beta + 1$.
+	% replicas that have sent to \client a vote on \emph{some} transaction with timestamp greater or equal to $\rperf$, have not sent to \client a vote on \tx, and have sent to $\client'$ a vote on \tx with timestamp less than $\rperf$.
+	We saw that, for each $\rep_i \in \allreps_1 \cap \allreps_2$, certificates $\alltxcert^1$ contain the replica log shown in (\ref{eq:proof-pp-set1}), containing all votes with timestamp up to $\tsp_{i, k_i} \geq \rperf$.
+	In a similar logic, certificates $\alltxcert^2$ contains the following $k'_i$ votes from $\rep_i$ (possibly more, but we care for the votes up to transaction \tx)
+	%
+	\begin{equation}\label{eq:proof-pp-set2}
+		(\tx'_{i,1}, \tsp'_{i,1}, 1, \sigma'_{i,1}, \rep_i), (\tx'_{i,2}, \tsp'_{i,2}, 2, \sigma'_{i,2}, \rep_i), \ldots, (\tx'_{i, k'_i}, \tsp'_{i, k'_i}, k'_i, \sigma'_{i, k'_i}, \rep_i),
+		%(\tx'_{i,m'_i-1}, \tsp'_{i, m'_i-1}, m'_i - 1, \sigma'_{i, m'_i-1}, \rep_i),
+	\end{equation}
+	%
+	with $\tx'_{i, k'_i} = \tx$ and $\tsp'_{i, k'_i} < \rperf$.
+	Obviously, for an honest $\rep_i$, the replica logs of (\ref{eq:proof-pp-set1}) and (\ref{eq:proof-pp-set2}) must be identical, i.e., $\tx_{i,j} = \tx'_{i,j}$ and $\tsp_{i,j} = \tsp'_{i,j}$, for $j \in [ 1, \min(k_i, k'_i)]$.
+	We will show that they differ in at least one sequence number.
+	If $k_i > k'_i$, then the replica logs differ at sequence number $k'_i$, because the transaction $\tx_{i, k_i}$ in (\ref{eq:proof-pp-set1}) cannot be \tx, as $\Pod_1.\txSet$ does not contain \tx, and $\tx'_{i, k'_i} = \tx$.
+	If $k_i \leq k'_i$, the log of (\ref{eq:proof-pp-set1}) should be identical with the first $k_i$ positions of the log of (\ref{eq:proof-pp-set2}), which would imply that $\tsp_{i, k_i} = \tsp'_{i, k_i}$ and, since a valid pod only accepts non-decreasing timestamps, $\tsp'_{i, k_i} \leq \tsp'_{i, k'_i}$, and all together $\tsp_{i, k_i} \leq \tsp'_{i, k'_i}$.
+	This is impossible, because $\tsp_{i, k_i} > \rperf$ and $\tsp'_{i, k'_i} < \rperf$.
+	Hence, the two logs will contain a different timestamp for some sequence number in $[1, k'_i]$.
+
+	Summarizing, we have shown for at least $\beta + 1$ replicas $\rep_i \in \allreps_1 \cap \allreps_2$, certificate $\cert_1$ and $\cert_2$ contain votes $(\tx_1, \tsp_1, \sn_1, \sig_1, \rep_i)$ and $(\tx_2, \tsp_2, \sn_2, \sig_2, \rep_i)$, such that $\sn_1 = \sn_2$ but $\tx_1 \neq \tx_2$ or $\tsp_1 \neq \tsp_2$.
+	On input a set $\tran$ that contains these votes, function \identify{\tran} returns $\allreps_1 \cap \allreps_2$.
+
+	\textbf{2.}
+	If the confirmation-bounds property (\Cref{def:podsec}) is violated, there exists a partial transcript \tran, such that \Cref{alg:identify} on input \tran returns at least \beta replicas.
+
+	\noindent
+	\emph{Proof:}
+	% Assume a client $\client_1$ outputs some \rmin and client $\client_2$ outputs $\rconf < \rmin$ for \tx.
+	As in the proof of \Cref{lem:bounds-safety}, assume the adversary outputs $(\Pod_1, \cert_1)$ and $(\Pod_2, \cert_2)$, such that $\opValid{\Pod_1, \cert_1} \land \opValid{\Pod_2, \cert_2}$ and there exists a transaction $\tx$ such that $(\tx, \rmin^1, \rmax^1, \rconf^1) \in \Pod_1.\txSet$, $(\tx, \rmin^2, \rmax^2, \rconf^2) \in \Pod_2.\txSet$, and $\rmin^1 > \rconf^2 \lor \rmax^1 < \rconf^2$
+	Let $\cert_1 = (\ppcert^1, \alltxcert^1)$ and $\cert_2 = (\ppcert^2, \alltxcert^2)$, and $\txcert^1 = \alltxcert^1[\tx]$ and $\txcert^2 = \alltxcert^2[\tx]$.
+	% Let's look at the timestamps in \txVotesMin when $\client_1$ computes \rmin (function \opMinPossibleTs{} in \Cref{alg:client-statistics}.)
+
+	Let's take the case $\rmin^1 > \rconf^2$ first. From \Cref{lem:assign-min-max} (\txVotesMin contains at least $n - \lfloor \alpha / 2 \rfloor + \beta$ timestamps \tsp such that $\tsp \geq \rmin$), there is a set $\allreps_1$ with at least $n - \lfloor \alpha / 2 \rfloor + \beta$ replicas $\rep_i$, from each of which $\alltxcert^1$ contains votes
+	%
+	\begin{equation}\label{eq:proof-bounds-set1}
+		(\tx_{i,1}, \tsp_{i,1}, 1, \sigma_{i,1}, \rep_i), (\tx_{i,2}, \tsp_{i,2}, 2, \sigma_{i,2}, \rep_i),
+		\ldots, (\tx_{i,m_i}, \tsp_{i, m_i}, m_i, \sigma_{i, m_i}, \rep_i),
+	\end{equation}
+	%
+	up to some sequence number $m_i$, such that $\tsp_{i, m_i} \geq \rmin$ and either $\tx_{i,m_i} = \tx$ (i.e., a vote from $\rep_i$ on \tx is included in $\txcert^1$, and we only consider the votes up to this one), or  $\tx_{i, j} \neq \tx, \forall j \leq m_i$ (i.e., a vote from $\rep_i$ on \tx is not included in $\txcert^1$, in which case \txVotesMin contains the timestamp $\rep_i$ has sent on $\tx_{i,m_i} \neq \tx$).
+
+	Now, for a valid $\Pod_2$ to output $\rconf^2 < \rmin^1$, certificate $\txcert^2$ must contain timestamps smaller than \rmin from at least $\lfloor \alpha / 2 \rfloor + 1$ replicas. Call this set $\allreps_2$. From each of these replicas, certificates $\alltxcert^2$ must contain votes
+	%
+	\begin{equation}\label{eq:proof-bounds-set2}
+		(\tx'_{i,1}, \tsp'_{i,1}, 1, \sigma'_{i,1}, \rep_i), (\tx'_{i,2}, \tsp'_{i,2}, 2, \sigma'_{i,2}, \rep_i), \ldots, (\tx, \tsp'_{i, m'_i}, m'_i, \sigma'_{i, m'_i}, \rep_i),
+		%(\tx'_{i,\ell_i-1}, \tsp'_{i, \ell_i-1}, \ell_i - 1, \sigma'_{i, \ell_i-1}, \rep_i),
+	\end{equation}
+	%
+	considering only votes up to \tx, for which $\tsp'_{i, m'_i} < \rmin$.
+
+	By counting arguments there are at least $\beta + 1$ replicas in $\allreps_1 \cap \allreps_2$.
+	For each one, we make the following argument. Since $\tsp_{i, m_i} \geq \rmin$ and $\tsp'_{i, m'_i} < \rmin$, we get $\tsp'_{i, m'_i} < \tsp_{i, m_i}$, and it must be the case that $m'_i < m_i$ (otherwise, the two logs will differ at a smaller sequence number, similar to the previous case).
+	But in this case the two logs differ at sequence number $m'_i$, i.e., $\tx_{i,m'_i} \neq \tx'_{i,m'_i} = \tx$.
+	This is because the log of (\ref{eq:proof-bounds-set1}) either does not contain \tx, or contains it at sequence number $m_i > m'_i$, in which case it must contain a different transaction at sequence number $m'_i$.
+	On input a set $\tran$ that contains all votes for replicas in $\allreps_1$ and $\allreps_2$ votes, function \identify{\tran} returns $\allreps_1 \cap \allreps_2$.
+
+	For the case $\rmax^1 < \rconf^2$, similar arguments apply.
+	In order to compute $\rconf^2 > \rmax^1$, certificate $\txcert^2$ must contain at least $\lfloor \alpha / 2 \rfloor$ or $\lfloor \alpha / 2 \rfloor + 1$ (depending on the parity of $\alpha$) votes on \tx with timestamp larger than \rmax.
+	On the other hand, from \Cref{lem:assign-min-max} certificate $\txcert^1$ contains at least $n - \alpha + \lfloor \alpha / 2 \rfloor + \beta$ votes on \tx with a timestamp smaller or equal than \rmax.
+	As before, the replicas in the intersection of these two sets have sent conflicting votes for some sequence numbers.
+
+	\textbf{3.}
+	The \identify{} function never outputs honest replicas.
+
+	\noindent
+	\emph{Proof:} The function only adds a replica to \cheaters if given as input two vote messages from that replica, where the same sequence number is assigned to two different votes (line~\ref{line:identify-cheat} on \Cref{alg:identify}). An honest replica always increments \nextsn after each vote it inserts to its log (line~\ref{line:rep-increment-sn} on \Cref{alg:pod-core-replica}), hence, the adversary can only construct such verifying votes by forging a signature under the public key of an honest replica, which happens with negligible probability.
+\end{proof}
+
+
+\begin{theorem}[$\parTemp$-timeliness for honest transactions]
+	\sloppy{
+		For the conditions stated in \Cref{thm:pod-security}, \Cref{const:pod-core} satisfies \emph{\parTemp-timeliness for honest transactions} (\Cref{def:pod-timely}), for $\parTemp = \delta$, except with negligible probability.
+	}
+\end{theorem}
+\begin{proof}
+	Assume an honest client \client calls \opwrite{\tx} at round \round.
+	It sends a message \msgwrite{\tx} to all replicas at round \round (line~\ref{line:send-write-tx}).
+	An honest replica receives this by round $\round + \delta$ and assigns its current round, which lies in the interval $(\round, \round + \delta]$, as the timestamp (line~\ref{line:rep-assign-tsp}).
+	% \begin{enumerate}
+		\textbf{1.} Regarding \rconf, when a client calls \opreadall{} (after the point in time when \tx is confirmed, which happens after \parConf rounds from the property of \emph{confirmation within \parConf}), it receives votes on \tx from at least \alpha replicas. All honest replicas have sent timestamps for \tx in the interval $ (r, \round + \delta]$. Since \rconf is computed as the median of \alpha timestamps and $\alpha \geq 4\beta + 2\gamma + 1$,\footnote{For this argument on \rconf, $\alpha \geq 2\beta + 2\gamma + 1$ would also be enough. The condition $\alpha \geq 4\beta + 2\gamma + 1$ is necessary in order for \rmin and \rmax of a confirmed transaction to be timestamps returned by honest replicas.}
+		we get $\lfloor \alpha / 2 \rfloor > 2\beta + \gamma$,
+		hence \rconf will be a timestamp returned by an honest (not Byzantine and not omitting messages) replica, or it will lie between timestamps returned by honest replicas. Hence, $\rconf \in (r, \round + \delta]$.
+
+		\textbf{2.} Regarding \rmax, from \Cref{lem:assign-min-max} (\rmax is the timestamp at index $n - \alpha + \lfloor \alpha / 2 \rfloor + \beta$ of \txVotes), there areat least $\alpha - \lfloor \alpha/2 \rfloor - \beta + 1 > \lfloor \alpha/2 \rfloor - \beta$ timestamps in \txVotes that bound \rmax from above. Since $\alpha \geq 4\beta + 2 \gamma + 1$, we get that $\lfloor \alpha / 2 \rfloor > 2\beta + \gamma$, hence $\lfloor \alpha / 2 \rfloor - \beta > \beta + \gamma$, hence at least one of those timestamps that bound \rmax is returned by an honest replica, hence  $\rmax \in (r, \round + \delta]$.
+
+		\textbf{3.} Similarly, from \Cref{lem:assign-min-max} (\rmin is the timestamp at index $\lfloor \alpha / 2 \rfloor - \beta$ of \txVotes), there are at least $\lfloor \alpha / 2 \rfloor - \beta + 1$ timestamps in \txVotes that bound \rmin from below, and, since $\alpha \geq 4\beta + 2 \gamma + 1$, we get $\lfloor \alpha / 2 \rfloor - \beta + 1 > \beta + \gamma$.
+		Hence, \rmin is a timestamp returned by an honest replica, hence $\rmin \in (r, \round + \delta]$ and $\rmax - \rmin < \parTemp$.
+	% \end{enumerate}
+	The proofs hold except with negligible probability, as the adversary can forge a signature under the public key of an honest replica with a negligible probability.
+\end{proof}

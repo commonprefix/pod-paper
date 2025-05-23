@@ -1,0 +1,57 @@
+\begin{algorithm}[t!]
+    \caption{Protocol \podtm-core: Client code, part 2. Functions to compute trace values and past-perfect round. The code is parametrized with \beta, the number of Byzantine replicas expected by the client, and \gamma, the number of omission-faulty replicas, and $\alpha = n - \beta - \gamma$ for $n$ replicas.
+    }
+    \label{alg:client-statistics}
+    \begin{algorithmic}[1]
+        \Function{$\opComputeTxSet{\tsps, \mrt}$}{}
+            \State{$\allTxs \gets \emptyset$}
+            % \State{$\allTxs \gets \emptyset ;\; \ppcert \gets [ \, ]$}
+            \For{$\tx \in \tsps.\opKeys{}$}     \Comment{loop over all received transactions} \label{line:loop-over-txs}
+                \State{$\rmin \gets \opMinPossibleTs{\tsps[\tx], \mrt} \;;\; \rmax \gets \opMaxPossibleTs{\tsps[\tx]}$} \label{line:upd-rmin-begin}\label{line:upd-rmax-begin}
+                \State{$\rconf \gets \bot \;;\; \txVotes \gets [ \, ]$} \label{line:unconfirmed-tx}
+                % \State{$\rconf \gets \bot ;\; \txcert \leftarrow [ \, ] ;\; \txVotes = [ \, ]$} \label{line:unconfirmed-tx}
+                \If{$| \tsps[\tx].\opKeys{} | \geq \alpha$}\label{line:confirm-tx-begin}
+                    \State{\textbf{for} $\rep_j \in \tsps[\tx].\opKeys{}$ \textbf{do:} $\txVotes \leftarrow \txVotes \concat \tsps[\tx][\rep_j]$}
+                    \Let{\rconf}{\opMed{\txVotes}}\label{line:assign-median}
+                \EndIf\label{line:confirm-tx-end}
+                \Let{\allTxs}{\allTxs \cup \{ (\tx, \rmin, \rmax, \rconf) \} }
+                % \Let{\allTxs}{\allTxs \cup \{ (\tx, \rmin, \rmax, \rconf, \txcert) \} }
+            \EndFor
+            \return \allTxs
+        \EndFunction
+        \Statex
+        \vspace{-2mm}
+        \Function{\opMinPossibleTs{\txVotesMin, \mrt}}{}
+        \For{$\rep_j \in \allreps$}\label{line:assing-missing-min-begin}
+            \State{\textbf{if} $\txVotesMin[\rep_j] = \bot$ \textbf{then} $\txVotesMin \gets \txVotesMin \concat [\mrt[\rep_j]]$} \label{line:fill-vote-lts}
+        \EndFor\label{line:assing-missing-min-end}
+        \State{\text{sort \txVotesMin in increasing order of timestamps}}
+        \Let{\txVotesMin}{ [ 0, \stackrel{\beta \text{ times}}{\ldots}, 0 ] \concat \txVotesMin} \Comment{omitted altogether if $\beta=0$}\label{line:prepend-zero}
+        \return \opMed{$\txVotesMin[:\alpha]$}
+    \EndFunction
+    \Statex
+    \vspace{-2mm}
+    \Function{\opMaxPossibleTs{\txVotesMax}}{}\label{line:fn-compute-max-begin}
+        \For{$\rep_j \in \allreps$}\label{line:assing-missing-max-begin}
+            \State{\textbf{if} $\txVotesMax[\rep_j] = \bot$ \textbf{then} $\txVotesMax \gets \txVotesMax \concat [\infty]$} \label{line:fill-vote-inf}
+        \EndFor\label{line:assing-missing-max-end}
+        \State{\text{sort \txVotesMax in increasing order of timestamps}}
+        \Let{\txVotesMax}{\txVotesMax \concat [ \infty, \stackrel{\beta \text{ times}}{\ldots}, \infty ]}\Comment{omitted altogether if $\beta=0$} \label{line:apend-infty}
+        \return \opMed{$\txVotesMax[-\alpha:]$}
+    \EndFunction\label{line:fn-compute-max-end}
+    \Statex
+    \vspace{-2mm}
+    \Function{\opMinPossibleTsForNewTx{\mrt}}{}\label{line:fn-compute-pp-begin}
+        \State{\text{sort \mrt in increasing order}}
+        \Let{\mrt}{ [ 0, \stackrel{\beta \text{ times}}{\ldots}, 0 ] \concat \mrt}\Comment{omitted altogether if $\beta=0$}
+        \return \opMed{$\mrt[:\alpha]$}
+    \EndFunction\label{line:fn-compute-pp-end}
+    \vspace{-2mm}
+    \Statex
+    \State{\textbf{function} \opMed{Y} \textbf{: return} $Y[\lfloor \,|Y|/2 \, \rfloor]$}
+    % \Function{\opMed{Y}}{}\label{}
+    %     \return $Y[\lfloor \,|Y|/2 \, \rfloor]$
+    % \EndFunction
+\end{algorithmic}
+\end{algorithm}
+

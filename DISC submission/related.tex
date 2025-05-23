@@ -1,0 +1,44 @@
+\section{Related work}\label{app:related}
+
+\dotparagraph{Consensusless payments}
+Recent literature has recognized the redundancy of consensus for implementing asset-transfer systems~\cite{DBLP:journals/dc/GuerraouiKMPS22}.
+Such schemes have been described in theory~\cite{DBLP:journals/corr/abs-1909-10926, DBLP:conf/dsn/CollinsGKKMPPST20} and deployed in the real world~\cite{DBLP:conf/aft/BaudetDS20}.
+The insight is that total transaction order is not required in the case that each account is controlled by one client.
+Instead, a partial order is sufficient, ensuring that, if transactions $\tx_1$ and $\tx_2$ are created by the same client, then every party outputs them in the same order.
+This requirement was first formalized by Guerraoui~\etal~\cite{DBLP:journals/dc/GuerraouiKMPS22} as the \emph{source-order property}. Notice that this is weaker than the FIFO property, as it allows the output order to be different from the order in which the sender sent the transactions.
+
+These protocols have a similar architecture: transactions are created and broadcast by clients, who either drive the whole broadcast instance~\cite{DBLP:conf/aft/BaudetDS20} or outsource it to trusted replicas~\cite{DBLP:conf/dsn/CollinsGKKMPPST20}.
+The Guerraoui~\etal~\cite{DBLP:journals/dc/GuerraouiKMPS22} and FastPay~\cite{DBLP:conf/aft/BaudetDS20} constructions satisfy the source-order property by having clients use sequence numbers for their transactions, and by having replicas sign at most one transaction from a client with a given sequence number.
+ABC~\cite{DBLP:journals/corr/abs-1909-10926} satisfies the source-order property by having clients reference all precious transaction in a DAG (including its own last transaction), and, in case of transactions spending the same output, by having replicas sign only one of them.
+Hence, a cheating client might lose liveness~\cite{DBLP:conf/aft/BaudetDS20,DBLP:journals/dc/GuerraouiKMPS22,DBLP:journals/corr/abs-1909-10926}, but equivocating is not possible.
+
+% FastPay~\cite{DBLP:conf/aft/BaudetDS20} reaches throughput of $140K$ tps with a latency of approx. 200 ms in a WAN deployment with four replicas.
+% ABC~\cite{DBLP:journals/corr/abs-1909-10926} supports proof-of-stake, but provides no implementation or benchmarks.
+% Astro~\cite{DBLP:conf/dsn/CollinsGKKMPPST20}, similarly, is based on reliable broadcast~\cite{DBLP:journals/iandc/Bracha87}.
+% All these protocols are tailor-made for payment systems or for specific blockchains and cannot be used for general distributed applications.
+
+\dotparagraph{Auctions}
+% A \podtm does not offer the source-order property.
+% It is possible that a \opread{} operation returns $\tx_1$ before $\tx_2$,
+% while another returns $\tx_2$ before $\tx_1$, even for $\tx_1$, $\tx_2$ written by the same honest client, as the \confirmed round of a transaction is allowed to wiggle.
+% Hence, \podtm cannot be directly used for payments.
+% However, payments can be implemented on top of \podtm by including a client sequence number in the user transaction,
+% similar to how previous works~\cite{DBLP:conf/aft/BaudetDS20,DBLP:journals/dc/GuerraouiKMPS22} achieve the source-order property.
+% On the other hand, 
+A \podtm primitive offers a \emph{past-perfection} property:
+a \opread{} operation outputs a timestamp \rperf, and it is \emph{guaranteed}
+that the output of \opread{} contains all transactions that can ever be confirmed with a timestamp smaller than \rperf in the view of any reading client, regardless of the network conditions.
+This implies that reading clients (such as an auctioneer) cannot claim not having received a transaction when reading the \podtm, as this is detectable by any other client who reads the \podtm.
+To the best of our knowledge, previous work in the consensusless literature has not considered or achieved this property,
+hence it cannot readily support applications like auctions.
+
+\dotparagraph{Parallel consensusless payments}
+Bazzi and Piergiovanni~\cite{PODC:BazPie24} observe two limitations of consensusless protocols: As they employ sequence numbers and deterministic broadcast,
+clients can only submit one transaction at a time, and they must obtain signatures by at least $2f+1$ replicas on each transaction,
+where $f$ is the maximum number of tolerated failures.
+The authors propose a new type of probabilistic Byzantine quorum systems~\cite{DBLP:journals/iandc/MalkhiRWW01},
+achieving lower \emph{and} upper bounds in the intersection among quorums.
+Based on this, their protocol allows a user to initiate multiple concurrent payments, called \emph{fractional payments},
+each transferring amount $b / s$ from they balance $b$, where $s$ is a constant,
+and each requiring a signature from less than $f$ replicas.
+Their solution, however, requires $n > 8f$ and a large $n$, for the probabilistic analysis to hold.

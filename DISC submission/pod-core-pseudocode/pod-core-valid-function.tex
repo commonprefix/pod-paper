@@ -1,0 +1,23 @@
+\begin{algorithm}[]
+    \caption{Function \opValid{\Pod, \cert} for \podtm-core. Code for a \emph{verifier}, which can be a pod client not communicating with the pod replicas.}
+    \label{alg:pod-core-valid}
+    \begin{algorithmic}[1]
+        \State{\textbf{State:} Same as in \Cref{alg:client-1}, includes $\{\rep_1, \ldots, \rep_n\}$, \tsps, \mrt.}
+        \Statex
+        \vspace{-1mm}
+        \Function{\opValid{\Pod, \cert}}{}
+            \Let{(\ppcert, \alltxcert) }{\cert} \label{line:valid-extract-cert} \Comment{$\ppcert: \rep \rightarrow \vote, \; \alltxcert: \tx \rightarrow \txcert, \; \txcert: \rep \rightarrow \vote$}
+            \State{\opInitClient{}} \Comment{shown in \Cref{alg:client-1}}
+            \Let{\allVotes}{\bigcup_{\tx \in \alltxcert} \left(\alltxcert[\tx].\opValues{}\right)}
+            \For{$(\tx, \tsp, \sn, \sig, \rep_j) \in \allVotes$ \textbf{in increasing order of} $\sn$}
+                \State{\textbf{require} \opProcessVote{$\tx, \tsp, \sn, \sig, \rep_j$}} \Comment{shown in \Cref{alg:client-1}, updates \tsps, \mrt}
+            \EndFor
+            \State{\textbf{require} $\Pod.\txSet = \opComputeTxSet{\tsps, \mrt}$} \label{line:valid-check-begin} \Comment{shown in \Cref{alg:client-statistics}}
+            \State{\textbf{require} $\Pod.\rperf = \opMinPossibleTsForNewTx{\mrt}$} \label{line:valid-check-end} \Comment{shown in \Cref{alg:client-statistics}}
+            \For{$(\tx, \tsp, \sn, \sig, \rep_j) \in \ppcert.\opValues{}$} \label{line:valid-check-ppcert-begin}
+                \State{\textbf{require} $(\tx, \tsp, \sn, \sig, \rep_j) \in \allVotes$}
+                \State{\textbf{require} $\sn = \op{max}_{\sn'}((\cdot, \cdot, \sn', \cdot, \rep_j) \in \allVotes)$}
+            \EndFor\label{line:valid-check-ppcert-end}
+        \EndFunction
+    \end{algorithmic}
+    \end{algorithm}

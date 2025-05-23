@@ -1,0 +1,175 @@
+\section{Protocol \podtm-core}\label{sec:pod-core-const}
+% The construction employs the \emph{client gossip} technique. It could be the case that
+% clients perform read operations on the replicas and observe that some of them miss some data, such as client transactions.
+% Client gossip consists in having clients re-broadcast these missing transactions.
+% This technique ensures the client that a round becomes past perfect,
+% hence the client has a finalized view of the system: a transaction that was re-broadcast will
+% eventually reach all honest replicas, hence it cannot get removed from the system in the future.
+% \oa{TODO: Mention that we can use client gossip, gossiping, or relayers to achieve totality. We denote by $u$ the (average) time it takes
+% in synchrony for a transaction to reach all replicas. For example, $u = 2 \Delta$ using client gossip or relayers.}
+
+Before we present protocol \podtm-core, we define basic concepts and structures.
+
+\begin{definition}[Vote]
+    A \emph{vote} is a tuple $\vote = (\tx, \tsp, \sn, \sig, \rep)$, where \tx is a transaction, \tsp is a timestamp, \sn is a sequence number, \sig is a signature, and  \rep is a replica.
+    A vote is \emph{valid} if \sig is a valid signature on message $m = (\tx, \tsp, \sn)$ with respect to the public key $\pk_\rep$ of replica \rep.
+\end{definition}
+
+% \begin{definition}[\Confirmed transaction]\label{def:rec-tx}
+%     A transaction $\tx$ becomes \emph{\confirmed} for a client when that client obtains at least $\alpha$ votes from different replicas on $\tx$, where $\alpha$ is the confirmation threshold.
+% \end{definition}
+
+% \begin{definition}[Transaction certificate]
+%     A \emph{transaction certificate} \txcert is a collection of votes $(\tx, \tsp_j, \sigma_j, \rep_j)$ on \tx from different replicas $\rep_j$,
+%     such that the values $\rmin, \rmax, \rconf$ associated with \tx can be verified from \txcert.
+%     The \emph{size} of the certificate $|\txcert|$ is the numbere of votes it contains.
+% \end{definition}
+
+% Given a certificate \txcert for \tx, we use $\txcert.\tx$, $\txcert.\rmin$, $\txcert.\rmax$, and $\txcert.\rconf$ to refer to \tx and the values associated with it.
+
+\begin{remark}[Sequence numbers, session identifiers, streaming algorithm]
+    We require that clients process votes from each replica in the same order, namely in order of increasing timestamps. For this, a replica maintains a \emph{sequence number} which it increments and includes every time it assigns a timestamp to a transaction.
+    We also assume that all messages between clients and replicas are concatenated with a \emph{session identifier (sid)}, which is unique for each concurrent execution of the protocol and included in all messages signed by the replicas.
+    Finalyy, the client protocol we show in \Cref{const:pod-core} is \emph{streaming}, that is, clients maintain a connection to the replicas, and \emph{stateful}, that is, they persist their state (received transactions and votes) across all invocations of \opwrite{} and \opreadall{}.
+\end{remark}
+
+
+\textbf{Past-perfection and transaction certificates:}
+In \podtm-core, clients store certain votes which they output upon \opreadall{} as part of the \emph{certificate} \cert, which will be used to prove the validity of the returned \Pod and for accountability in case of safety violations.
+Specifically, \cert consists of two parts, $\cert = (\ppcert, \alltxcert)$: the \emph{past-perfection certificate} \ppcert contains, for each replica, the vote on the most recent timestamp received from that replica. It is implemented as a map from replicas to votes, i.e., $\ppcert: \rep \rightarrow \vote$.
+The \emph{transaction certificate} \alltxcert contains, for each transaction, all valid votes received for it.
+It is implemented as a map from transactions to a map from replicas to votes, i.e., $\alltxcert: \tx \rightarrow \txcert$ and $\txcert: \rep \rightarrow \vote$.
+We remark that $\ppcert$ can be derived by taking the union of certificates $\txcert$ for all transactions and keeping the most recent vote for each replica, but we define $\ppcert$ explicitly for clarity and readability.
+% \vspace{-5mm}
+
+% \dotparagraph{Pseudocode notation}
+
+
+\begin{protocol}[\podtm-core]\label{const:pod-core}
+     Protocol \podtm-core is executed by $n$ replicas that follow the steps of \Cref{alg:pod-core-replica} and an unknown number of clients that follow the steps of Algorithms \ref{alg:client-1} and \ref{alg:client-statistics} with parameters \beta, \gamma and \alpha, where \beta denotes the number of Byzantine replicas and \gamma the number of omission-faulty replicas (in addition to the Byzantine) and $\alpha = n - \beta - \gamma$ is the number of honest replicas.
+    % and discuss its main points, first for the client and then for the replica construction, in the following paragraphs.
+    % The construction tolerates up to \beta Byzantine replicas and requires $\alpha \geq 4 \beta + 1$, i.e., $n \geq 5 \beta + 1$.
+    % It achieves \emph{accountable safety} (see \Cref{sec:accountable-safety}) with an \identify{} function described in \Cref{alg:identify}.
+    % In the remainder of this section we discuss how \podtm-core achieves its properties.
+\end{protocol}
+
+
+\subsection{Replica code}
+We show the pseudocode for the replica code in \Cref{alg:pod-core-replica}.
+
+\input{pod-core-pseudocode/pod-core-replica-code}
+% \vspace{-5mm}
+
+The state of a replica (lines \ref{line:rep-state-begin}--\ref{line:rep-state-end} of \Cref{alg:pod-core-replica}) contains \repLog, a log implemented as a sequence of votes $(\tx, \tsp, \sn, \sigma, \rep_i)$ created by the replica, where \tsp is the timestamp assigned by the replica to \tx, \sn is a sequence number, and \sig is its signature.
+% A functionality \opTime{} allows the replica to determine the current round number.
+When the replica receives a \msgconnect{} message from a client \client, it appends \client to its set of connected clients and sends to \client all entries in \repLog (lines \ref{line:rep-receive-connect-begin}--\ref{line:rep-receive-connect-end}).
+
+When it receives  \msgwrite{\tx}, a replica first checks whether it has already seen \tx, in which case the message is ignored. Otherwise, it assigns \tx a timestamp \tsp equal its local round number and the next available sequence number \sn, and signs the message $(\tx, \tsp, \sn)$ (\cref{line:rep-assign-tsp}).
+Honest replicas use incremental sequence numbers for each transaction, implying that a vote with a larger sequence number than a second vote will have a larger or equal timestamp than the second.
+The replica appends $(\tx, \tsp, \sn, \sig)$ to \repLog, and sends it via a \msgrecord{(\tx, \tsp, \sn, \sig, \rep_i)} message to all connected clients (\cref{line:send-vote}).
+
+\textbf{Heartbeat messages:}
+As we will see, clients maintain a \emph{most-recent timestamp} variable $\mrt[\rep_j]$ for each replica. This is updated every time they receive a vote and is crucial for computing the past-perfect round \rperf.
+To make sure that clients update $\mrt[\rep_j]$ even when $\rep_j$ does not have any new transactions in a round,
+we have replicas send a vote on a dummy \heartBeat transaction the end of each round (lines~\ref{line:rep-send-heartbeat-begin}--\ref{line:rep-send-heartbeat-end}).
+An obvious practical optimization is to send \heartBeat only for rounds when no other transactions were sent.
+When received by a client, a \heartBeat is handled as a vote (i.e., it triggers \cref{line:receive-vote-begin} in \Cref{alg:client-1}). To avoid being considered a duplicate vote by clients (see \cref{line:check-dup-tsp} in \Cref{alg:client-1}), replicas append the round number to the \heartBeat transaction.
+
+
+\subsection{Client code}
+
+\input{pod-core-pseudocode/pod-core-client-code-1}
+\input{pod-core-pseudocode/pod-core-client-code-statistics}
+
+% \dotparagraph{Initialization}
+The state of a client is shown in \Cref{alg:client-1} in lines~\ref{line:client-state-begin}--\ref{line:client-state-end}.
+% The state contains the identifiers and public keys of all replicas, \mrt, \nextsn, \tsps, \Pod, \ppcert, and \txcert.
+Variable \tsps is a map from transactions \tx to a map from replicas \rep to timestamps \tsp.
+The state gets initialized in lines~\ref{line:client-init-start}--\ref{line:client-init-end}.
+At initialization the client also sends a \msgconnect{} message to each replica, which initiates a streaming connection from the replica to the client.
+
+%\vspace{-3mm}
+% \dotparagraph{}
+\textbf{Receiving votes:} A client maintains a connection to each replica and receives votes through \msgrecord{(\tx, \tsp, \sn, \sig, \rep_j)} messages (lines~\ref{line:receive-vote-begin}--\ref{line:receive-vote-end}).
+When a vote is received from replica $\rep_j$, the client first verifies the signature \sig under $\rep_j$'s public key (\cref{line:client-verify-sig-begin}). If invalid, the vote is ignored.
+Then the client verifies that the vote contains the next sequence number it expects to receive from replica $\rep_j$ (\cref{line:client-check-sn}). If this is not the case, the vote is \emph{backlogged} and given again to the client at a later point (the backlogging functionality is not shown in the pseudocode).
+The client then checks the vote against previous votes received from $\rep_j$.
+First, \tsp must be greater or equal to $\mrt[\rep_j]$, the most recent timestamp returned by replica $\rep_j$ (\cref{line:check-old-ts}).
+Second, the replica must have not previously sent a different timestamp for \tx (\cref{line:check-dup-tsp}).
+% except if \tx is a \heartBeat (as checked on \cref{line:client-heartbeat-return}).
+If both checks pass, the client updates $\mrt[\rep_j]$ and $\tsps[\tx][\rep_j]$ (\cref{line:rec-tsp}) with \tsp.
+The client also updates \ppcert and \alltxcert (\cref{line:upd-ppcert,line:client-store-vote-txcert}) for each valid vote.
+
+If any of these checks fail, the client ignores the vote, since both of these cases constitute \emph{accountable} faults: In the first case, the client can use the message $\msgrecord{(\tx, \tsp, \sn, \sig, \rep_j)}$ and the vote it received when it updated $\mrt[\rep_j]$ to prove that $\rep_j$ has misbehaved. In the second case, it can use $\msgrecord{(\tx, \tsp, \sn, \sig, \rep_j)}$ and the previous vote it has received for \tx.
+%A practical implementation of \podtm can use these facts.
+The \identify{} function we show in \Cref{alg:identify} can detect such misbehavior
+%  However, in this paper we formalize accountability conditioned on safety being violated (\Cref{def:accountable-safety}), hence we do not further explore this.
+
+
+
+%\vspace{-5mm}
+
+%\vspace{-7mm}
+% \dotparagraph{Writing to and reading from \podtm}
+\textbf{Writing to and reading from \podtm:} Clients interact with a \podtm using the \opwrite{\tx} and \opreadall{} functions.
+In order to write a transaction \tx, a client sends \msgwrite{\tx} to each replica (lines \ref{line:write-tx-begin}--\ref{line:write-tx-end}).
+Since the construction is stateful and streaming, the client state contains at all times the latest view the client has of the \podtm. Hence, \opreadall{} operates on the local state (lines \ref{line:read-begin}--\ref{line:read-end}).
+It returns all the transactions the client has received so far and their traces, and the current past-perfect round \rperf.
+We will show the details of $\opComputeTxSet{}$ in \Cref{alg:client-statistics}.
+%The associated values \rmin, \rmax, \rconf, \txcert for each transaction, the past-perfect round \rperf, and its auxiliary data \ppcert are computed in the following way.
+% The client uses the \opMinPossibleTs{} and \opMaxPossibleTs{} functions to compute \rmin (\cref{line:upd-rmin-begin}) and \rmax (\cref{line:upd-rmax-begin}).
+% They respectively return the minimum and maximum round number that \emph{any client} can ever \emph{confirm} \tx with.
+% For \rperf (\cref{line:upd-rperf-begin}) the client uses \opMinPossibleTsForNewTx{}, which returns the earliest round that \emph{any} client can ever assign to a transaction \emph{not yet seen} by the client.
+As per the pod interface, \opreadall{} also returns auxiliary data \cert, which in the implementation of \podtm-core has two parts: the past-perfection certificate \ppcert and a list of transaction certificates \txcert (\cref{line:client-construct-cert}).
+Note that $\tsps.\opKeys{}$ on \cref{line:loop-over-txs} returns all entries in \tsps.
+
+\textbf{Computing the trace values and the past-perfect round:}
+In \Cref{alg:client-statistics} we show function \opComputeTxSet{}, used to compute the current transaction set from the timestamps \tsps received so far.
+A transaction becomes \confirmed when the client receives \alpha votes for \tx from different replicas (line~\ref{line:confirm-tx-begin}), in which case \rconf is the median of all received timestamps (line~\ref{line:assign-median}).
+The computation of $\rmin, \rmax$, and \rperf is done using the functions \opMinPossibleTs{}, \opMaxPossibleTs{}, and \opMinPossibleTsForNewTx{}, respectively.
+Function \opMinPossibleTs{} gets as input the timestamps \txVotesMin from each replica on \tx and the most recent timestamps \mrt from the replicas. It fills a missing timestamp from replica $\rep_j$ with $\mrt[\rep_j]$ (\cref{line:fill-vote-lts}),
+the minimum timestamp that can ever be  accepted from $\rep_j$ (smaller values will not pass the check in \cref{line:check-old-ts} of \Cref{alg:client-1}).
+It then prepends \beta times the $0$ value (\cref{line:prepend-zero}), pessimistically assuming that up to $\beta$ replicas will try to bias \tx by sending a timestamp $0$ to other clients.
+% which only happens if replicas may be Byzantine, i.e., if $\beta > 0$.
+It then returns the median of the \alpha smallest timestamps, which, again pessimistically, are the smallest timestamps another client may use to confirm \tx.
+Function \opMaxPossibleTs{} is analogous, filling a missing vote with $\infty$ (\cref{line:fill-vote-inf})
+and appending the $\infty$ value (\cref{line:apend-infty}), the worst-case timestamp that Byzantine replicas may send to other clients.
+% and returning the median of the \alpha largest timestamps.
+Finally, \opMinPossibleTsForNewTx{} is similar to \opMinPossibleTs{} but it operates on timestamps \mrt, instead of votes on a specific transaction. Hence, since an honest client will not accept a timestamp smaller than \mrt on any future transaction (\cref{line:check-old-ts} of \Cref{alg:client-1}), the returned value bounds from below the \confirmed round of \emph{any} transaction \emph{not yet seen}.
+
+% \dotparagraph{Detecting misbehavior}
+% Clients can detect certain cases of replica misbehavior. When this happens (lines \ref{line:raise-old-tsp}, \ref{line:raise-dup-tsp}, \ref{line:raise-old-heartbeat}) the client stops processing the current vote and triggers an \opAccountableFault{\tran} event, where \tran is a set of messages that can prove the misbehavior through the \identify{} function.
+
+
+\subsection{Validation function}
+The validation function \opValid{} allows a pod client, which is not necessarily communicating with the pod replicas, to verify that a given pod data structure \Pod satisfies the security properties of \podtm (\Cref{def:podsec}).
+The function \opValid{} for \podtm-core is shown in \Cref{sec:pod-core-valid}.
+The idea is to have the verifier repeat the logic of an honest client:
+it is initialized in the same way as a pod client, goes through the votes found in certificates \alltxcert, and checks that the resulting values match the ones in \Pod.
+
+\subsection{Analysis}
+
+\begin{theorem}[\podtm-core security]\label{thm:pod-security}
+    Assume that the network is partially synchronous with actual network delay $\delta$, that \beta is the number of Byzantine replicas, \gamma the number of omission-faulty replicas, $\alpha = n - \beta - \gamma$ the confirmation threshold, and $n \geq 5 \beta + 3 \gamma + 1$ the total number of replicas. Protocol \podtm-core (\Cref{const:pod-core}), instantiated with a EUF-CMA secure signature scheme, the \opValid{} function shown in \Cref{alg:pod-core-valid}, and the \identify{} function described in \Cref{alg:identify}, is a responsive secure \podtm (\Cref{def:podsec}) with Confirmation within $\parConf = 2 \delta$, Past-perfection within $\parPerf = \delta$ and  \beta-accountable safety (\Cref{def:accountable-safety}), \ewnp.
+\end{theorem}
+\begin{proof}
+    Shown in Appendix~\ref{app:pod-security}.
+\end{proof}
+
+% \begin{theorem}[\podtm-core security under Omission faults]\label{thm:pod-security-crash}
+% 	Assuming that the network is asynchronous with actual network delay $\delta$ (and unknown delay upper bound), $\beta=0$ is the number of Byzantine replicas, $\gamma$ is the number of omission-faulty replicas and $n \geq 3 \gamma + 1$ is the total number of replicas.
+%     Protocol \podtm-core (\Cref{const:pod-core}) instantiated with a EUF-CMA secure signature scheme is a responsive secure \podtm (\Cref{def:podsec}) with Confirmation within $\parConf = 2 \delta$ and Past-perfection within $\parPerf = \delta$, \ewnp.
+% \end{theorem}
+% \begin{proof}
+%     Shown in Appendix~\ref{app:pod-security-crash}.
+% \end{proof}
+
+% \begin{remark}
+% 	Notice that \Cref{thm:pod-security-crash} does not capture \beta-accountable safety (\Cref{def:accountable-safety}) because there are no safety violations when all corrupted replicas are only omission-faulty.
+% \end{remark}
+% \subsection{Optimizations}
+% \begin{enumerate}
+%     \item Validators with secondaries to handle read operations.
+%     \item Use committees. We can support a weighted model by having replicas lock some stake in a slow-moving chain (such as Ethereum) and rotate the committee every, say, 24 hours.
+%     \item We can use `helper' nodes, that know the addresses of all replicas, so that clients can use them, instead of having to contact all replicas.
+% \end{enumerate}

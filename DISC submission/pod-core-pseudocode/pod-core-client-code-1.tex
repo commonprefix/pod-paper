@@ -1,0 +1,87 @@
+\begin{algorithm}[ht!]
+    \caption{Protocol \podtm-core: Code for a client, part 1.}
+    \label{alg:client-1}
+    \begin{algorithmic}[1]
+        % \State{\textbf{State:}}
+            \State{$\allreps = \{ \rep_1, \ldots, \rep_n \} ;\; \{\pk_1, \ldots, \pk_n \}$ } \Comment{\text{All replicas and their public keys}}\label{line:client-state-begin}
+            % \State{$\pk_1, \ldots, \pk_n$ }       \Comment{\text{The public keys of the replicas}
+            % \State{$\mrt = [ \mrt_1, \ldots, \mrt_n ] $}   \Comment{The most recent timestamp returned by each replica}
+            \State{$\mrt : \rep \rightarrow \tsp$}   \Comment{The most recent timestamp returned by each replica}
+            \State{$\nextsn : \rep \rightarrow \sn$}   \Comment{The next sequence number expected by each replica}
+            \State{$\tsps: \tx \rightarrow ( \rep \rightarrow \tsp)$}     \Comment{Timestamp received for each tx from each replica}
+            % \State{$\Pod = (\allTxs, \rperf)$}                   \Comment{The \podtm observed by the client so far}
+            \State{$\ppcert: \rep \rightarrow \vote$} \Comment{Past-perfection certificate: most recent vote from each replica}
+            \State{$\alltxcert: \tx \rightarrow \txcert$, where $\txcert: \rep \rightarrow \vote$} \label{line:client-state-end} \Comment{Transaction certificates}
+        % \State{$\sigs: \tx \rightarrow ( \rep \rightarrow \sig)$}     \Comment{The signature received for each transaction from each replica}
+        %\rmin \in \BN, \rmax \in \BN \cup \{\infty\}, \rconf \in \BN \cup \{\bot\}, \txcert \in \zo^*
+        \Statex
+        \vspace{-2mm}
+        \On{\opInit{}} \label{line:client-init-start} \Comment{Called once when the client is initialized}
+            \State{\opInitClient{}}
+            \State{\textbf{for} $\rep_j \in \allreps$ \textbf{do:} $\msgconnect{} \rightarrow \rep_j$}\label{line:client-init-mrt-ppcert}
+        \EndOn\label{line:client-init-end}
+        \Statex
+        \vspace{-2mm}
+        \On{$\msgrecord{(\tx, \tsp, \sn, \sig, \rep_j)} \leftarrow \rep_j$} \label{line:receive-vote-begin} \Comment{Called when client receives a vote}
+            \If{\opProcessVote{$\tx, \tsp, \sn, \sig, \rep_j$}}
+                \Let{\ppcert[\rep_j]}{(\tx, \tsp, \sn, \sig, \rep_j)} \label{line:upd-ppcert}   \Comment{Keep most recent vote from $\rep_j$ in \ppcert}
+                \Let{\alltxcert[\tx][\rep_j]}{(\tx, \tsp, \sn, \sig, \rep_j)} \label{line:client-store-vote-txcert}  \Comment{Keep all votes for \tx in \txcert}
+            \EndIf
+        \EndOn\label{line:receive-vote-end}
+
+        \Statex
+        \vspace{-2mm}
+        \Function{$\opwrite{\tx}$}{} \label{line:write-tx-begin} \Comment{Part of \podtm interface, used to write a new transaction}
+            \State{\textbf{for} $\rep_j \in \allreps$ \textbf{do:} $\msgwrite{\tx} \rightarrow \rep_j$} \label{line:send-write-tx}
+        \EndFunction\label{line:write-tx-end}
+        \Statex
+        \vspace{-2mm}
+        \Function{$\opreadall{}$}{} \label{line:read-begin} \Comment{Part of \podtm interface, used to read all transactions}
+            \Let{\txSet}{\opComputeTxSet{\tsps, \mrt}}  \Comment{Shown in \Cref{alg:client-statistics}}
+            \Let{\rperf}{\opMinPossibleTsForNewTx{\mrt}}\label{line:upd-rperf-begin} \Comment{Shown in \Cref{alg:client-statistics}}
+            \State{\Pod $\leftarrow$ (\txSet, \rperf) ;\; \cert $\leftarrow$ (\ppcert, \alltxcert) ;\; \textbf{return}$(\Pod, \cert)$} \label{line:client-construct-cert}\label{line:return-pod}
+        \EndFunction\label{line:read-end}
+        \Statex
+        \vspace{-2mm}
+        \Function{\opInitClient{}}{}
+            % \State{$\allreps \gets \{ \rep_1, \ldots, \rep_n  \} ;\; (\pk_1, \ldots, \pk_n) \gets (k_1, \ldots, k_n) $}
+            % \Let{ \mrt }{ [ 0, \ldots, 0 ]}
+            % \Let{\rperf}{0}
+            \State{$\tsps\leftarrow\emptyset ;\; \alltxcert\leftarrow\emptyset$} \label{line:txs-map-init}
+            % \State{\textbf{for} $\rep_j \in \allreps: $}
+            % \State{$\sigs \leftarrow \emptyset$}
+            % \Let{\tsps}{\emptyset}
+            % \Let{\sigs}{\emptyset}
+            % \Let{\transactions}{\emptyset}
+            \State{\textbf{for} $\rep_j \in \allreps$ \textbf{do:} $\mrt[\rep_j] \leftarrow 0 \;;\; \ppcert[\rep_j] \leftarrow \bot \;;\; \nextsn[\rep_j] = -1 $}\label{line:client-init-mrt-ppcert}
+                % \State{$\msgconnect{} \rightarrow \rep_j$}
+
+        \EndFunction
+        \Statex
+        \vspace{-2mm}
+        \Function{\opProcessVote{$\tx, \tsp, \sn, \sig, \rep_j$}}{} \Comment{Validate vote and update local state}
+            \State{\textbf{require} \opVerify{$\pk_j, (\tx, \tsp, \sn), \sig$}} \label{line:client-verify-sig-begin}\Comment{Otherwise, vote is invalid}
+            \State{\textbf{require} $\sn = \nextsn[\rep_j]$} \label{line:client-check-sn}\Comment{Otherwise, vote cannot be processed yet}
+                % \State{\textbf{return}}     \Comment{Vote cannot be processed yet, backlog and try again}
+            % \EndIf\label{line:client-check-sn-end}
+            % \State{$\nextsn[\rep_j] \gets \nextsn[\rep_j] + 1$}
+            \State{\textbf{require} $\tsp \geq \mrt[\rep_j]$} \label{line:check-old-ts}\Comment{Otherwise, $\rep_j$ has sent old timestamp}
+                % \Let{\vote_1}{(\tx, \tsp, \sigma, \rep_j)}
+                % \Let{\vote_2}{\mrt[j].\opGetVote}
+                % \State{\textbf{trigger} \opAccountableFault{$[\vote_1, \vote_2]$}}
+                % \return \Comment{$\rep_j$ sent old timestamp}\label{line:raise-old-tsp}
+            % \EndIf\label{line:check-old-ts-end}
+            % \State{$\mrt[\rep_j] \leftarrow \tsp \; ; \; \ppcert[\rep_j] \leftarrow (\tx, \tsp, \sn, \sig, \rep_j)$} \label{line:upd-mrt} \label{line:upd-ppcert}
+            % \State{$\mrt[\rep_j] \gets \tsp$}
+            % \If{$\tx \neq \heartBeat$} \label{line:client-heartbeat-return}
+                \State{\textbf{require} $\tsps[\tx][\rep_j] = \bot$ \textbf{or} $\tsps[\tx][\rep_j] = \tsp$ } \label{line:check-dup-tsp}\Comment{Otherwise, vote is duplicate}
+            % \EndIf
+                % \Let{\vote_1}{(\tx, \tsp, \sigma, \rep_j)}
+                % \Let{\vote_2}{\tsps[\tx][\rep_j].\opGetVote}
+                % \State{\textbf{trigger} \opAccountableFault{$[\vote_1, \vote_2]$}}
+            %     \return \Comment{Dupl. timestamp} \label{line:raise-dup-tsp}
+            % \EndIf
+            \State{$\nextsn[\rep_j] \gets \nextsn[\rep_j] + 1 \;;\; \mrt[\rep_j] \gets \tsp \;;\; \tsps[\tx][\rep_j] \gets \tsp$} \label{line:rec-tsp}\label{line:upd-mrt}
+        \EndFunction
+    \end{algorithmic}
+    \end{algorithm}

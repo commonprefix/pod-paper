@@ -1,0 +1,233 @@
+\newtheorem{innercustomthm}{Theorem}
+\newenvironment{customthm}[1]
+{\renewcommand\theinnercustomthm{#1}\innercustomthm}
+{\endinnercustomthm}
+
+%Macro for mentioning the concept of pod ( trademarked :) )
+\newcommand{\podtm}{\textsf{pod}\xspace}
+\newcommand{\bidsettm}{\textsf{bidset}\xspace}
+\newcommand{\bidcert}{\ensuremath{C_\text{bid}}\xspace}
+
+
+\newcommand{\Ledger}{\mathbf{L}}
+\newcommand{\LState}{\mathsf{L}}
+\newcommand{\negl}{\textsf{negl}(\kappa)}
+\newcommand{\view}{\textsc{view}}
+\newcommand{\fullview}{\textsc{view}^{t,n}_{\Pi,\mathcal{A},\mathcal{Z}}}
+\newcommand{\validityattack}{\textsc{persistence}\textsc{-}\textsc{game}}
+\newcommand{\livenessattack}{\textsc{liveness}\textsc{-}\textsc{game}}
+\newcommand{\true}{\mathsf{true}}
+\newcommand{\false}{\mathsf{false}}
+\newcommand{\approxn}{\widetilde{n}}
+\DeclareMathOperator{\diff}{\textsf{diff}\,}
+\newcommand{\dexpand}[1]{#1_{\pm\Delta}}
+
+\newcommand{\concat}{\,\|\,}
+\newcommand{\eg}{\emph{e.g., }}
+
+\hyphenation{log-a-rith-mic}
+\hyphenation{unique-ly}
+\hyphenation{ex-tractabil-i-ty}
+
+\algnewcommand\algorithmicon{\textbf{upon}}
+\algblockdefx[ON]{On}{EndOn}[1]
+{\algorithmicon\ #1\ \algorithmicdo}
+{\algorithmicend\ \algorithmicon}
+
+\algnewcommand\waitcommand{\textbf{wait until }}
+\def\Wait#1{\State\waitcommand #1}
+
+\def\chain{\mathcal{C}}
+\DeclareMathOperator{\Ex}{\mathbb{E}}
+
+\newcommand{\getsrandomly}{\overset{\$}{\gets}}
+
+% Comments
+\newcommand{\oa}[1]{{\color{blue}{ #1 }}}
+\newcommand{\todo}[1]{{\color{red}{TODO: #1 }}}
+\newcommand{\bd}[1]{{\color{olive}{ #1 }}}
+\newcommand{\hue}[1]{\textcolor{brown}{#1}}
+\newcommand{\wip}[1]{{\textcolor{red}{TODO: #1}}}
+
+\newcommand{\BZ}{\ensuremath{\mathbb{Z}}\xspace}
+\newcommand{\CN}{\ensuremath{\mathbb{N}}\xspace}
+\newcommand{\BR}{\ensuremath{\mathbb{R}}\xspace}
+\newcommand{\CR}{\ensuremath{\mathcal{R}}\xspace}
+\newcommand{\CL}{\ensuremath{\mathcal{L}}\xspace}
+\newcommand{\CV}{\ensuremath{\mathcal{V}}\xspace}
+\newcommand{\CC}{\ensuremath{\mathcal{C}}\xspace}
+\newcommand{\BN}{\ensuremath{\mathbb{N}}\xspace}
+
+\newcommand{\ceil}[1]{\lceil #1 \rceil}
+
+
+%  pod
+\newcommand{\op}[1]{\textsl{#1}}
+\newcommand{\opwrite}[1]{\op{write}(#1)\xspace}
+\newcommand{\opwriteret}[1]{\op{write\_return}(#1)\xspace}
+\newcommand{\opwritedeps}[1]{\op{store}(#1)\xspace}
+\newcommand{\opread}[1]{\op{read}(#1)\xspace}
+\newcommand{\opreadall}[1]{\op{read}(#1)\xspace}
+\newcommand{\opreadallret}[1]{\op{read\_return}(#1)\xspace}
+\newcommand{\opgetdeps}[1]{\op{get\_deps}(#1)\xspace}
+\newcommand{\opbcast}[1]{\op{broadcast}(#1)\xspace}
+\newcommand{\opdel}[1]{\op{deliver}(#1)\xspace}
+\newcommand{\opSign}[1]{\op{Sign}(#1)\xspace}
+\newcommand{\opVerify}[1]{\op{Verify}(#1)\xspace}
+\newcommand{\opmin}[1]{\op{min}(#1)\xspace}
+\newcommand{\opmax}[1]{\op{max}(#1)\xspace}
+\newcommand{\opmed}[1]{\op{med}(#1)\xspace}
+\newcommand{\opdisperse}[1]{\op{disperse}(#1)\xspace}
+\newcommand{\opretrieve}[1]{\op{retrieve}(#1)\xspace}
+\newcommand{\opOnReceiveVote}[1]{\op{handleVote}(#1)\xspace}
+\newcommand{\opOnReceiveHeartBeat}[1]{\op{handleHeartBeat}(#1)\xspace}
+\newcommand{\opSendVote}[1]{\op{doVote}(#1)\xspace}
+\newcommand{\opMinPossibleTs}[1]{\op{minPossibleTs}(#1)\xspace}
+\newcommand{\opMaxPossibleTs}[1]{\op{maxPossibleTs}(#1)\xspace}
+\newcommand{\opMinPossibleTsForNewTx}[1]{\op{computePastPerfectRound}(#1)\xspace}
+\newcommand{\opMed}[1]{\op{median}(#1)\xspace}
+\newcommand{\opInit}[1]{\op{init}(#1)\xspace}
+\newcommand{\opTime}{\op{round()}\xspace}
+\newcommand{\opAppend}[1]{\op{append}(#1)\xspace}
+\newcommand{\opKeys}{\op{keys()}\xspace}
+\newcommand{\opValues}{\op{values()}\xspace}
+\newcommand{\opAccountableFault}[1]{\op{AccountableFault}(#1)\xspace}
+\newcommand{\opValid}[1]{\op{valid}(#1)\xspace}
+
+\newcommand{\operand}[1]{\textsf{#1}}
+\newcommand{\tx}{\operand{tx}\xspace}
+\newcommand{\deptx}{\operand{deptx}\xspace}
+\newcommand{\deptxid}{\operand{txid}\xspace}
+\newcommand{\txid}{\operand{txid}\xspace}
+\newcommand{\round}{\operand{r}\xspace}
+\newcommand{\client}{\operand{c}\xspace}
+\newcommand{\sk}{\operand{sk}\xspace}
+\newcommand{\pk}{\operand{pk}\xspace}
+
+\newcommand{\heartBeat}{\textsc{heartBeat}\xspace}
+
+\newcommand{\rexp}{\ensuremath{\round_\text{exp}}\xspace}
+\newcommand{\rconf}{\ensuremath{\round_\text{conf}}\xspace}
+\newcommand{\rmin}{\ensuremath{\round_\text{min}}\xspace}
+\newcommand{\rmax}{\ensuremath{\round_\text{max}}\xspace}
+\newcommand{\rinterval}{\ensuremath{[\rmin, \rmax]}\xspace}
+\newcommand{\rreported}{\ensuremath{\round_\text{rep}}\xspace}
+\newcommand{\rperf}{\ensuremath{\round_\text{perf}}\xspace}
+\newcommand{\rloc}{\ensuremath{\round_\text{loc}}\xspace}
+\newcommand{\txmiss}{\ensuremath{\txset_\text{miss}}\xspace}
+\newcommand{\txfinal}{\ensuremath{\txset_\text{final}}\xspace}
+\newcommand{\inclist}{\ensuremath{L}\xspace}
+\newcommand{\rep}{\ensuremath{R}\xspace}
+\newcommand{\allreps}{\CR}
+\newcommand{\allClients}{\CC}
+\newcommand{\allVotes}{{\operand{allVotes}\xspace}}
+\newcommand{\mrt}{\operand{mrt}\xspace}
+\newcommand{\repLog}{\operand{replicaLog}\xspace}
+\newcommand{\opGetVote}{\op{getVoteMsg()}\xspace}
+\newcommand{\vote}{\operand{vote}\xspace}
+\newcommand{\sendHeartBeat}{\operand{sendHeartBeat}\xspace}
+\newcommand{\transactions}{\operand{\wip{obsolete}}\xspace}
+\newcommand{\allTxs}{\operand{T}\xspace}
+\newcommand{\tsps}{\operand{tsps}\xspace}
+\newcommand{\sigs}{\operand{sigs}\xspace}
+\newcommand{\txVotesMin}{\operand{timestamps}\xspace}
+\newcommand{\txVotesMax}{\operand{timestamps}\xspace}
+\newcommand{\txVotesPerf}{\operand{timestamps}\xspace}
+\newcommand{\txVotes}{\operand{timestamps}\xspace}
+\newcommand{\certSize}{\ensuremath{c}\xspace}
+\newcommand{\tsp}{\operand{ts}\xspace}
+\newcommand{\opGetVotedReplicas}{\operand{votedReplicas}\xspace}
+\newcommand{\missingReplicas}{\operand{missingReplicas}\xspace}
+\newcommand{\opnext}{\operand{next\_message}\xspace}
+\newcommand{\nextmsg}{\operand{msg}\xspace}
+\newcommand{\state}{\operand{state}\xspace}
+\newcommand{\req}{\operand{request}\xspace}
+
+
+\newcommand{\replicas}{\ensuremath{R}\xspace}
+\newcommand{\cheaters}{\ensuremath{\tilde{\replicas}}\xspace}
+\newcommand{\identify}[1]{\ensuremath{\mathsf{identify}(#1)}\xspace}
+\newcommand{\identifySequencer}[1]{\ensuremath{\mathsf{identifySequencer}(#1)}\xspace}
+
+
+\newcommand{\user}{\operand{user}\xspace}
+\newcommand{\timestamp}{\operand{ts}\xspace}
+\newcommand{\txcert}{\ensuremath{C_\text{tx}}\xspace}
+\newcommand{\txcerti}[1]{\ensuremath{C_{\text{tx}_{#1}}}\xspace}
+\newcommand{\alltxcert}{\ensuremath{\mathbb{C}_\text{tx}}\xspace}
+\newcommand{\ppcert}{\ensuremath{C_\text{pp}}\xspace}
+\newcommand{\cert}{\ensuremath{C}\xspace}
+\newcommand{\txSet}{\operand{T}\xspace}
+\newcommand{\final}{\operand{f}\xspace}
+\newcommand{\parConf}{\ensuremath{u}\xspace}
+\newcommand{\parLive}{\ensuremath{v}\xspace}
+\newcommand{\parPerf}{\ensuremath{w}\xspace}
+\newcommand{\parTemp}{\ensuremath{\theta}\xspace}
+\newcommand{\parAuctionTerm}{\ensuremath{W}\xspace}
+\newcommand{\tProp}{\ensuremath{t_\text{prop}}\xspace}
+\newcommand{\parAgr}{\ensuremath{z}\xspace}
+\newcommand{\Pod}{\ensuremath{D}\xspace}
+\newcommand{\limbo}{\ensuremath{L}\xspace}
+\newcommand{\podView}[2]{\ensuremath{\Pod_{#2}^{#1}}\xspace}
+\newcommand{\tran}{\ensuremath{T}\xspace}
+
+\newcommand{\returns}{\ensuremath{\rightarrow}\xspace}
+\newcommand{\dotparagraph}[1]{\paragraph*{#1}}
+% \newcommand{\dotparagraph}[1]{\paragraph*{\textbf{#1.}}}
+\newcommand{\confirmed}{confirmed\xspace}
+\newcommand{\Confirmed}{Confirmed\xspace}
+\newcommand{\finalized}{finalized\xspace}
+\newcommand{\pend}{pending-confirmation\xspace}
+\newcommand{\ispend}{\ensuremath{\text{is\_pend}}\xspace}
+\newcommand{\zo}{\ensuremath{\{ 0, 1\}\xspace}}
+
+% for pseudocode
+\newcommand{\return}{\State{\textbf{return}}\xspace}
+% \newcommand{\st}{\textbf{such that}\xspace}
+\newcommand{\andl}{\textbf{and}\xspace}
+\newcommand{\msg}[2]{\ensuremath{\langle\textit{\uppercase{#1 }}#2\rangle}\xspace}
+\newcommand{\msgwrite}[1]{\msg{write}{ #1}}
+\newcommand{\msgwriteresp}[1]{\msg{write-resp}{ (#1)}}
+\newcommand{\msgread}[1]{\msg{read}{#1}}
+\newcommand{\msgreadresp}[1]{\msg{read-resp}{ #1}}
+\newcommand{\msgconnect}{\msg{connect}{}}
+\newcommand{\msgrecord}[1]{\msg{vote}{ #1}}
+\newcommand{\msgbidresult}[1]{\msg{bids}{ #1}}
+
+\let\oldalpha\alpha
+\renewcommand{\alpha}{\ensuremath{\oldalpha}\xspace}
+\let\oldbeta\beta
+\renewcommand{\beta}{\ensuremath{\oldbeta}\xspace}
+\let\oldgamma\gamma
+\renewcommand{\gamma}{\ensuremath{\oldgamma}\xspace}
+
+% auction
+\newcommand{\tzero}{\ensuremath{t_0}\xspace}
+\newcommand{\tone}{\ensuremath{t_1}\xspace}
+\newcommand{\ttwo}{\ensuremath{t_2}\xspace}
+\newcommand{\tthree}{\ensuremath{t_3}\xspace}
+\newcommand{\tfour}{\ensuremath{t_4}\xspace}
+\newcommand{\auc}{\ensuremath{a}\xspace}
+\newcommand{\bag}{\ensuremath{B}\xspace}
+\newcommand{\opresult}[1]{\op{result(#1)}\xspace}
+\newcommand{\mes}{\ensuremath{m}\xspace}
+\newcommand{\sig}{\ensuremath{\sigma}\xspace}
+\newcommand{\opBid}[1]{\op{bid(#1)}\xspace}
+\newcommand{\opResult}[1]{\op{result(#1)}\xspace}
+\newcommand{\opSubmitBid}[1]{\op{submitBid(#1)}\xspace}
+\newcommand{\opRunAuction}[1]{\op{readBids(#1)}\xspace}
+\newcommand{\opReadResult}[1]{\op{readResult(#1)}\xspace}
+\newcommand{\bid}{\ensuremath{b}\xspace}
+\newcommand{\podInst}{\textit{pod}\xspace}
+
+\newcommand{\etal}{\textit{et~al.}\@}
+
+\newcommand{\ewnp}{except with negligible probability\xspace}
+
+\newcommand{\sn}{\operand{sn}\xspace}
+\newcommand{\nextsn}{\operand{nextsn}\xspace}
+
+\newcommand{\opProcessVote}[1]{\op{processVote}(#1)\xspace}
+\newcommand{\opInitClient}[1]{\op{initState}(#1)\xspace}
+\newcommand{\opComputeTxSet}[1]{\op{computeTxSet}(#1)\xspace}
+% \newcommand{\opComputePpRound}[1]{\op{computePastPerfectRound}(#1)\xspace}

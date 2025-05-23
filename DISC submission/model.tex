@@ -1,0 +1,85 @@
+
+% \dotparagraph{Notation}
+We denote by \BN the set of natural numbers including $0$.
+Let $L$ be a sequence, we denote by $L[i]$ the $i^\text{th}$ element (starting from $0$),
+and by $|L|$ its length.
+Negative indices address elements from the end, so $L[-i]$ is the $i^\text{th}$ element from
+the end, and $L[-1]$ in particular is the last.
+%We use $L[i{:}j]$ to denote the subarray of $L$
+% consisting of the elements indexed from $i$ (inclusive) to $j$ (exclusive).
+The notation $L[i{:}]$ means the
+subarray of $L$ from $i$ onwards, while $L[{:}j]$ means the subsequence of $L$ up to (but not including) $j$.
+We denote an empty sequence by $[\,]$.
+We denote the concatenation of sequences $L_1$ and $L_2$ by $L_1 \concat L_2$.
+
+In pseudocode, `\textbf{require} $P$' causes a function to terminate immediately and return $\false$ if $P$ evaluates to $\false$.
+Notation `\textbf{upon} $e$' causes a block of code to be executed when event $e$ occurs.
+Notations `$\msg{MSG}{} \leftarrow p$' and `$\msg{MSG}{} \rightarrow p$' denote receiving and sending a message $MSG$ from and to party $p$, respectively.
+Finally, $x: a \in A \rightarrow b \in B$ denotes that variable $x$ is a map from elements of type $A$ to elements of type $B$. When obvious from the context, we do not explicitly write the types $A$ or $B$.
+For a map $x$, the operations $x.\opKeys$ and $x.\opValues$ return all keys and all values in $x$, respectively.
+With $\emptyset$ we denote an empty map.
+% \subsection{Execution Model}
+\label{sec:system}
+
+\dotparagraph{Parties and adversarial model}
+We consider $n$ \emph{replicas} $\replicas=\{\replicas_1,\ldots,\replicas_n\}$ and an unknown number of \emph{clients}. Parties are \emph{stateful}, \textit{i.e.}, store \emph{state} between executions of different algorithms.
+We assume that replicas are known to all parties and register their public keys (for which they have corresponding secret keys) in a Public Key Infrastructure (PKI). Clients do not register keys in the PKI.
+% \vspace{-3mm}
+
+% \dotparagraph{Adversarial Model}
+We call a party (replica or client) \emph{honest}, if it follows the protocol, and \emph{malicious} otherwise.
+% Our constructions assume limits on \alpha and \beta, but make no honesty assumptions on clients.
+We assume \emph{static corruptions},  \textit{i.e.}, the set of malicious replicas is decided before the execution starts and remains constant.
+In this work uses a combination of two adversarial models, the \emph{Byzantine} and the \emph{omission} models.
+In the \emph{Byzantine} model, corrupted replicas are malicious and may deviate arbitrarily from the protocol. The adversary has access to the internal state and secret keys of all corrupted parties. We denote by $\beta \in \BN$ the  number of Byzantine replicas in an execution.
+The Byzantine adversary is modelled as a probabilistic polynomial time overarching entity that is invoked in the stead of every corrupted party.
+That is, whenever the turn of a corrupted party comes to be invoked by the environment, the adversary is invoked instead.
+In the \emph{omission} model, corrupted replicas may only deviate from the protocol by dropping messages that they were supposed to send, but follow the protocol otherwise. Observe that this includes crash faults, where replicas crash (\textit{i.e.} stop execution) and remain crashed until the end of the execution of an algorithm. We denote by $\gamma \in \BN$ the number of omission-faulty replicas in an execution.
+
+% \oa{We allow \emph{dynamic corruptions}, i.e., the set of malicious replicas can differ in each round, as long as not larger than \beta.}
+
+%\vspace{-3mm}
+%\dotparagraph{Stateful clients} A stateful client is a party who stores \emph{state} (\textit{i.e.}, data) between executions of different algorithms.
+% \vspace{-3mm}
+
+\dotparagraph{Modeling time and network}
+We assume that time proceeds in discrete \emph{rounds}, and parties have clocks allowing them to determine the current round.
+For any two honest parties, their clocks can be at most $\phi$ rounds apart.
+For simplicity, our analysis will assume \emph{synchronized clocks}, that is, $\phi = 0$.
+Notice that although we assume synchronized clocks as a setup, clock synchronization can be achieved in partially synchronous networks~\cite{psync} using existing techniques~\cite{clockoverview}, also in the case where replicas gradually join the network~\cite{bootclocksync}.
+% We denote by $\tzero$ the round at which the execution starts.
+By \emph{timestamp} we refer to a round number assigned to some event.
+
+% \dotparagraph{Modeling network}
+We denote by $\delta \in \CN$ the actual delay (measured in number of rounds) it takes to deliver a message between two honest parties,
+a number which is \emph{finite} but \emph{unknown} to all parties.
+We denote by $\Delta \in \CN$ an upper bound on this delay, \textit{i.e.}, $\delta \leq \Delta$, which is also \emph{finite}.
+In the \emph{synchronous} model, $\Delta$ is \emph{known} to all parties.
+% (namely, the honest code is parametrized by $\Delta$).
+In the \emph{partially synchronous} model~\cite{psync}, $\Delta$ is \emph{unknown} but still finite, \textit{i.e.}, all messages are eventually delivered.
+%The environment is constrained to deliver all honest network messages within $\delta$. Namely, for each message $m$ sent
+%by an honest party at round $r$, the environment observes and remembers the inboxes (decided by the adversary)
+%of all honest parties during rounds $r + 1, \ldots, r + \delta$. If none of these inboxes contains $m$, the environment
+%appends $m$ to the network inbox of the recieving party prior to invoking it at round $r + \delta$, thereby forcing the
+%inclusion of this message.
+% In this work, we present a general protocol, which we then analyze in the \emph{synchronous} and in the \emph{asynchronous} models, providing different guarantees in each world.
+% We now define responsive protocols, which is the case of our main protocol \podtm-core.
+A protocol is called \emph{responsive} if it does not rely on knowledge of $\Delta$ and its liveness guarantees depend only on the actual network delay $\delta$.
+%this is very fluffy, we should make it precise for the DISC submission.
+
+% \subsection{Cryptographic primitives}
+\dotparagraph{Digital Signatures} We assume that replicas (and auctioneers in \bidsettm-core) authenticate their messages with digital signatures. A digital signature scheme is a triple of algorithms satisfying the EUF-CMA security~\cite{GMR88} as defined below:
+		\begin{itemize}
+	    	\item $\textsl{KeyGen}(1^{\kappa})$: The key generation algorithm takes as input a security parameter $\kappa$ and outputs a secret key $\sk$ and a public key $\pk$.
+	        \item
+	            $\opSign{\sk, m} \rightarrow \sig$:
+	            The signing algorithm takes as input a private key
+	            \sk and a message $m \in \zo^*$ and returns a signature $\sig$.
+	        \item
+	            $\opVerify{\pk, m, \sig} \rightarrow b \in \zo$:
+	            The verification algorithm takes as input a public
+	            key $\pk$, a message $m$, and a signature $\sig$, and outputs a bit $b\in \zo$.
+	    \end{itemize}
+We say \sig is a \emph{valid} signature on $m$ with respect to \pk if $\opVerify{pk, m, \sig} = 1$.
+
+

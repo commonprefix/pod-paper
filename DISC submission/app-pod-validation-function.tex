@@ -1,0 +1,17 @@
+\section{Validation function for \podtm-core}\label{sec:pod-core-valid}
+In this section we present the function \opValid{}, which allows a pod client, which is not necessarily communicating with the pod replicas, to verify that a given pod data structure \Pod satisfies the security properties of \podtm (\Cref{def:podsec}).
+
+\input{pod-core-pseudocode/pod-core-valid-function}
+
+The function \opValid{} for \podtm-core is shown in \Cref{alg:pod-core-valid}.
+The idea is to have the verifier repeat the logic of an honest client.
+The verifier is initialized in the same way as in \Cref{alg:client-1} -- importantly, it knows the identifiers and public keys of pod replicas.
+Function \opValid{} takes as input a pod data structure \Pod and auxiliary data \cert,
+which is expected to contain two parts, a \emph{past-perfection certificate} \ppcert and a collection of \emph{transaction certificates} $\alltxcert$, once for each transaction in \Pod.\txSet (\cref{line:valid-extract-cert}).
+Both contain vote messages, as constructed by a pod client in lines \ref{line:upd-ppcert} and \ref{line:client-store-vote-txcert} of \Cref{alg:client-1}.
+The verifier processes each vote in order of increasing sequence number \sn using function \opProcessVote{}. If any vote is invalid, \opValid{} returns $\false$.
+Observe that if the votes are valid the verifier will have updated its local \tsps and \mrt variables with the same values as the pod client that constructed \Pod.
+Finally, the verifier computes the transaction set \txSet and the past-perfect round \rperf (using its local \tsps and \mrt variables) and requires that the values match the ones in \Pod (lines~\ref{line:valid-check-begin}--\ref{line:valid-check-end}).
+
+Finally, the verifier also verifies the past-perfection certificate. Given that the previous checks have passed, we require that each vote in \ppcert is contained in one of the transaction certificates in \alltxcert and has the maximum sequence number received from the client that sent the vote (lines~\ref{line:valid-check-ppcert-begin}--\ref{line:valid-check-ppcert-end}).
+As we have remarked earlier, \ppcert can be derived from \alltxcert by taking the union of certificates $\alltxcert$ for all transactions and keeping the most recent vote for each replica, in which case the checks on lines~\ref{line:valid-check-ppcert-begin}--\ref{line:valid-check-ppcert-end} can be omitted. We maintain the past-perfection certificate for readability and simplicity in the proofs.

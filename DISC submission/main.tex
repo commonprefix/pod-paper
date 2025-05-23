@@ -1,0 +1,25 @@
+\documentclass[a4paper,anonymous,USenglish]{lipics-v2021}
+
+\usepackage{preamble}
+
+\begin{document}
+\input{frontpage.tex}
+
+\input{body.tex}
+
+% \vfill
+% \pagebreak
+
+\pdfbookmark[section]{References}{references}
+\bibliographystyle{plainurl}
+\input{main.bbl}
+
+\appendix
+\input{app-monotonicity.tex}
+\input{app-pod-validation-function.tex}
+\input{app-pod-security.tex}
+%\input{pod-with-propagation.tex}
+\input{app-bidset-security.tex}
+% \input{commonprefix.tex}
+
+\end{document}

@@ -1,0 +1,58 @@
+\begin{algorithm}[ht!]
+    \caption{Protocol \podtm-core: Code for a replica $\rep_i$, where \sk denotes its secret signing key.}
+    \label{alg:pod-core-replica}
+    \begin{algorithmic}[1]
+        % \State{\textbf{State:}}
+        % \State{\sk}                 \Comment{The secret key of the replica, used for signing}
+        \State{$\allClients$ }      \Comment{\text{The set of all connected clients}}\label{line:rep-state-begin}
+        \State{\nextsn}             \Comment{\text{The next sequence number to assign to votes}}
+        \State{$\repLog$}           \label{line:rep-state-end} \Comment{\text{The transaction log or the replica}}
+        % \State{$\repLog : \tx \rightarrow (\tsp, \sn, \sig)$}  \Comment{\text{The transaction log or the replica}}
+        % \State{\opTime{}}
+        \Statex
+        \vspace{-1mm}
+
+        \On{\opInit{}} \Comment{Called once when the replica is initialized}
+            \State{$\allClients \gets \emptyset ;\; \nextsn \gets 0 ;\; \repLog \gets [ \, ]$}\label{line:rep-init-clients}
+            % \Let{\repLog}{[ \, ]}           \label{line:rep-init-log}
+        \EndOn
+        \Statex
+        \vspace{-1mm}
+
+        \On{$\msgconnect{} \leftarrow \client$} \label{line:rep-receive-connect-begin} \Comment{Called when a new client \client connects to the replica}
+            \Let{\allClients}{\allClients \cup \{\client\}}
+            \For{$(\tx, \tsp, \sn, \sigma) \in \repLog$}
+                % \Let{(\tsp, \sn, \sigma)}{\repLog[\tx]}
+                \State{$\msgrecord{(\tx, \tsp, \sn, \sigma, \rep_i)} \rightarrow \client$}
+            \EndFor
+        \EndOn\label{line:rep-receive-connect-end}
+        \Statex
+        \vspace{-1mm}
+
+        \On{$\msgwrite{\tx} \leftarrow \client$} \label{line:rep-receive-write-begin} \Comment{Called when a client \client writes a transaction \tx}
+            \State{\textbf{if} $\repLog[\tx] \neq \bot $ \textbf{then return}} \Comment{Ignore duplicate transactions}
+            \State{\opSendVote{\tx}}
+        \EndOn\label{line:rep-receive-write-end}
+        \Statex
+
+        \vspace{-1mm}
+        \Function{\opSendVote{\tx}}{}
+            % \Let{\tsp}{\opTime} \label{line:rep-assign-tsp}
+            % \Let{\sn}{\nextsn}
+            % \Let{\sig}{\opSign{\sk, (\tx, \tsp, \sn)}}\label{line:rep-sign}
+            \State{$\tsp \gets \opTime ;\; \sn \gets \nextsn ;\; \sig \gets \opSign{\sk, (\tx, \tsp, \sn)}$} \label{line:rep-assign-tsp}
+            \Let{\repLog}{\repLog \concat (\tx, \tsp, \sn, \sig)}
+            \For{$\client \in \allClients$}
+                \State{$\msgrecord{(\tx, \tsp, \sn, \sig, \rep_i)} \rightarrow \client$} \label{line:send-vote}
+            \EndFor
+            \Let{\nextsn}{\nextsn+1} \label{line:rep-increment-sn}
+        \EndFunction
+        \Statex
+
+        \vspace{-1mm}
+        \On{end round} \label{line:rep-send-heartbeat-begin}                      \Comment{Executed at the end of each round}
+            \Let{\tx}{\heartBeat \| \opTime}
+            \State{\opSendVote{\tx}}\label{line:rep-send-vote-heartbeat}
+        \EndOn\label{line:rep-send-heartbeat-end}
+    \end{algorithmic}
+    \end{algorithm}
