@@ -1,7 +1,8 @@
 \begin{abstract}
 This work addresses the inherent issues of high latency in blockchains and low scalability in traditional consensus protocols.
-We present \podtm, a novel notion of consensus whose first priority is to achieve the physically optimal latency of one round trip time, \textit{i.e.} requiring only one round for writing a new transaction and one round for reading it.
-To accomplish this, we first eliminate inter-replica communication. Instead, clients send transactions directly to all replicas, which independently process transactions and append them to local logs. 
+We present \podtm, a novel notion of consensus whose first priority is to achieve the physically-optimal latency of one round-trip, \textit{i.e.}, requiring only one network trip for writing a transaction and one for reading it.
+
+To accomplish this, we first eliminate inter-replica communication. Instead, clients send transactions directly to all replicas, which independently process transactions and append them to local logs.
 Replicas assigns a timestamp and a sequence number to each transaction in their logs, allowing clients to extract valuable metadata about the transactions and the system state. Later on, clients retrieve these logs and extract transactions (and associated metadata) from them.
 
 Necessarily, this construction achieves weaker properties than a total-order broadcast protocol, due to existing lower bounds.

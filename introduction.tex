@@ -20,7 +20,7 @@ In this context, this work is motivated by the following question.
 We give a positive answer to this question with a protocol realizing \podtm, a new notion of consensus that trades off traditional agreement properties for optimal latency, while retaining sufficient security guarantees to realize important tasks (\textit{e.g.}, decentralized auctions).
 
 \subsection{Our Contributions}
-In order to motivate the notion of \podtm, we first introduce the architecture of our protocol, \podtm-core, which realizes this notion. To achieve the single-roundtrip latency, our first key design decision is to eliminate inter-replica communication entirely. Instead, writers send their transactions directly to all replicas. Each replica maintains its own \emph{replica log}, processes incoming transactions independently, and transmits its log to readers on request. Readers then process these replica logs to extract transactions and relevant associated information. See Figure~\ref{fig:architecture} for a summary of the \podtm-core architecture.
+In order to motivate the notion of \podtm, we first introduce the architecture of our protocol, \podtm-core, which realizes this notion. To achieve the single-round-trip latency, our first key design decision is to eliminate inter-replica communication entirely. Instead, writers send their transactions directly to all replicas. Each replica maintains its own \emph{replica log}, processes incoming transactions independently, and transmits its log to readers on request. Readers then process these replica logs to extract transactions and relevant associated information. See Figure~\ref{fig:architecture} for a summary of the \podtm-core architecture.
 
 \begin{figure}[h]
     \centering
@@ -29,14 +29,14 @@ In order to motivate the notion of \podtm, we first introduce the architecture o
     \label{fig:architecture}
 \end{figure}
 
-This design raises two important questions. First, what meaningful information can readers derive from replica logs when replicas operate in isolation? Second, given that in two rounds even randomized authenticated broadcast is proven impossible~\cite{DBLP:conf/focs/GarayKKO07}, what capabilities can this necessarily weaker primitive offer? We demonstrate that, by incorporating simple mechanisms, such as assigning timestamps and sequence numbers to transactions, replicas can enable readers to extract valuable information beyond mere low-latency guarantees. Furthermore, we show how the properties of \podtm can enable various applications, including auctions (as shown in \Cref{sec:auctions}).%, payment systems and decentralized data stores.
+This design raises two important questions. First, what meaningful information can readers derive from replica logs when replicas operate in isolation? Second, given that in two rounds even randomized authenticated broadcast is proven impossible~\cite{DBLP:conf/focs/GarayKKO07}, what capabilities can this -- necessarily weaker -- primitive offer? We demonstrate that, by incorporating simple mechanisms, such as assigning timestamps and sequence numbers to transactions, replicas can enable readers to extract valuable information beyond mere low-latency guarantees. Furthermore, we show how the properties of \podtm can enable various applications, including auctions (as shown in \Cref{sec:auctions}).%, payment systems and decentralized data stores.
 
 Specifically, a secure \podtm delivers the following guarantees (formally defined in \Cref{sec:pod-model}):
 \begin{itemize}
-    \item Transaction confirmation within $2\delta$ latency, with each confirmed transaction assigned a \emph{confirmation timestamp}; we say that the transaction becomes \emph{confirmed} at the time indicated by the confirmation timestamp.
+    \item Transaction confirmation within $2\delta$, with each transaction assigned a \emph{\confirmed round}: we say that the transaction becomes \emph{confirmed} at the time indicated by the \emph{confirmed round}.
     \item Censorship resistance when facing up to $\beta$ Byzantine and $\gamma$ omission-faulty replicas, ensuring all confirmed transactions appear in every honest reader's output.
     \item A \emph{past-perfect round} can be computed by readers, such that the reader is guaranteed to have received all transactions that are or will be confirmed prior to this round, even though not all transactions are strictly ordered.
-    \item Accountability for any safety violations, \textit{i.e.}, identifying replicas that cause such violations.
+    \item Accountability for all safety violations, \textit{i.e.}, if any safety property is violated, at least $\beta + 1$ replicas can be identified as misbehaving.
 \end{itemize}
 
 In particular, our Protocol \podtm-core, presented in \Cref{sec:pod-core-const}, realizes the notion of \podtm with the properties above, supporting a continuum of two adversarial models: up to \beta Byzantine replicas and up to \gamma omission-faulty replicas, out of a total of $n > 5 \beta + 3 \gamma$ replicas.
@@ -71,7 +71,7 @@ Protocol \podtm-core supports a continuum of mixed adversarial models, toleratin
 % However, although we prove our results for executions with only Byzantine and only omission faults, we conjecture that Protocol \podtm-core realizes the \podtm notion for a continuum between these two cases. We leave the security analysis of our protocol under a continuum of mixed Byzantine and omission faults to the full version of this work.
 
 \subsubsection{Applications.}
-The efficiency of pod has the potential to allow for a plethora of distributed applications to be implemented with low latency. In \Cref{sec:auctions} we show how auctions can be run on top of pod, achieved through \bidsettm, a new primitive for collecting a set of bids in a censorship resistant manner. It is straightforward to realize single-shot open bid auctions using our \bidsettm primitive based on pod. We also conjecture that protocols for distributed sealed bid auctions based on public bulletin board can also be recast over this primitive. Moreover, we conjecture that consensusless payment systems such as Fastpay~\cite{DBLP:conf/aft/BaudetDS20} may also be easily realized over \podtm.
+The efficiency of pod has the potential to allow for a plethora of distributed applications to be implemented with low latency. In \Cref{sec:auctions} we show how auctions can be run on top of pod, achieved through \bidsettm, a new primitive for collecting a set of bids in a censorship resistant manner. It is straightforward to realize single-shot open bid auctions using our \bidsettm primitive based on pod. We also conjecture that protocols for distributed sealed bid auctions based on public bulletin board can also be recast over this primitive. Moreover, we conjecture that consensusless payment systems, such as Fastpay~\cite{DBLP:conf/aft/BaudetDS20}, can also be easily realized over \podtm.
 
 %\todo{A paragraph on feed-layers ad decentralized social applications}
 

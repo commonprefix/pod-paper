@@ -86,12 +86,9 @@ In the \emph{partially synchronous} model~\cite{psync}, $\Delta$ is \emph{unknow
 %appends $m$ to the network inbox of the recieving party prior to invoking it at round $r + \delta$, thereby forcing the
 %inclusion of this message.
 % In this work, we present a general protocol, which we then analyze in the \emph{synchronous} and in the \emph{asynchronous} models, providing different guarantees in each world.
-We now define responsive protocols, which is the case of our main protocol \podtm-core.
-
+% We now define responsive protocols, which is the case of our main protocol \podtm-core.
+A protocol is called \emph{responsive} if it does not rely on knowledge of $\Delta$ and its liveness guarantees depend only on the actual network delay $\delta$.
 %this is very fluffy, we should make it precise for the DISC submission.
-\begin{definition}[Responsive Protocol (Informal)]
-A protocol is \emph{responsive} if it does not rely on knowledge of $\Delta$ and its liveness guarantees depend only on the actual network delay $\delta$.
-\end{definition}
 
 \subsection{Cryptographic primitives}
 \dotparagraph{\textbf{Digital Signatures}} We assume that replicas (and auctioneers in \bidsettm-core) authenticate their messages with digital signatures. A digital signature scheme is a triple of algorithms satisfying the EUF-CMA security~\cite{GMR88} as defined below:
