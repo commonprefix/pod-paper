@@ -43,7 +43,7 @@ We assume that all messages between clients and replicas are concatenated with a
 \dotparagraph{Past-perfection and transaction certificates}
 In \podtm-core, clients store certain votes which they output upon \opreadall{} as part of the \emph{certificate} \cert, which will be used to prove the validity of the returned \Pod and for accountability in case of safety violations.
 Specifically, \cert consists of two parts, $\cert = (\ppcert, \alltxcert)$: the \emph{past-perfection certificate} \ppcert contains, for each replica, the vote on the most recent timestamp received from that replica. It is implemented as a map from replicas to votes, i.e., $\ppcert: \rep \rightarrow \vote$.
-The \emph{transaction certificate} \alltxcert contains, for each transaction, all valid votes received for it (\cref{line:client-store-vote-txcert}).
+The \emph{transaction certificate} \alltxcert contains, for each transaction, all valid votes received for it.
 It is implemented as a map from transactions to a map from replicas to votes, i.e., $\alltxcert: \tx \rightarrow \txcert$ and $\txcert: \rep \rightarrow \vote$.
 We remark that $\ppcert$ can be derived by taking the union of certificates $\txcert$ for all transactions and keeping the most recent vote for each replica, but we define $\ppcert$ explicitly for clarity and readability.
 % \vspace{-5mm}
@@ -51,7 +51,7 @@ We remark that $\ppcert$ can be derived by taking the union of certificates $\tx
 \dotparagraph{Pseudocode notation}
 The notation `\textbf{require} $P$' causes a function to terminate immediately and return $\false$ if $P$ evaluates to $\false$.
 Notation `\textbf{upon} $e$' causes a block of code to be executed when event $e$ occurs.
-Notations `$\msg{MSG}{} \leftarrow p$' and `$\msg{MSG}{} \rightarrow p$' denote receiving and sending a message $MSG$ from and to process $p$, respectively.
+Notations `$\msg{MSG}{} \leftarrow p$' and `$\msg{MSG}{} \rightarrow p$' denote receiving and sending a message $MSG$ from and to party $p$, respectively.
 Finally, $x: a \in A \rightarrow b \in B$ denotes that variable $x$ is a map from elements of type $A$ to elements of type $B$. When obvious from the context, we do not explicitly write the types $A$ or $B$.
 For a map $x$, the operations $x.\opKeys$ and $x.\opValues$ return all keys and all values in $x$, respectively.
 With $\emptyset$ we denote an empty map.
@@ -64,17 +64,13 @@ With $\emptyset$ we denote an empty map.
     % In the remainder of this section we discuss how \podtm-core achieves its properties.
 \end{protocol}
 
-\begin{remark}
-Looking forward, we only analyze the cases where either $\beta$ or $\gamma$ are non-zero, \textit{i.e.} we consider only the cases where all corrupted replicas are assumed to be either Byzantine or omission-faulty but not the cases where there are mixed Byzantine and omission-fault corruptions. However, we conjecture that Protocol \podtm-core is also a secure \podtm under a mixed adversarial model with a continuum of both Byzantine and omission-fault corruptions. A security analysis of Protocol \podtm-core in this mixed adversarial model will appear in the full version.
-\end{remark}
-
 
 \subsection{Replica code}
 
 \input{pod-core-pseudocode/pod-core-replica-code}
 % \vspace{-5mm}
 
-The state of a replica (lines \ref{line:rep-state-begin}--\ref{line:rep-state-end} of \Cref{alg:pod-core-replica}) contains, among others, the transaction log \repLog, which is implemented as a sequence of votes $(\tx, \tsp, \sn, \sigma, \rep_i)$ created by the replica, where \tsp is the timestamp assigned by the replica to \tx, \sn is a sequence number, and \sig is its signature.
+The state of a replica (lines \ref{line:rep-state-begin}--\ref{line:rep-state-end} of \Cref{alg:pod-core-replica}) contains \repLog, a log implemented as a sequence of votes $(\tx, \tsp, \sn, \sigma, \rep_i)$ created by the replica, where \tsp is the timestamp assigned by the replica to \tx, \sn is a sequence number, and \sig is its signature.
 % A functionality \opTime{} allows the replica to determine the current round number.
 When the replica receives a \msgconnect{} message from a client \client, it appends \client to its set of connected clients and sends to \client all entries in \repLog (lines \ref{line:rep-receive-connect-begin}--\ref{line:rep-receive-connect-end}).
 
@@ -139,8 +135,8 @@ Note that $\tsps.\opKeys{}$ on \cref{line:loop-over-txs} returns all entries in 
 \dotparagraph{Computing the trace values and the past-perfect round}
 In \Cref{alg:client-statistics} we show function \opComputeTxSet{}, used to compute the current transaction set from the timestamps \tsps received so far.
 A transaction becomes \confirmed when the client receives \alpha votes for \tx from different replicas (line~\ref{line:confirm-tx-begin}), in which case \rconf is the median of all received timestamps (line~\ref{line:assign-median}).
-
 The computation of $\rmin, \rmax$, and \rperf is done using the functions \opMinPossibleTs{}, \opMaxPossibleTs{}, and \opMinPossibleTsForNewTx{}, respectively.
+
 Function \opMinPossibleTs{} gets as input the timestamps \txVotesMin from each replica on \tx and the most recent timestamps \mrt from the replicas. It fills a missing timestamp from replica $\rep_j$ with $\mrt[\rep_j]$ (\cref{line:fill-vote-lts}),
 the minimum timestamp that can ever be  accepted from $\rep_j$ (smaller values will not pass the check in \cref{line:check-old-ts} of \Cref{alg:client-1}).
 It then prepends \beta times the $0$ value (\cref{line:prepend-zero}), pessimistically assuming that up to $\beta$ replicas will try to bias \tx by sending a timestamp $0$ to other clients, which only happens if replicas may be Byzantine, i.e., if $\beta > 0$.

@@ -3,8 +3,6 @@
 
 The property of \podtm monotonicity requires that, as time advances, $\rmin$ does not decrease, $\rmax$ does not increase and confirmed transactions remain confirmed.
 
-\oa{As these properties speak about a single honest client, I do not think we can formulate them in terns of the \opValid{} logic.}
-
 \begin{definition}[\podtm monotonicity]
 	A \podtm protocol satisfies \emph{pod monotonicity}, and is called a \emph{monotone \podtm}, if it is a secure \podtm, as per Definition~\ref{def:podsec}, and the following properties hold for any rounds $\round_1,\round_2 > \round_1$ and for any honest client~\client:
 	\begin{description}

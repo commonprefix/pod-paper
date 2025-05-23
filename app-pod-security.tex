@@ -1,7 +1,7 @@
 \section{Security of Protocol \podtm-core under a Continuum of Byzantine and Omission faults}\label{app:pod-security}
 In order to prove Theorem~\ref{thm:pod-security} and establish the security of Protocol \podtm-core shown Construction~\ref{const:pod-core}, we first prove some useful intermediate results. We remind that $n = \alpha + \beta + \gamma$, where $n$ denotes the total number of replicas, $\beta$ denotes the number of Byzantine replicas, \gamma denotes the number of omission-faulty replicas in an execution, and \alpha denotes the number of replicas required to confirm a transaction.
 
-\begin{lemma}[The timestamps of minimum, maximum and \confirmed rounds]\label{lem:assign-min-max}
+\begin{lemma}[The values for minimum, maximum and \confirmed rounds]\label{lem:assign-min-max}
 	Regarding \Cref{alg:client-statistics}, we have the following.
 	Assume we keep all received timestamps for a transaction \tx ($n$ values in total) in a structure \txVotes, filling in a special  value ($0$  or $\infty$) for missing votes, sorted in increasing order.
 	Assume \mrt is also sorted in increasing order of timestamps.
@@ -21,11 +21,9 @@ In order to prove Theorem~\ref{thm:pod-security} and establish the security of P
 	% if $\opValid{\Pod, \cert} = \true$ for some pod data structure \Pod and auxiliary data $\cert = (\ppcert, \{\txcerti{i}\}_{i=0}^m)$,
 	for a valid pod \Pod with auxiliary data $\cert = (\ppcert, \alltxcert)$,
 	there exists some honest replica $\rep_j$, such that the most-recent timestamp \mrt from $\rep_j$ included in $\ppcert$ satisfies $\mrt \leq \Pod.\rperf$.
-	\oa{Lemma updated.}
 \end{lemma}
 \begin{proof}
 	Since $\opValid{\Pod, \cert} = \true$, the past-perfect round $\Pod.\rperf$ is the value returned by \opMinPossibleTsForNewTx{} of \Cref{alg:client-statistics}.
-	\oa{First sentence added.}
 	From \Cref{lem:assign-min-max} we have that \rperf is the timestamp at index $\lfloor \alpha / 2 \rfloor - \beta$ of sorted \mrt.
 	The condition $\alpha \geq 4\beta + 2 \gamma + 1$ implies that $\beta + \gamma \leq \lfloor \alpha / 2 \rfloor - \beta$,
 	hence the number of not honest replicas ($\beta + \gamma$) cannot fill all positions between $0$ and $\lfloor \alpha / 2 \rfloor - \beta$,
@@ -95,7 +93,7 @@ We now recall Theorem~\ref{thm:pod-security}, which we prove through a series of
 	%     % This implies that \tx got assigned an $\rconf \neq \bot$ in line~\ref{line:assign-median}, which implies the condition in line~\ref{line:confirm-tx-begin} was at some point true. As the structure \tsps is persisted across calls to \opread{}, any subsequent \opread{} will return \tx as \confirmed.
 	% \end{proof}
 \begin{lemma}[Past-perfection safety]\label{lem:pod-pp-safety}
-	For the conditions stated in \Cref{thm:pod-security}, \Cref{const:pod-core} satisfies the \emph{past-perfection} safety property (\Cref{def:podsec}), except with negligible probability.\oa{Updated}
+	For the conditions stated in \Cref{thm:pod-security}, \Cref{const:pod-core} satisfies the \emph{past-perfection} safety property (\Cref{def:podsec}), except with negligible probability.
 \end{lemma}
 \begin{proof}
 	Assume the adversary outputs valid $(\Pod_1, \cert_1)$ and $(\Pod_2, \cert_2)$ that violate the property,
@@ -144,7 +142,7 @@ We now recall Theorem~\ref{thm:pod-security}, which we prove through a series of
 	% \end{proof}
 
 \begin{lemma}[Confirmation bounds]\label{lem:bounds-safety}
-	For the conditions stated in \Cref{thm:pod-security}, \Cref{const:pod-core} satisfies the \emph{confirmation bounds} safety property (\Cref{def:podsec}), except with negligible probability.\oa{Updated}
+	For the conditions stated in \Cref{thm:pod-security}, \Cref{const:pod-core} satisfies the \emph{confirmation bounds} safety property (\Cref{def:podsec}), except with negligible probability.
 \end{lemma}
 \begin{proof}
 	Assume the adversary outputs $(\Pod_1, \cert_1)$ and $(\Pod_2, \cert_2)$, such that $\opValid{\Pod_1, \cert_1} \land \opValid{\Pod_2, \cert_2}$ and there exists a transaction $\tx$ such that $(\tx, \rmin^1, \rmax^1, \rconf^1) \in \Pod_1.\txSet$ and $(\tx, \rmin^2, \rmax^2, \rconf^2) \in \Pod_2.\txSet$.
@@ -174,13 +172,13 @@ We now recall Theorem~\ref{thm:pod-security}, which we prove through a series of
 	% The accountability properties are satisfied using
 	% \identify{}, for the \emph{accountability from the  view of a single party} property,
 	% and \identify{$\podView{\client_1}{\round_1}$, $\podView{\client_2}{\round_2}$}, for the \emph{accountability from the  view of two replicas} properties.
-	For the conditions stated in \Cref{thm:pod-security}, \Cref{const:pod-core} satisfies accountable safety (\Cref{def:accountable-safety}) with resilience \beta, except with negligible probability.\oa{Updated}
+	For the conditions stated in \Cref{thm:pod-security}, \Cref{const:pod-core} satisfies accountable safety (\Cref{def:accountable-safety}) with resilience \beta, except with negligible probability.
 \end{lemma}
 \begin{proof}
 	We show that \identify{} (\Cref{alg:identify}) satisfies the \emph{correctness} and \emph{no-framing} properties required by \Cref{def:accountable-safety}, in three steps.
 
 	\dotparagraph{1}
-	If the past-perfection safety property (\Cref{def:podsec}) is violated, there exists a partial transcript \tran, such that \identify{} on input \tran returns at least \beta replicas. \oa{Updated}
+	If the past-perfection safety property (\Cref{def:podsec}) is violated, there exists a partial transcript \tran, such that \identify{} on input \tran returns at least \beta replicas.
 
 	\noindent
 	\emph{Proof:}
@@ -212,7 +210,7 @@ We now recall Theorem~\ref{thm:pod-security}, which we prove through a series of
 	On input a set $\tran$ that contains these votes, function \identify{\tran} returns $\allreps_1 \cap \allreps_2$.
 
 	\dotparagraph{2}
-	If the confirmation-bounds property (\Cref{def:podsec}) is violated, there exists a partial transcript \tran, such that \Cref{alg:identify} on input \tran returns at least \beta replicas. \oa{updated}
+	If the confirmation-bounds property (\Cref{def:podsec}) is violated, there exists a partial transcript \tran, such that \Cref{alg:identify} on input \tran returns at least \beta replicas.
 
 	\noindent
 	\emph{Proof:}
@@ -260,7 +258,7 @@ We now recall Theorem~\ref{thm:pod-security}, which we prove through a series of
 
 \begin{theorem}[$\parTemp$-timeliness for honest transactions]
 	\sloppy{
-		For the conditions stated in \Cref{thm:pod-security}, \Cref{const:pod-core} satisfies \emph{\parTemp-timeliness for honest transactions} (\Cref{def:pod-timely}), for $\parTemp = \delta$, except with negligible probability.\oa{Updated to use the continuum of adversarial models.}
+		For the conditions stated in \Cref{thm:pod-security}, \Cref{const:pod-core} satisfies \emph{\parTemp-timeliness for honest transactions} (\Cref{def:pod-timely}), for $\parTemp = \delta$, except with negligible probability.
 	}
 \end{theorem}
 \begin{proof}
