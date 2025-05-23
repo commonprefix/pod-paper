@@ -24,9 +24,7 @@
         \vspace{-1mm}
         \Function{\opMinPossibleTs{\txVotesMin, \mrt}}{} \Comment{$\txVotesMin: \rep \rightarrow \tsp$, contains timestamps on tx}
         \For{$\rep_j \in \allreps$}\label{line:assing-missing-min-begin} \Comment{$\mrt: \rep \rightarrow \tsp$, most recent tsp from each replica}
-            \If{$\txVotesMin[\rep_j] = \bot$}
-                \Let{\txVotesMin}{\txVotesMin \concat [\mrt[\rep_j]]} \label{line:fill-vote-lts}
-            \EndIf
+            \State{\textbf{if} $\txVotesMin[\rep_j] = \bot$ \textbf{then} $\txVotesMin \gets \txVotesMin \concat [\mrt[\rep_j]]$} \label{line:fill-vote-lts}
         \EndFor\label{line:assing-missing-min-end}
         \State{\text{sort \txVotesMin in increasing order of timestamps}}
         \Let{\txVotesMin}{ [ 0, \stackrel{\beta \text{ times}}{\ldots}, 0 ] \concat \txVotesMin} \Comment{omitted altogether if $\beta=0$}\label{line:prepend-zero}
@@ -36,9 +34,7 @@
     \vspace{-1mm}
     \Function{\opMaxPossibleTs{\txVotesMax}}{}\label{line:fn-compute-max-begin}
         \For{$\rep_j \in \allreps$}\label{line:assing-missing-max-begin}
-            \If{$\txVotesMax[\rep_j] = \bot$}
-                \Let{\txVotesMax}{\txVotesMax \concat [\infty]} \label{line:fill-vote-inf}
-            \EndIf
+            \State{\textbf{if} $\txVotesMax[\rep_j] = \bot$ \textbf{then} $\txVotesMax \gets \txVotesMax \concat [\infty]$} \label{line:fill-vote-inf}
         \EndFor\label{line:assing-missing-max-end}
         \State{\text{sort \txVotesMax in increasing order of timestamps}}
         \Let{\txVotesMax}{\txVotesMax \concat [ \infty, \stackrel{\beta \text{ times}}{\ldots}, \infty ]}\Comment{omitted altogether if $\beta=0$} \label{line:apend-infty}

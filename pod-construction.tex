@@ -146,8 +146,7 @@ Function \opMaxPossibleTs{} is analogous, filling a missing vote with $\infty$ (
 and appending the $\infty$ value (\cref{line:apend-infty}), the worst-case timestamp that Byzantine replicas may send to other clients,
 and returning the median of the \alpha largest timestamps.
 
-Finally, \opMinPossibleTsForNewTx{} is similar to \opMinPossibleTs{} but it operates on the timestamps \mrt, instead of votes on a specific transaction. Hence, since an honest client will not accept a timestamp smaller than \mrt on any future transaction (\cref{line:check-old-ts} of \Cref{alg:client-1}), the returned value lower-bounds the \confirmed round for any future transaction,
-i.e., it is the earliest round that \emph{any} honest client can ever assign to a transaction \emph{not yet seen}.
+Finally, \opMinPossibleTsForNewTx{} is similar to \opMinPossibleTs{} but it operates on the timestamps \mrt, instead of votes on a specific transaction. Hence, since an honest client will not accept a timestamp smaller than \mrt on any future transaction (\cref{line:check-old-ts} of \Cref{alg:client-1}), the returned value bounds from below the \confirmed round that \emph{any} honest client can ever assign to a transaction \emph{not yet seen}.
 
 % \dotparagraph{Detecting misbehavior}
 % Clients can detect certain cases of replica misbehavior. When this happens (lines \ref{line:raise-old-tsp}, \ref{line:raise-dup-tsp}, \ref{line:raise-old-heartbeat}) the client stops processing the current vote and triggers an \opAccountableFault{\tran} event, where \tran is a set of messages that can prove the misbehavior through the \identify{} function.
