@@ -36,12 +36,12 @@ In the \emph{omission} model, corrupted replicas may only deviate from the proto
 % \vspace{-3mm}
 
 \dotparagraph{\textbf{Modeling time}}
-We assume that parties have clocks allowing them to determine the physical time.
-Time proceeds in discrete \emph{rounds} (akin to timestamps).
-For any two honest parties, their clocks can be at most time $\phi$ apart.
+We assume that time proceeds in discrete \emph{rounds}, and parties have clocks allowing them to determine the current round.
+For any two honest parties, their clocks can be at most $\phi$ rounds apart.
 For simplicity, our analysis will assume \emph{synchronized clocks}, that is, $\phi = 0$.
 Notice that although we assume synchronized clocks as a setup, clock synchronization can be achieved in partially synchronous networks~\cite{psync} using existing techniques~\cite{clockoverview}, also in the case where replicas gradually join the network~\cite{bootclocksync}.
-
+% We denote by $\tzero$ the round at which the execution starts.
+By \emph{timestamp} we refer to a round number assigned to some event.
 
 %
 %The environment is constrained to work in a prespecified, polynomial number of rounds.
