@@ -42,9 +42,9 @@
             % \Let{\sig}{\opSign{\sk, (\tx, \tsp, \sn)}}\label{line:rep-sign}
             \State{$\tsp \gets \opTime ;\; \sn \gets \nextsn ;\; \sig \gets \opSign{\sk, (\tx, \tsp, \sn)}$} \label{line:rep-assign-tsp}
             \Let{\repLog}{\repLog \concat (\tx, \tsp, \sn, \sig)}
-            \For{$\client \in \allClients$}
-                \State{$\msgrecord{(\tx, \tsp, \sn, \sig, \rep_i)} \rightarrow \client$} \label{line:send-vote}
-            \EndFor
+            \State{\textbf{for} $\client \in \allClients$ \textbf{do} $\msgrecord{(\tx, \tsp, \sn, \sig, \rep_i)} \rightarrow \client$}\label{line:send-vote}
+                % \State{}
+            % \EndFor{}
             \Let{\nextsn}{\nextsn+1} \label{line:rep-increment-sn}
         \EndFunction
         \Statex

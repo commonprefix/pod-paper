@@ -3,12 +3,12 @@ In order to prove Theorem~\ref{thm:pod-security} and establish the security of P
 
 \begin{lemma}[The values for minimum, maximum and \confirmed rounds]\label{lem:assign-min-max}
 	Regarding \Cref{alg:client-statistics}, we have the following.
-	Assume we keep all received timestamps for a transaction \tx ($n$ values in total) in a structure \txVotes, filling in a special  value ($0$  or $\infty$) for missing votes, sorted in increasing order.
+	Consider the list of all timestamps received by a client for a particular transaction, replacing a missing vote from $\rep_j$ with a special value ($\mrt[\rep_j]$ for computing \rmin, $\infty$ for computing \rmax), to get $n$ values in total, sorted in increasing order.
 	Assume \mrt is also sorted in increasing order of timestamps.
 	\begin{enumerate}
-		\item \opMinPossibleTs{} returns the timestamp at index $\lfloor \alpha / 2 \rfloor - \beta$ of \txVotes.
-		\item \opMaxPossibleTs{} returns the timestamp at index $n - \alpha + \lfloor \alpha / 2 \rfloor + \beta$ of \txVotes.
-		\item \opMinPossibleTsForNewTx{} returns the timestamp at index $\lfloor \alpha / 2 \rfloor - \beta$ of \mrt.
+		\item \rmin is the timestamp at index $\lfloor \alpha / 2 \rfloor - \beta$ of this list.
+		\item \rmax is the timestamp at index $n - \alpha + \lfloor \alpha / 2 \rfloor + \beta$ of this list.
+		\item \rperf is the timestamp at index $\lfloor \alpha / 2 \rfloor - \beta$ of \mrt.
 	\end{enumerate}
 \end{lemma}
 \begin{proof}

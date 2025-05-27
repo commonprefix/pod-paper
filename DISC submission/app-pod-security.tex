@@ -3,12 +3,12 @@ In order to prove Theorem~\ref{thm:pod-security} and establish the security of P
 
 \begin{lemma}[The values for minimum, maximum and \confirmed rounds]\label{lem:assign-min-max}
 	Regarding \Cref{alg:client-statistics}, we have the following.
-	Assume we keep all received timestamps for a transaction \tx ($n$ values in total) in a structure \txVotes, filling in a special  value ($0$  or $\infty$) for missing votes, sorted in increasing order.
+	Consider the list of all timestamps received by a client for a particular transaction, replacing a missing vote from $\rep_j$ with a special value ($\mrt[\rep_j]$ for computing \rmin, $\infty$ for computing \rmax), to get $n$ values in total, sorted in increasing order.
 	Assume \mrt is also sorted in increasing order of timestamps.
 	\begin{enumerate}
-		\item \opMinPossibleTs{} returns the timestamp at index $\lfloor \alpha / 2 \rfloor - \beta$ of \txVotes.
-		\item \opMaxPossibleTs{} returns the timestamp at index $n - \alpha + \lfloor \alpha / 2 \rfloor + \beta$ of \txVotes.
-		\item \opMinPossibleTsForNewTx{} returns the timestamp at index $\lfloor \alpha / 2 \rfloor - \beta$ of \mrt.
+		\item \rmin is the timestamp at index $\lfloor \alpha / 2 \rfloor - \beta$ of this list.
+		\item \rmax is the timestamp at index $n - \alpha + \lfloor \alpha / 2 \rfloor + \beta$ of this list.
+		\item \rperf is the timestamp at index $\lfloor \alpha / 2 \rfloor - \beta$ of \mrt.
 	\end{enumerate}
 \end{lemma}
 \begin{proof}
@@ -219,7 +219,7 @@ We now recall Theorem~\ref{thm:pod-security}, which we prove through a series of
 	Let $\cert_1 = (\ppcert^1, \alltxcert^1)$ and $\cert_2 = (\ppcert^2, \alltxcert^2)$, and $\txcert^1 = \alltxcert^1[\tx]$ and $\txcert^2 = \alltxcert^2[\tx]$.
 	% Let's look at the timestamps in \txVotesMin when $\client_1$ computes \rmin (function \opMinPossibleTs{} in \Cref{alg:client-statistics}.)
 
-	Let's take the case $\rmin^1 > \rconf^2$ first. From \Cref{lem:assign-min-max} (\txVotesMin contains at least $n - \lfloor \alpha / 2 \rfloor + \beta$ timestamps \tsp such that $\tsp \geq \rmin$), there is a set $\allreps_1$ with at least $n - \lfloor \alpha / 2 \rfloor + \beta$ replicas $\rep_i$, from each of which $\alltxcert^1$ contains votes
+	Let's take the case $\rmin^1 > \rconf^2$ first. From \Cref{lem:assign-min-max} (\txVotes contains at least $n - \lfloor \alpha / 2 \rfloor + \beta$ timestamps \tsp such that $\tsp \geq \rmin$), there is a set $\allreps_1$ with at least $n - \lfloor \alpha / 2 \rfloor + \beta$ replicas $\rep_i$, from each of which $\alltxcert^1$ contains votes
 	%
 	\begin{equation}\label{eq:proof-bounds-set1}
 		(\tx_{i,1}, \tsp_{i,1}, 1, \sigma_{i,1}, \rep_i), (\tx_{i,2}, \tsp_{i,2}, 2, \sigma_{i,2}, \rep_i),
