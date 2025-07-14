@@ -23,7 +23,7 @@ We assume that replicas are known to all parties and register their public keys 
 We call a party (replica or client) \emph{honest}, if it follows the protocol, and \emph{malicious} otherwise.
 % Our constructions assume limits on \alpha and \beta, but make no honesty assumptions on clients.
 We assume \emph{static corruptions},  \textit{i.e.}, the set of malicious replicas is decided before the execution starts and remains constant.
-In this work uses a combination of two adversarial models, the \emph{Byzantine} and the \emph{omission} models.
+This work uses a combination of two adversarial models, the \emph{Byzantine} and the \emph{omission} models.
 In the \emph{Byzantine} model, corrupted replicas are malicious and may deviate arbitrarily from the protocol. The adversary has access to the internal state and secret keys of all corrupted parties. We denote by $\beta \in \BN$ the  number of Byzantine replicas in an execution.
 The Byzantine adversary is modelled as a probabilistic polynomial time overarching entity that is invoked in the stead of every corrupted party.
 That is, whenever the turn of a corrupted party comes to be invoked by the environment, the adversary is invoked instead.

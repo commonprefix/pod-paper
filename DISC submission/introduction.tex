@@ -55,7 +55,7 @@ Initially we have $\rconf=\perp$ but later we get $\rconf \neq \perp$, when a tr
 The protocol also guarantees that $\rmin \leq \rconf \leq \rmax$, a property we call \emph{confirmation bounds}:
 while each party reads different values $\rmin,\rmax,\rconf$ for the same $\tx$, \podtm guarantees that values read by different parties stay within these limits.
 
-When clients \emph{read} the \podtm, they obtain a $\podtm$ data structure $\Pod = (\txSet, \rperf)$, where $\txSet$ is set of  transactions and their traces and $\rperf$ is a \emph{past-perfect} round. The \emph{past-perfection} safety property guarantees that
+When clients \emph{read} the \podtm, they obtain a $\podtm$ data structure $\Pod = (\txSet, \rperf)$, where $\txSet$ is the set of transactions and their traces and $\rperf$ is a \emph{past-perfect} round. The \emph{past-perfection} safety property guarantees that
 %if a transaction $\tx$ did not appear in $\txSet$, then no other party will ever read $\tx$ with confirmed round $\rconf'$ such that $\rconf' < \rperf$. This guarantees that,
 \txSet contains \emph{all} transactions that every other honest party will ever read with a confirmed round smaller than $\rperf$.  A \podtm also guarantees \emph{past-perfection within $w$}, meaning that $\rperf$ is at most $w$ rounds in the past.
 
@@ -71,7 +71,7 @@ Besides introducing the notion of \podtm, we present protocol \podtm-core, which
 % Our construction relies on a set of $n$ \emph{replicas} to maintain a \podtm data structure, which can be read by an unknown number of clients.
 The only communication is between each client and the replicas.
 % Moreover, \podtm-core can use the auxiliary data $\ppcert,\txcert$ to publicly identify misbehaving replicas and keep them accountable.
-Writing a transaction $\tx$ to \podtm-core only requires clients to send $\tx$ to the replicas, who each assign a timestamp $\tsp$ (their current time) and a \emph{sequence number} to $\tx$ and return a signature on $(\tx,\tsp, \sn)$. When reading the \podtm, the client simply requests each replica's log of transactions, validates the responses, and determines $\rmin$, $\rmax$, and \rconf from the received timestamps.
+Writing a transaction $\tx$ to \podtm-core only requires clients to send $\tx$ to the replicas, who each assign a timestamp $\tsp$ (their current time) and a \emph{sequence number} \sn to $\tx$ and return a signature on $(\tx,\tsp, \sn)$. When reading the \podtm, the client simply requests each replica's log of transactions, validates the responses, and determines $\rmin$, $\rmax$, and \rconf from the received timestamps.
 % If the client receives responses from enough replicas, $\rconf$ is determined by taking the median of the timestamps received from these replicas.
 % If a replica provides conflicting timestamps $\tsp\neq \tsp'$ for the same $\tx$ to one or more clients, the replica's signatures publicly proves cheating.
 Protocol \podtm-core supports a continuum of mixed adversarial models, tolerating up to \beta Byzantine \emph{and} at the same time up to \gamma additional omission-faulty replicas.

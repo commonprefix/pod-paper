@@ -28,9 +28,9 @@ Before we present protocol \podtm-core, we define basic concepts and structures.
 % Given a certificate \txcert for \tx, we use $\txcert.\tx$, $\txcert.\rmin$, $\txcert.\rmax$, and $\txcert.\rconf$ to refer to \tx and the values associated with it.
 
 \begin{remark}[Sequence numbers, session identifiers, streaming algorithm]
-    We require that clients process votes from each replica in the same order, namely in order of increasing timestamps. For this, a replica maintains a \emph{sequence number} which it increments and includes every time it assigns a timestamp to a transaction.
+    Honest clients process votes from each replica in the same order, namely in order of increasing timestamps. For this, a replica maintains a \emph{sequence number} which it increments and includes every time it assigns a timestamp to a transaction.
     We also assume that all messages between clients and replicas are concatenated with a \emph{session identifier (sid)}, which is unique for each concurrent execution of the protocol and included in all messages signed by the replicas.
-    Finalyy, the client protocol we show in \Cref{const:pod-core} is \emph{streaming}, that is, clients maintain a connection to the replicas, and \emph{stateful}, that is, they persist their state (received transactions and votes) across all invocations of \opwrite{} and \opreadall{}.
+    Finally, the client protocol we show in \Cref{const:pod-core} is \emph{streaming}, that is, clients maintain a connection to the replicas, and \emph{stateful}, that is, they persist their state (received transactions and votes) across all invocations of \opwrite{} and \opreadall{}.
 \end{remark}
 
 
