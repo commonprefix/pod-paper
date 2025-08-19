@@ -40,20 +40,20 @@ We remark that $\ppcert$ can be derived by taking the union of certificates $\tx
 % \vspace{-5mm}
 
 We show the pseudocode for the replica code in \Cref{alg:pod-core-replica}.
-The state of a replica (lines \ref{line:rep-state-begin}--\ref{line:rep-state-end} of \Cref{alg:pod-core-replica}) contains \repLog, a log implemented as a sequence of votes $(\tx, \tsp, \sn, \sigma, \rep_i)$ created by the replica, where \tsp is the timestamp assigned by the replica to \tx, \sn is a sequence number, and \sig its signature.
+The state of a replica (lines \ref{line:rep-state-begin}--\ref{line:rep-state-end}) contains \repLog, a log implemented as a sequence of votes $(\tx, \tsp, \sn, \sigma, \rep_i)$ created by the replica, where \tsp is the timestamp assigned by the replica to \tx, \sn is a sequence number, and \sig its signature.
 % A functionality \opTime{} allows the replica to determine the current round number.
 When the replica receives \msgconnect{} from a client \client, it appends \client to its set of connected clients and sends to \client all entries in \repLog (lines \ref{line:rep-receive-connect-begin}--\ref{line:rep-receive-connect-end}).
 
-When it receives  \msgwrite{\tx}, a replica first checks whether it has already seen \tx, in which case the message is ignored. Otherwise, it assigns \tx a timestamp \tsp equal its local round number and the next available sequence number \sn, and signs the message $(\tx, \tsp, \sn)$ (\cref{line:rep-assign-tsp}).
+When it receives  \msgwrite{\tx}, a replica first checks whether it has already seen \tx, in which case the message is ignored. Otherwise, it assigns \tx a timestamp \tsp equal its local round number and the next available sequence number \sn, and signs the message $(\tx, \tsp, \sn)$ (line~\ref{line:rep-assign-tsp}).
 Honest replicas use incremental sequence numbers for each transaction, implying that a vote with a larger sequence number than a second vote will have a larger or equal timestamp than the second.
-The replica appends $(\tx, \tsp, \sn, \sig)$ to \repLog, and sends it via a \msgrecord{(\tx, \tsp, \sn, \sig, \rep_i)} message to all connected clients (\cref{line:send-vote}).
+The replica appends $(\tx, \tsp, \sn, \sig)$ to \repLog, and sends it via a \msgrecord{(\tx, \tsp, \sn, \sig, \rep_i)} message to all connected clients (line~\ref{line:send-vote}).
 
 \textbf{Heartbeat messages:}
-As we will see, clients maintain a \emph{most-recent timestamp} variable $\mrt[\rep_j]$ for each replica. This is updated every time they receive a vote and is crucial for computing the past-perfect round \rperf.
+Clients maintain a \emph{most-recent timestamp} variable $\mrt[\rep_j]$ for each replica. This is updated every time they receive a vote and is crucial for computing the past-perfect round \rperf.
 To make sure that clients update $\mrt[\rep_j]$ even when $\rep_j$ does not have any new transactions in a round,
 we have replicas send a vote on a dummy \heartBeat transaction the end of each round (lines~\ref{line:rep-send-heartbeat-begin}--\ref{line:rep-send-heartbeat-end}).
 An obvious practical optimization is to send \heartBeat only for rounds when no other transactions were sent.
-When received by a client, a \heartBeat is handled as a vote (i.e., it triggers \cref{line:receive-vote-begin} in \Cref{alg:client-1}). To avoid being considered a duplicate vote by clients (see \cref{line:check-dup-tsp} in \Cref{alg:client-1}), replicas append the round number to the \heartBeat transaction.
+When received by a client, a \heartBeat is handled as a vote (i.e., it triggers line~\ref{line:receive-vote-begin}). To avoid being considered a duplicate vote by clients (see line~\ref{line:check-dup-tsp} in \Cref{alg:client-1}), replicas append the round number to the \heartBeat transaction.
 
 
 \subsection{Client code}
@@ -71,14 +71,14 @@ At initialization the client also sends a \msgconnect{} message to each replica,
 %\vspace{-3mm}
 % \dotparagraph{}
 \textbf{Receiving votes:} A client maintains a connection to each replica and receives votes through \msgrecord{(\tx, \tsp, \sn, \sig, \rep_j)} messages (lines~\ref{line:receive-vote-begin}--\ref{line:receive-vote-end}).
-When a vote is received from replica $\rep_j$, the client first verifies the signature \sig under $\rep_j$'s public key (\cref{line:client-verify-sig-begin}). If invalid, the vote is ignored.
-Then the client verifies that the vote contains the next sequence number it expects to receive from replica $\rep_j$ (\cref{line:client-check-sn}). If this is not the case, the vote is \emph{backlogged} and given again to the client at a later point (the backlogging functionality is not shown in the pseudocode).
+When a vote is received from replica $\rep_j$, the client first verifies the signature \sig under $\rep_j$'s public key (line~\ref{line:client-verify-sig-begin}). If invalid, the vote is ignored.
+Then the client verifies that the vote contains the next sequence number it expects to receive from replica $\rep_j$ (line~\ref{line:client-check-sn}). If this is not the case, the vote is \emph{backlogged} and given again to the client at a later point (the backlogging functionality is not shown in the pseudocode).
 The client then checks the vote against previous votes received from $\rep_j$.
-First, \tsp must be greater or equal to $\mrt[\rep_j]$, the most recent timestamp returned by replica $\rep_j$ (\cref{line:check-old-ts}).
-Second, the replica must have not previously sent a different timestamp for \tx (\cref{line:check-dup-tsp}).
+First, \tsp must be greater or equal to $\mrt[\rep_j]$, the most recent timestamp returned by replica $\rep_j$.
+Second, the replica must have not previously sent a different timestamp for \tx.
 % except if \tx is a \heartBeat (as checked on \cref{line:client-heartbeat-return}).
-If both checks pass, the client updates $\mrt[\rep_j]$ and $\tsps[\tx][\rep_j]$ (\cref{line:rec-tsp}) with \tsp.
-The client also updates \ppcert and \alltxcert (\cref{line:upd-ppcert,line:client-store-vote-txcert}) for each valid vote.
+If both checks pass, the client updates $\mrt[\rep_j]$ and $\tsps[\tx][\rep_j]$ with \tsp (line~\ref{line:rec-tsp}).
+The client also updates \ppcert and \alltxcert for each valid vote (lines~\ref{line:upd-ppcert}--\ref{line:client-store-vote-txcert}).
 
 If any of these checks fail, the client ignores the vote, since both of these cases constitute \emph{accountable} faults: In the first case, the client can use the message $\msgrecord{(\tx, \tsp, \sn, \sig, \rep_j)}$ and the vote it received when it updated $\mrt[\rep_j]$ to prove that $\rep_j$ has misbehaved. In the second case, it can use $\msgrecord{(\tx, \tsp, \sn, \sig, \rep_j)}$ and the previous vote it has received for \tx.
 %A practical implementation of \podtm can use these facts.
@@ -100,27 +100,27 @@ We will show the details of $\opComputeTxSet{}$ in \Cref{alg:client-statistics}.
 % The client uses the \opMinPossibleTs{} and \opMaxPossibleTs{} functions to compute \rmin (\cref{line:upd-rmin-begin}) and \rmax (\cref{line:upd-rmax-begin}).
 % They respectively return the minimum and maximum round number that \emph{any client} can ever \emph{confirm} \tx with.
 % For \rperf (\cref{line:upd-rperf-begin}) the client uses \opMinPossibleTsForNewTx{}, which returns the earliest round that \emph{any} client can ever assign to a transaction \emph{not yet seen} by the client.
-As per the pod interface, \opreadall{} also returns auxiliary data \cert, which has two parts: the past-perfection certificate \ppcert and a list of transaction certificates \txcert (\cref{line:client-construct-cert}).
+As per the pod interface, \opreadall{} also returns auxiliary data \cert, which has two parts: the past-perfection certificate \ppcert and a list of transaction certificates \txcert (line~\ref{line:client-construct-cert}).
 Note that $\tsps.\opKeys{}$ on \cref{line:loop-over-txs} returns all entries in \tsps.
 
 \textbf{Computing the trace values and the past-perfect round:}
-In \Cref{alg:client-statistics} we show function \opComputeTxSet{}, used to compute the current transaction set from the timestamps \tsps received so far.
-A transaction becomes \confirmed when the client receives \alpha votes for \tx from different replicas (line~\ref{line:confirm-tx-begin}), in which case \rconf is the median of all received timestamps (line~\ref{line:assign-median}).
+Function \opComputeTxSet{} (\Cref{alg:client-statistics}), computes the current transaction set from the timestamps received so far.
+A transaction becomes \confirmed when the client receives \alpha votes for it, in which case \rconf is the median of all received timestamps (lines~\ref{line:confirm-tx-begin}--\ref{line:assign-median}).
 The computation of $\rmin, \rmax$, and \rperf is done using the functions \opMinPossibleTs{}, \opMaxPossibleTs{}, and \opMinPossibleTsForNewTx{}, respectively.
-Function \opMinPossibleTs{} gets as input the timestamps \txVotesMin from each replica on \tx and the most recent timestamps \mrt from the replicas. It fills a missing timestamp from replica $\rep_j$ with $\mrt[\rep_j]$ (\cref{line:fill-vote-lts}),
-the minimum timestamp that can ever be  accepted from $\rep_j$ (smaller values will not pass the check in line~\ref{line:check-old-ts} of \Cref{alg:client-1}).
-It then prepends \beta times the $0$ value (\cref{line:prepend-zero}), pessimistically assuming that up to $\beta$ replicas will try to bias \tx by sending a timestamp $0$ to other clients.
+Function \opMinPossibleTs{} gets the timestamps \txVotesMin from each replica on \tx and the most recent timestamps \mrt. It fills a missing timestamp from replica $\rep_j$ with $\mrt[\rep_j]$ (line~\ref{line:fill-vote-lts}),
+the minimum timestamp that can ever be  accepted from $\rep_j$ (see the check in line~\ref{line:check-old-ts} of \Cref{alg:client-1}).
+It then prepends \beta times the $0$ value, pessimistically assuming that up to $\beta$ replicas will try to bias \tx by sending a timestamp $0$ to other clients.
 It then returns the median of the \alpha smallest timestamps, which, again pessimistically, are the smallest timestamps another client may use to confirm \tx.
-Function \opMaxPossibleTs{} is analogous, filling a missing vote with $\infty$ (\cref{line:fill-vote-inf})
-and appending the $\infty$ value (\cref{line:apend-infty}), the worst-case timestamp that Byzantine replicas may send to other clients.
-Finally, \opMinPossibleTsForNewTx{} is similar to \opMinPossibleTs{} but it operates on timestamps \mrt, instead of votes on a specific transaction. Hence, since an honest client will not accept a timestamp smaller than \mrt on any future transaction (\cref{line:check-old-ts} of \Cref{alg:client-1}), the returned value bounds from below the \confirmed round of \emph{any} transaction \emph{not yet seen}.
+Function \opMaxPossibleTs{} is analogous, filling a missing vote with $\infty$ (line~\ref{line:fill-vote-inf})
+and appending the $\infty$ value, the worst-case timestamp that Byzantine replicas may send to other clients.
+Finally, \opMinPossibleTsForNewTx{} is similar to \opMinPossibleTs{} but it operates on timestamps \mrt. As honest clients will not accept a timestamp smaller than \mrt on any future transaction (line~\ref{line:check-old-ts} of \Cref{alg:client-1}), the returned value bounds from below the \confirmed round of \emph{any} transaction \emph{not yet seen}.
 
 
 \subsection{Validation function}
-The validation function \opValid{} allows a pod client, which is not necessarily communicating with the pod replicas, to verify that a given pod data structure \Pod satisfies the security properties of \podtm (\Cref{def:podsec}).
+The validation function \opValid{} allows a \podtm client to verify that a given pod data structure \Pod satisfies the security properties of \podtm (\Cref{def:podsec}) \emph{without} necessarily communicating with \podtm replicas.
 The function \opValid{} for \podtm-core is shown in \Cref{sec:pod-core-valid}.
-The idea is to have the verifier repeat the logic of an honest client:
-it is initialized in the same way as a pod client, goes through the votes found in certificates \alltxcert, and checks that the resulting values match the ones in \Pod.
+The verifier repeats the logic of an honest client:
+it is initialized in the same way as a \podtm client, goes through the votes found in \alltxcert, and checks that the resulting values match the ones in \Pod.
 
 \subsection{Analysis}
 

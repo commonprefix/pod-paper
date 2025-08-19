@@ -55,7 +55,7 @@ If $\tx$ appears in $\txSet$,
 
 \begin{definition}[Validity function]
     Apart from its interface functions,
-    a pod protocol also specifies a computable, deterministic, and non-interactive function \opValid{\Pod, \cert} that takes as input a pod data structure $\Pod$ and auxiliary data $\cert$ and outputs a boolean value. We say that a pod data structure $\Pod$ is \emph{valid} if $\opValid{\Pod, \cert} = \true$.
+    a \podtm protocol also specifies a computable, deterministic, and non-interactive function \opValid{\Pod, \cert} that takes as input a pod data structure $\Pod$ and auxiliary data $\cert$ and outputs a boolean value. We say that a pod data structure $\Pod$ is \emph{valid} if $\opValid{\Pod, \cert} = \true$.
 \end{definition}
 
 
@@ -147,7 +147,7 @@ We conclude this section with some visual examples in Figures \ref{fig:temperatu
     \begin{minipage}[b]{.48\textwidth}
     \centering
     \includegraphics[width=1\textwidth]{figures/pod-temperature.pdf}
-    \caption{The same transaction in the view of three different pod clients. Each client assigns it a minimum round \rmin and a maximum round \rmax. If it gets confirmed, the confirmation round \rconf will be
+    \caption{The same transaction in the view of three different \podtm clients. Each client assigns it a minimum round \rmin and a maximum round \rmax. If it gets confirmed, the confirmation round \rconf will be
      between these two values. The \rconf that each client locally computes respects the bounds of each other client.}
      \label{fig:temperature}
     \end{minipage}
@@ -155,7 +155,7 @@ We conclude this section with some visual examples in Figures \ref{fig:temperatu
     \begin{minipage}[b]{.49\textwidth}
     \centering
     \includegraphics[width=1\textwidth]{figures/pod-example.pdf}
-    \caption{A possible view of a single pod client.
+    \caption{A possible view of a single \podtm client.
     Transactions $\tx_1, \tx_2, \tx_3$ are confirmed, $\tx_4$ is not yet confirmed.
     A client also derives a past-perfect round $\rperf$. No transaction other than $\tx_1, \tx_2, \tx_3, \tx_4$ may  obtain $\rconf \leq \rperf$. There may exist $\tx_5$ for which the client has not received votes, but $\tx_5$ cannot obtain $\rconf \leq \rperf$.
     % Transactions written concurrently, or close to each other, such as $\tx_3$ and $\tx_4$, may not be totally ordered. Transactions written by malicious clients, such as $\tx_5$ may not become confirmed.

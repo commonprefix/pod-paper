@@ -19,7 +19,7 @@ In order to prove Theorem~\ref{thm:pod-security} and establish the security of P
 \begin{lemma}[\rperf bounded by honest timestamp]\label{lem:rperf-value-of-honest}
 	Assuming $n \geq 5 \beta + 3 \gamma + 1$ (equiv., $\alpha \geq 4\beta + 2 \gamma + 1$),
 	% if $\opValid{\Pod, \cert} = \true$ for some pod data structure \Pod and auxiliary data $\cert = (\ppcert, \{\txcerti{i}\}_{i=0}^m)$,
-	for a valid pod \Pod with auxiliary data $\cert = (\ppcert, \alltxcert)$,
+	for a valid \Pod with auxiliary data $\cert = (\ppcert, \alltxcert)$,
 	there exists some honest replica $\rep_j$, such that the most-recent timestamp \mrt from $\rep_j$ included in $\ppcert$ satisfies $\mrt \leq \Pod.\rperf$.
 \end{lemma}
 \begin{proof}

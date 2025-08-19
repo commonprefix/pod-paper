@@ -39,7 +39,7 @@ We now recall and prove \Cref{thm:bidset-construction-secure}.
 \begin{proof}
     Assume the sequencer is honest, and two honest consumers generate events \opResult{$\bag_1, \cdot$} and \opResult{$\bag_2, \cdot$}.
     The condition in \cref{line:bidset-wait-pp} of \Cref{alg:bid-set-sequencer} becomes true in the view of sequencer by round $\tzero + \Delta + \delta$ (from the \emph{past-perfection within $\parPerf=\delta$} property of \podtm-core),
-    hence the sequencer writes transaction \msgbidresult{(\bag, \bidcert, \sigma)} to the pod by round $\tzero + \Delta + \delta$.
+    hence the sequencer writes transaction \msgbidresult{(\bag, \bidcert, \sigma)} to \podtm by round $\tzero + \Delta + \delta$.
     % This transaction becomes confirmed in the view of an honest consumer by round $ \round \leq \tzero + \Delta + 3\delta$ (from the \emph{confirmation within $\parConf=2\delta$} property of \podtm),
     This transaction gets assigned a confirmed round $\rconf \leq \tzero + \Delta + 2\delta$ (from the \emph{$\delta$-timeliness} property of \podtm) and,
     by assumption of a synchronous network, $\rconf \leq \tzero + 3 \Delta$.

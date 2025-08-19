@@ -1,7 +1,7 @@
 \section{Auctions on \podtm through the \bidsettm protocol}\label{sec:auctions}
 In this section, we show how single-shot distributed auctions can be implemented on top of \podtm.
 This is achieved through \bidsettm, a primitive for collecting a set of bids.
-The idea is as follows. A pre-appointed \emph{sequencer} -- which can be any party, even a pod replica -- runs the auction, but the bids are collected from \podtm using a \bidsettm protocol. The past-perfection property of \podtm renders the sequencer unable to censor bids: when it creates an output, all timely and honestly-written bids \emph{must} be in it, otherwise the sequencer has provably misbehaved and can be held accountable.
+The idea is as follows. A pre-appointed \emph{sequencer} -- which can be any party, even a \podtm replica -- runs the auction, but the bids are collected from \podtm using a \bidsettm protocol. The past-perfection property of \podtm renders the sequencer unable to censor bids: when it creates an output, all timely and honestly-written bids \emph{must} be in it, otherwise the sequencer has provably misbehaved and can be held accountable.
 % We first define \bidsettm and then construct it using an underlying \podtm.
 
 
