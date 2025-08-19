@@ -59,7 +59,7 @@ We now recall Theorem~\ref{thm:pod-security}, which we prove through a series of
 	Assume that the network is partially synchronous with actual network delay $\delta$, that \beta is the number of Byzantine replicas, \gamma the number of omission-faulty replicas, $\alpha = n - \beta - \gamma$ the confirmation threshold, and $n \geq 5 \beta + 3 \gamma + 1$ the total number of replicas. Protocol \podtm-core (\Cref{const:pod-core}), instantiated with a EUF-CMA secure signature scheme, the \opValid{} function shown in \Cref{alg:pod-core-valid}, and the \identify{} function described in \Cref{alg:identify}, is a responsive secure \podtm (\Cref{def:podsec}) with Confirmation within $\parConf = 2 \delta$, Past-perfection within $\parPerf = \delta$ and  \beta-accountable safety (\Cref{def:accountable-safety}), \ewnp.
 \end{customthm}
 \begin{proof}
-	The proof follows from Lemmas~\ref{lem:pod-confirmation}--\ref{lem:pod-accountable-safety}, presented and proven in the remainder of this section.
+	Follows from Lemmas~\ref{lem:pod-confirmation}--\ref{lem:pod-accountable-safety}, presented and proven in the remainder of this section.
 \end{proof}
 
 \begin{lemma}[Confirmation within $\parConf$]\label{lem:pod-confirmation}
@@ -67,10 +67,10 @@ We now recall Theorem~\ref{thm:pod-security}, which we prove through a series of
 \end{lemma}
 \begin{proof}
 	Assume an honest client \client calls \opwrite{\tx} at round \round.
-	It sends a message \msgwrite{\tx} to all replicas at round \round (line~\ref{line:send-write-tx}).
+	It sends message \msgwrite{\tx} to all replicas at round \round (line~\ref{line:send-write-tx}).
 	An honest replica receives this by round $\round + \delta$ and sends a \msgrecord{} message back to all connected clients (line~\ref{line:send-vote}).
 	An honest client $\client'$ receives the vote by round $\round + 2\delta$.
-	As are at least \alpha honest (not Byzantine and not omission-faulty) replicas, $\client'$ receives at least \alpha such votes, hence the condition in line~\ref{line:confirm-tx-begin} is satisfied and $\client'$ observes \tx as \confirmed.
+	As are at least \alpha honest replicas, $\client'$ receives at least \alpha such votes, hence the condition in line~\ref{line:confirm-tx-begin} is satisfied and $\client'$ observes \tx as \confirmed.
 \end{proof}
 
 \begin{lemma}[Past-perfection within $\parPerf$]\label{lem:past-perfection-liveness}
@@ -106,7 +106,7 @@ We now recall Theorem~\ref{thm:pod-security}, which we prove through a series of
 	Let $\allreps_1$ be the set of replicas $\rep_i$ for which $\ppcert^1$ contains a vote with timestamp $\mrt_i \geq \Pod_1.\rperf$.
 	From \Cref{lem:assign-min-max} (\rperf is computed as the timestamp at index $\lfloor \alpha / 2 \rfloor - \beta$ of sorted \mrt), and since $\Pod_1$ is valid, there exist at least $n - \lfloor a/2 \rfloor + \beta$ such replicas, hence $|\allreps_1| \geq n - \lfloor a/2 \rfloor + \beta$.
 	% Observe that no replica in $\allreps_1$ has sent to $\client$ a vote on \tx (because $\tx \not \in \txSet$),
-	For each $\rep_i \in \allreps_1$, the transaction certificates $\alltxcert^1$ contain the whole log of $\rep_i$ with timestamps up to $\mrt_i$ (\cref{line:client-check-sn} of \Cref{alg:client-1} does not allow gaps in the sequence number of the received votes).
+	For each $\rep_i \in \allreps_1$, the transaction certificates $\alltxcert^1$ contain the whole log of $\rep_i$ with timestamps up to $\mrt_i$ (line~\ref{line:client-check-sn} of \Cref{alg:client-1} does not allow gaps in the sequence number of the received votes).
 	That is, for each $\rep_i \in \allreps_1$ the certificates $\alltxcert^1$ contains votes
 	%
 	\begin{equation}\label{eq:proof-pp-set1}
@@ -142,7 +142,7 @@ We now recall Theorem~\ref{thm:pod-security}, which we prove through a series of
 	% \end{proof}
 
 \begin{lemma}[Confirmation bounds]\label{lem:bounds-safety}
-	For the conditions stated in \Cref{thm:pod-security}, \Cref{const:pod-core} satisfies the \emph{confirmation bounds} safety property (\Cref{def:podsec}), except with negligible probability.
+	For the conditions stated in \Cref{thm:pod-security}, \Cref{const:pod-core} satisfies the \emph{confirmation bounds}  property (\Cref{def:podsec}), except with negligible probability.
 \end{lemma}
 \begin{proof}
 	Assume the adversary outputs $(\Pod_1, \cert_1)$ and $(\Pod_2, \cert_2)$, such that $\opValid{\Pod_1, \cert_1} \land \opValid{\Pod_2, \cert_2}$ and there exists a transaction $\tx$ such that $(\tx, \rmin^1, \rmax^1, \rconf^1) \in \Pod_1.\txSet$ and $(\tx, \rmin^2, \rmax^2, \rconf^2) \in \Pod_2.\txSet$.
@@ -252,28 +252,5 @@ We now recall Theorem~\ref{thm:pod-security}, which we prove through a series of
 	The \identify{} function never outputs honest replicas.
 
 	\noindent
-	\emph{Proof:} The function only adds a replica to \cheaters if given as input two vote messages from that replica, where the same sequence number is assigned to two different votes (line~\ref{line:identify-cheat} on \Cref{alg:identify}). An honest replica always increments \nextsn after each vote it inserts to its log (line~\ref{line:rep-increment-sn} on \Cref{alg:pod-core-replica}), hence, the adversary can only construct such verifying votes by forging a signature under the public key of an honest replica, which happens with negligible probability.
-\end{proof}
-
-
-\begin{theorem}[$\parTemp$-timeliness for honest transactions]
-	\sloppy{
-		For the conditions stated in \Cref{thm:pod-security}, \Cref{const:pod-core} satisfies \emph{\parTemp-timeliness for honest transactions} (\Cref{def:pod-timely}), for $\parTemp = \delta$, except with negligible probability.
-	}
-\end{theorem}
-\begin{proof}
-	Assume an honest client \client calls \opwrite{\tx} at round \round.
-	It sends a message \msgwrite{\tx} to all replicas at round \round (line~\ref{line:send-write-tx}).
-	An honest replica receives this by round $\round + \delta$ and assigns its current round, which lies in the interval $(\round, \round + \delta]$, as the timestamp (line~\ref{line:rep-assign-tsp}).
-	% \begin{enumerate}
-		\textbf{1.} Regarding \rconf, when a client calls \opreadall{} (after the point in time when \tx is confirmed, which happens after \parConf rounds from the property of \emph{confirmation within \parConf}), it receives votes on \tx from at least \alpha replicas. All honest replicas have sent timestamps for \tx in the interval $ (r, \round + \delta]$. Since \rconf is computed as the median of \alpha timestamps and $\alpha \geq 4\beta + 2\gamma + 1$,\footnote{For this argument on \rconf, $\alpha \geq 2\beta + 2\gamma + 1$ would also be enough. The condition $\alpha \geq 4\beta + 2\gamma + 1$ is necessary in order for \rmin and \rmax of a confirmed transaction to be timestamps returned by honest replicas.}
-		we get $\lfloor \alpha / 2 \rfloor > 2\beta + \gamma$,
-		hence \rconf will be a timestamp returned by an honest (not Byzantine and not omitting messages) replica, or it will lie between timestamps returned by honest replicas. Hence, $\rconf \in (r, \round + \delta]$.
-
-		\textbf{2.} Regarding \rmax, from \Cref{lem:assign-min-max} (\rmax is the timestamp at index $n - \alpha + \lfloor \alpha / 2 \rfloor + \beta$ of \txVotes), there areat least $\alpha - \lfloor \alpha/2 \rfloor - \beta + 1 > \lfloor \alpha/2 \rfloor - \beta$ timestamps in \txVotes that bound \rmax from above. Since $\alpha \geq 4\beta + 2 \gamma + 1$, we get that $\lfloor \alpha / 2 \rfloor > 2\beta + \gamma$, hence $\lfloor \alpha / 2 \rfloor - \beta > \beta + \gamma$, hence at least one of those timestamps that bound \rmax is returned by an honest replica, hence  $\rmax \in (r, \round + \delta]$.
-
-		\textbf{3.} Similarly, from \Cref{lem:assign-min-max} (\rmin is the timestamp at index $\lfloor \alpha / 2 \rfloor - \beta$ of \txVotes), there are at least $\lfloor \alpha / 2 \rfloor - \beta + 1$ timestamps in \txVotes that bound \rmin from below, and, since $\alpha \geq 4\beta + 2 \gamma + 1$, we get $\lfloor \alpha / 2 \rfloor - \beta + 1 > \beta + \gamma$.
-		Hence, \rmin is a timestamp returned by an honest replica, hence $\rmin \in (r, \round + \delta]$ and $\rmax - \rmin < \parTemp$.
-	% \end{enumerate}
-	The proofs hold except with negligible probability, as the adversary can forge a signature under the public key of an honest replica with a negligible probability.
+	\emph{Proof:} The function only adds a replica to \cheaters if given as input two vote messages from that replica, where the same sequence number is assigned to two different votes (line~\ref{line:identify-cheat} on \Cref{alg:identify}). An honest replica always increments \nextsn after each vote it inserts to its log (line~\ref{line:rep-increment-sn} on \Cref{alg:pod-core-replica}), hence, the adversary can only construct valid votes by forging a signature under the public key of an honest replica, which happens with negl. probability.
 \end{proof}

@@ -254,26 +254,3 @@ We now recall Theorem~\ref{thm:pod-security}, which we prove through a series of
 	\noindent
 	\emph{Proof:} The function only adds a replica to \cheaters if given as input two vote messages from that replica, where the same sequence number is assigned to two different votes (line~\ref{line:identify-cheat} on \Cref{alg:identify}). An honest replica always increments \nextsn after each vote it inserts to its log (line~\ref{line:rep-increment-sn} on \Cref{alg:pod-core-replica}), hence, the adversary can only construct such verifying votes by forging a signature under the public key of an honest replica, which happens with negligible probability.
 \end{proof}
-
-
-\begin{theorem}[$\parTemp$-timeliness for honest transactions]
-	\sloppy{
-		For the conditions stated in \Cref{thm:pod-security}, \Cref{const:pod-core} satisfies \emph{\parTemp-timeliness for honest transactions} (\Cref{def:pod-timely}), for $\parTemp = \delta$, except with negligible probability.
-	}
-\end{theorem}
-\begin{proof}
-	Assume an honest client \client calls \opwrite{\tx} at round \round.
-	It sends a message \msgwrite{\tx} to all replicas at round \round (line~\ref{line:send-write-tx}).
-	An honest replica receives this by round $\round + \delta$ and assigns its current round, which lies in the interval $(\round, \round + \delta]$, as the timestamp (line~\ref{line:rep-assign-tsp}).
-	\begin{enumerate}
-		\item Regarding \rconf, when a client calls \opreadall{} (after the point in time when \tx is confirmed, which happens after \parConf rounds from the property of \emph{confirmation within \parConf}), it receives votes on \tx from at least \alpha replicas. All honest replicas have sent timestamps for \tx in the interval $ (r, \round + \delta]$. Since \rconf is computed as the median of \alpha timestamps and $\alpha \geq 4\beta + 2\gamma + 1$,\footnote{For this argument on \rconf, $\alpha \geq 2\beta + 2\gamma + 1$ would also be enough. The condition $\alpha \geq 4\beta + 2\gamma + 1$ is necessary in order for \rmin and \rmax of a confirmed transaction to be timestamps returned by honest replicas.}
-		we get $\lfloor \alpha / 2 \rfloor > 2\beta + \gamma$,
-		hence \rconf will be a timestamp returned by an honest (not Byzantine and not omitting messages) replica, or it will lie between timestamps returned by honest replicas. Hence, $\rconf \in (r, \round + \delta]$.
-
-		\item Regarding \rmax, from \Cref{lem:assign-min-max} (\rmax is the timestamp at index $n - \alpha + \lfloor \alpha / 2 \rfloor + \beta$ of \txVotes), there areat least $\alpha - \lfloor \alpha/2 \rfloor - \beta + 1 > \lfloor \alpha/2 \rfloor - \beta$ timestamps in \txVotes that bound \rmax from above. Since $\alpha \geq 4\beta + 2 \gamma + 1$, we get that $\lfloor \alpha / 2 \rfloor > 2\beta + \gamma$, hence $\lfloor \alpha / 2 \rfloor - \beta > \beta + \gamma$, hence at least one of those timestamps that bound \rmax is returned by an honest replica, hence  $\rmax \in (r, \round + \delta]$.
-
-		\item Similarly, from \Cref{lem:assign-min-max} (\rmin is the timestamp at index $\lfloor \alpha / 2 \rfloor - \beta$ of \txVotes), there are at least $\lfloor \alpha / 2 \rfloor - \beta + 1$ timestamps in \txVotes that bound \rmin from below, and, since $\alpha \geq 4\beta + 2 \gamma + 1$, we get $\lfloor \alpha / 2 \rfloor - \beta + 1 > \beta + \gamma$.
-		Hence, \rmin is a timestamp returned by an honest replica, hence $\rmin \in (r, \round + \delta]$ and $\rmax - \rmin < \parTemp$.
-	\end{enumerate}
-	The proofs hold except with negligible probability, as the adversary can forge a signature under the public key of an honest replica with a negligible probability.
-\end{proof}

@@ -7,7 +7,7 @@ The function \opValid{} for \podtm-core is shown in \Cref{alg:pod-core-valid}.
 The idea is to have the verifier repeat the logic of an honest client.
 The verifier is initialized in the same way as in \Cref{alg:client-1} -- importantly, it knows the identifiers and public keys of pod replicas.
 Function \opValid{} takes as input a pod data structure \Pod and auxiliary data \cert,
-which is expected to contain two parts, a \emph{past-perfection certificate} \ppcert and a collection of \emph{transaction certificates} $\alltxcert$, once for each transaction in \Pod.\txSet (\cref{line:valid-extract-cert}).
+which contains two parts, a \emph{past-perfection certificate} \ppcert and a collection of \emph{transaction certificates} $\alltxcert$, one for each transaction in \Pod.\txSet.
 Both contain vote messages, as constructed by a pod client in lines \ref{line:upd-ppcert} and \ref{line:client-store-vote-txcert} of \Cref{alg:client-1}.
 The verifier processes each vote in order of increasing sequence number \sn using function \opProcessVote{}. If any vote is invalid, \opValid{} returns $\false$.
 Observe that if the votes are valid the verifier will have updated its local \tsps and \mrt variables with the same values as the pod client that constructed \Pod.

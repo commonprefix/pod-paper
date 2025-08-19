@@ -1,6 +1,6 @@
 
 % \dotparagraph{Notation}
-We denote by \BN the set of natural numbers including $0$.
+\textbf{Notation:} We denote by \BN the set of natural numbers including $0$.
 Letting $L$ be a bounded sequence, we denote by $L[i]$ the $i^\text{th}$ element (starting from $0$),
 and by $|L|$ its length.
 Negative indices address elements from the end, so $L[-i]$ is the $i^\text{th}$ element from
@@ -12,7 +12,7 @@ subarray of $L$ from $i$ onwards, while $L[{:}j]$ means the subsequence of $L$ u
 We denote an empty sequence by $[\,]$.
 We denote the concatenation of sequences $L_1$ and $L_2$ by $L_1 \concat L_2$.
 
-In pseudocode, `\textbf{require} $P$' causes a function to terminate immediately and return $\false$ if $P$ evaluates to $\false$.
+\textbf{Pseudocode notation:} Command `\textbf{require} $P$' causes a function to terminate immediately and return $\false$ if $P$ evaluates to $\false$.
 Notation `\textbf{upon} $e$' causes a block of code to be executed when event $e$ occurs.
 Notations `$\msg{MSG}{} \leftarrow p$' and `$\msg{MSG}{} \rightarrow p$' denote receiving and sending a message $MSG$ from and to party $p$, respectively.
 Finally, $x: a \in A \rightarrow b \in B$ denotes that variable $x$ is a map from elements of type $A$ to elements of type $B$. When obvious from the context, we do not explicitly write the types $A$ or $B$.
@@ -21,12 +21,12 @@ With $\emptyset$ we denote an empty map.
 % \subsection{Execution Model}
 \label{sec:system}
 
-\dotparagraph{Parties and adversarial model}
+\textbf{Parties:}
 We consider $n$ \emph{replicas} $\replicas=\{\replicas_1,\ldots,\replicas_n\}$ and an unknown number of \emph{clients}. Parties are \emph{stateful}, \textit{i.e.}, store \emph{state} between executions of different algorithms.
 We assume that replicas are known to all parties and register their public keys (for which they have corresponding secret keys) in a Public Key Infrastructure (PKI). Clients do not register keys in the PKI.
 % \vspace{-3mm}
 
-% \dotparagraph{Adversarial Model}
+\textbf{Adversarial model:}
 We call a party (replica or client) \emph{honest}, if it follows the protocol, and \emph{malicious} otherwise.
 % Our constructions assume limits on \alpha and \beta, but make no honesty assumptions on clients.
 We assume \emph{static corruptions},  \textit{i.e.}, the set of malicious replicas is decided before the execution starts and remains constant.
@@ -42,14 +42,14 @@ In the \emph{omission} model, corrupted replicas may only deviate from the proto
 %\dotparagraph{Stateful clients} A stateful client is a party who stores \emph{state} (\textit{i.e.}, data) between executions of different algorithms.
 % \vspace{-3mm}
 
-\dotparagraph{Modeling time and network}
+\textbf{Modeling time:}
 We assume that time proceeds in discrete \emph{rounds}, and parties have clocks allowing them to determine the current round.
 For simplicity, our analysis will assume \emph{synchronized clocks}.
 Notice that although we assume synchronized clocks as a setup, clock synchronization can be achieved in partially synchronous networks~\cite{psync} using existing techniques~\cite{clockoverview}, also in the case where replicas gradually join the network~\cite{bootclocksync}.
 % We denote by $\tzero$ the round at which the execution starts.
 By \emph{timestamp} we refer to a round number assigned to some event.
 
-% \dotparagraph{Modeling network}
+\textbf{Modeling network:}
 We denote by $\delta \in \CN$ the actual delay (measured in number of rounds) it takes to deliver a message between two honest parties,
 a number which is \emph{finite} but \emph{unknown} to all parties.
 We denote by $\Delta \in \CN$ an upper bound on this delay, \textit{i.e.}, $\delta \leq \Delta$, which is also \emph{finite}.
@@ -67,18 +67,15 @@ A protocol is called \emph{responsive} if it does not rely on knowledge of $\Del
 %this is very fluffy, we should make it precise for the DISC submission.
 
 % \subsection{Cryptographic primitives}
-\dotparagraph{Digital Signatures} We assume that replicas (and auctioneers in \bidsettm-core) authenticate their messages with digital signatures. A digital signature scheme is a triple of algorithms satisfying the EUF-CMA security~\cite{GMR88} as defined below:
-		\begin{itemize}
-	    	\item $\textsl{KeyGen}(1^{\kappa})$: The key generation algorithm takes as input a security parameter $\kappa$ and outputs a secret key $\sk$ and a public key $\pk$.
-	        \item
-	            $\opSign{\sk, m} \rightarrow \sig$:
-	            The signing algorithm takes as input a private key
-	            \sk and a message $m \in \zo^*$ and returns a signature $\sig$.
-	        \item
-	            $\opVerify{\pk, m, \sig} \rightarrow b \in \zo$:
-	            The verification algorithm takes as input a public
-	            key $\pk$, a message $m$, and a signature $\sig$, and outputs a bit $b\in \zo$.
-	    \end{itemize}
+\dotparagraph{Digital signatures} We assume that replicas (and auctioneers in \bidsettm-core) authenticate their messages with digital signatures. A digital signature scheme consists of the following three algorithms, satisfying the EUF-CMA security~\cite{GMR88}:
+(1) $\textsl{KeyGen}(1^{\kappa})$:
+The key generation algorithm takes as input a security parameter $\kappa$ and outputs a secret key $\sk$ and a public key $\pk$.
+(2) $\opSign{\sk, m} \rightarrow \sig$:
+The signing algorithm takes as input a private key
+\sk and a message $m \in \zo^*$ and returns a signature $\sig$.
+(3)$\opVerify{\pk, m, \sig} \rightarrow b \in \zo$:
+The verification algorithm takes as input a public
+key $\pk$, a message $m$, and a signature $\sig$, and outputs a bit $b\in \zo$.
 We say \sig is a \emph{valid} signature on $m$ with respect to \pk if $\opVerify{pk, m, \sig} = 1$.
 
 

@@ -1,25 +1,63 @@
-\documentclass[a4paper,anonymous,USenglish]{lipics-v2021}
+% \documentclass[a4paper,USenglish]{lipics-v2021}
+\documentclass[a4paper,UKenglish,cleveref, autoref, thm-restate]{lipics-v2021}
+
+\author{Orestis Alpos}{Common Prefix}{}{https://orcid.org/0000-0001-5477-3736}{}
+\author{Bernardo David}{IT University of Copenhagen (ITU) \and Common Prefix}{}{https://orcid.org/0000-0002-1872-7799}{}
+\author{Jakov Mitrovski}{Technical University of Munich \and Common Prefix}{}{}{}
+\author{Odysseas Sofikitis}{Common Prefix \and \podtm network}{}{https://orcid.org/0009-0002-2154-0957}{}
+\author{Dionysis Zindros}{Common Prefix \and \podtm network}{}{https://orcid.org/0000-0002-1978-594X}{}
+
+\authorrunning{O. Alpos, B. David, J. Mitrovski, O. Sofikitis, and D. Zindros} %TODO mandatory. First: Use abbreviated first/middle names. Second (only in severe cases): Use first author plus 'et al.'
+
+\Copyright{Orestis Alpos, Bernardo David, Jakov Mitrovski, Odysseas Sofikitis, and Dionysis Zindros} %TODO mandatory, please use full first names. LIPIcs license is "CC-BY";  http://creativecommons.org/licenses/by/3.0/
+
+\ccsdesc{Security and privacy~Distributed systems security}
+\ccsdesc{Computer systems organization~Dependable and fault-tolerant systems and networks}
+
+\keywords{consensus, censorship resistance, accountability, auctions}
+
+\relatedversiondetails[cite=DBLP:journals/corr/abs-2501-14931]{Full version}{https://arxiv.org/abs/2501.14931}
+
+\EventEditors{Dariusz R. Kowalski}
+\EventNoEds{1}
+\EventLongTitle{39th International Symposium on Distributed Computing (DISC 2025)}
+\EventShortTitle{DISC 2025}
+\EventAcronym{DISC}
+\EventYear{2025}
+\EventDate{October 27--31, 2025}
+\EventLocation{Berlin, Germany}
+\EventLogo{}
+\SeriesVolume{356}
+\ArticleNo{5}
 
 \usepackage{preamble}
 
 \begin{document}
-\input{frontpage.tex}
 
-\input{body.tex}
+\input{title.tex}
+
+\maketitle
+
+\input{abstract.tex}
+\input{introduction.tex}
+\input{prelim.tex}
+\input{pod.tex}
+\input{pod-construction.tex}
+\input{benchmark.tex}
+\input{auctions.tex}
+\input{discussion.tex}
 
 % \vfill
 % \pagebreak
-
-\pdfbookmark[section]{References}{references}
+% \pdfbookmark[section]{References}{references}
 \bibliographystyle{plainurl}
-\input{main.bbl}
+\bibliography{abbrev3,crypto,biblio}
 
 \appendix
-\input{app-monotonicity.tex}
+% \input{app-monotonicity.tex}
 \input{app-pod-validation-function.tex}
 \input{app-pod-security.tex}
-%\input{pod-with-propagation.tex}
-\input{app-bidset-security.tex}
-% \input{commonprefix.tex}
+% \input{app-pod-additional-proofs.tex}
+% \input{app-bidset-security.tex}
 
 \end{document}

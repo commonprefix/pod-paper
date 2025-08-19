@@ -28,22 +28,6 @@ We now observe that a monotone \podtm protocol can be obtained from any secure \
 	\end{enumerate}
 \end{remark}
 
-
-% \item{Accountability:}
-% \begin{description}
-	%     \item [Accountability:]
-	%     If one or more replicas equivocate, then there exist
-	%     views $\podView{\client_1}{\round_1}$ and $\podView{\client_2}{\round_2}$, for some clients $\client_1,\client_2$ and rounds $\round_1, \round_2$ such that $\identify{\podView{\client_1}{\round_1},\podView{\client_2}{\round_2}} \rightarrow \cheaters$ outputs a non-empty set $\cheaters$ of equivocating replicas. If a safety property is violated, $\cheaters$ contains at least $\beta+1$ replicas who have caused the violation.
-	% \end{enumerate}
-
-
-
-
-
-
-
-
-
 In the remarks below, we observe that \podtm monotonicity implies a number of useful properties about the monotonicity of past perfection and the values $\rmin,\rmax,\rconf$ associated to a transaction in the \podtm.
 
 \begin{remark}[Confirmation monotonicity]\label{rem:confstick}
@@ -51,23 +35,6 @@ In the remarks below, we observe that \podtm monotonicity implies a number of us
 	if $\tx \in \podView{\client}{\round_1}$ and $\tx.\rconf \neq \bot$, then $\tx \in \podView{\client}{\round_2}$ and $\tx.\rconf \neq \bot$.
 \end{remark}
 
-%\begin{remark}[Past-perfection Monotonicity]
-%	Property 1 of \podtm monotonicity imply that the past-perfect round obtained by honest clients can only grow.
-%	That is, for any honest client \client and rounds $\round_1, \round_2 \geq \round_1$,
-%	it holds that $\podView{\client}{\round_2}.\rperf \geq \podView{\client}{\round_1}.\rperf$.
-%\end{remark}
-
-% \begin{remark}[Strong confirmation-bounds monotonicity]
-% 	Properties 2 and 3 of \podtm monotonicity imply that if an honest client computes $\rmin$ and $\rmax$ for \tx in round $\round_1$, then the same client will later obtain $\rmin'$ and $\rmax'$ for \tx in round $\round_2 > \round_1$ such that $\rmin' \geq \rmin$ and $\rmax' \leq \rmax$.
-% 	% \oa{What is the difference between this and the \emph{confirmation-bounds monotonicity}?}
-% \end{remark}
-
 \begin{remark}
 	Observe that the \emph{confirmation monotonicity} property in Remark~\ref{rem:confstick} is a specific version of a more general \emph{common subset} property, which would demand the condition for any two honest clients $\client_1, \client_2$.
-	%We provide such a property in \Cref{sec:pod-with-propagation}.
-	% \Cref{const:pod-core} satisfies the \emph{confirmation monotonicity} property.
-	% \emph{ Confirmation monotonicity for honest transactions after $X$:}
-	% For any honest clients $\client_1$, $\client_2$ and rounds $\round_1, \round_2 > \round_1 + X$,
-	% and for any transaction \tx written by an honest client,
-	% if $\tx \in \podView{\client_1}{\round_1}$ and $\tx.\rconf \neq \bot$, then $\tx \in \podView{\client_2}{\round_2}$ and $\tx.\rconf \neq \bot$.
 \end{remark}

@@ -130,9 +130,8 @@ Previous work has observed a similar property as orthogonal to safety and livene
 \end{definition}
 
 
-Moreover, a \podtm protocol allows the values \rmin, \rmax, \rconf to change during an execution -- for example, clients in construction \podtm-core will update them when they receive votes from replicas.
-The properties we have defined so far do not impose any restriction on how they evolve.
-For this reason, in Appendix~\ref{app:monotonicity} we define the additional property of \podtm \emph{monotonicity}.
+Moreover, a \podtm protocol allows \rmin, \rmax, \rconf to change during an execution -- for example, clients in construction \podtm-core will update them when they receive votes from replicas.
+In the full version of this paper~\cite[Appendix A]{DBLP:journals/corr/abs-2501-14931} we define \emph{monotonicity} properties that impose restrictions on how these values evolve.
 
 We conclude this section with some visual examples in Figures \ref{fig:temperature} and \ref{fig:example-output}.
 % \begin{figure}[h]

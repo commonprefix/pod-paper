@@ -1,20 +1,10 @@
 \section{Security of \bidsettm-core}\label{app:bidsetsec}
 
-% \begin{lemma}\label{lem:bidset-tx-confirmed}
-%     A bid submitted by an honest bidder gets confirmed by round $\tone = \tzero + 2 \delta$.
-% \end{lemma}
-% \begin{proof}
-%     It follows from the property \emph{confirmation within $\parConf=2\delta$} of pod.
-% \end{proof}
+As an intuition on how \bidsettm-core achieves censorship resistance, we observe the following.
+The \emph{$\delta$-timeliness property} of \podtm (\Cref{def:pod-timely}), given that $\delta \leq \Delta$, ensures that bids of honest parties will have a \confirmed round $\rconf \leq \tzero + \Delta$.
+Now, the sequencer may only produce a valid bid-set when \podtm returns a past-perfect round larger than $\tzero + \Delta$ (\cref{line:bidset-wait-pp}), and the output \emph{must} contain a certificate \ppcert that proves this. However, if the certificate is valid, then the sequencer must have \emph{provably} seen the bids of honest parties in \txSet (we remind that the votes of replicas on \podtm-core are chained using sequence numbers), and thus \bag must contain all bids with $\rconf \leq \tzero + \Delta$. If any party presents a transaction certificate \txcert for some transaction $\tx^*$ with $\rconf^* \leq \tzero + \Delta$, but $\tx^* \not\in \bag$, then the sequencer can be held accountable.
 
-% \begin{lemma}\label{lem:bidset-past-perfect}
-%     The round \ttwo becomes past-perfect in the view of an honest sequencer by round $\tthree = \ttwo + \delta$.
-% \end{lemma}
-% \begin{proof}
-%     It follows from the \emph{past-perfection within $\parPerf = \delta$} property of \podtm.
-% \end{proof}
-
-In this section, we recall and prove \Cref{thm:bidset-construction-secure}.
+We now recall and prove \Cref{thm:bidset-construction-secure}.
 
 \begin{customthm}{\ref{thm:bidset-construction-secure}}[Bidset security]
     Assuming a synchronous network where $\delta \leq \Delta$,

@@ -7,15 +7,16 @@ Indeed, Nakamoto-style blockchain protocols require a large number of rounds in 
 
 
 In a model where \emph{replicas} maintain the network, \emph{writers} submit transactions, and \emph{readers} read the network, the minimum latency is one network round trip, or $2\delta$, letting $\delta$ denote the actual network delay, as the information must travel from the writers to the replicas and then to the readers. More importantly, we want that any transaction from an honest writer appears in the output of honest readers within $2\delta$ time, regardless of the current value of $\delta$ and corrupted parties' actions.
-In this context, this work is motivated by the following question.
+In this context, we are motivated by the following question:
 
 %\begin{center}
 %	\emph{Can we perform payments -- and other tasks that blockchains are commonly used for -- in optimal latency?}
 %\end{center}
-
+\vspace{-2mm}
 \begin{center}
 	\emph{Can we realize tasks that blockchains are commonly used for with optimal latency?}
 \end{center}
+\vspace{-2mm}
 
 We give a positive answer to this question with a protocol realizing \podtm, a new notion of consensus that trades off traditional agreement properties for optimal latency, while retaining sufficient security guarantees to realize important tasks (\textit{e.g.}, decentralized auctions).
 
@@ -77,9 +78,6 @@ Writing a transaction $\tx$ to \podtm-core only requires clients to send $\tx$ t
 Protocol \podtm-core supports a continuum of mixed adversarial models, tolerating up to \beta Byzantine \emph{and} at the same time up to \gamma additional omission-faulty replicas.
 % However, although we prove our results for executions with only Byzantine and only omission faults, we conjecture that Protocol \podtm-core realizes the \podtm notion for a continuum between these two cases. We leave the security analysis of our protocol under a continuum of mixed Byzantine and omission faults to the full version of this work.
 
-\dotparagraph{Applications}
-The efficiency of pod has the potential to allow for a plethora of distributed applications to be implemented with low latency. In \Cref{sec:auctions} we show how auctions can be run on top of pod, achieved through \bidsettm, a new primitive for collecting a set of bids in a censorship resistant manner. It is straightforward to realize single-shot open bid auctions using our \bidsettm primitive based on pod. We also conjecture that protocols for distributed sealed-bid auctions based on public bulletin boards can also be recast over this primitive. Moreover, we conjecture consensusless payment systems, such as Fastpay~\cite{DBLP:conf/aft/BaudetDS20}, are easily realized over \podtm.
-
 %\todo{A paragraph on feed-layers ad decentralized social applications}
 
 
@@ -95,53 +93,12 @@ the partially-synchronous version of BullShark~\cite{DBLP:journals/corr/abs-2209
 and Mysticeti~\cite{DBLP:journals/corr/abs-2310-14821} an end-to-end latency of $4\delta$.
 All these protocols aim at total-order properties and have their lower latency is inherently restricted by lower bounds, whereas \podtm starts from the single-round-trip latency requirement and explores the properties that can be achieved.
 
-% \dotparagraph{Parallel consensusless payments}
-% Bazzi and Piergiovanni~\cite{PODC:BazPie24} observe two limitations of consensusless protocols: As they employ sequence numbers and deterministic broadcast,
-% clients can only submit one transaction at a time, and they must obtain signatures by at least $2f+1$ replicas on each transaction,
-% where $f$ is the maximum number of tolerated failures.
-% The authors propose a new type of probabilistic Byzantine quorum system~\cite{DBLP:journals/iandc/MalkhiRWW01},
-% % achieving lower \emph{and} upper bounds in the intersection among quorums.
-% and a protocol that allows a user to initiate multiple concurrent payments, called \emph{fractional payments},
-% each transferring amount $b / s$ from their balance $b$, where $s$ is a constant,
-% and each requiring a signature from less than $f$ replicas.
-% Their solution, however, requires $n > 8f$ and a large $n$ for the probabilistic analysis to hold.
-
-% \dotparagraph{Consensusless payments}
 The redundancy of consensus for implementing payment systems has been recognized by previous works~\cite{DBLP:journals/dc/GuerraouiKMPS22,DBLP:journals/corr/abs-1909-10926,DBLP:conf/dsn/CollinsGKKMPPST20,DBLP:conf/aft/BaudetDS20}.
 The insight is that total transaction order is not required in the case that each account is controlled by one client.
 Instead, a partial order is sufficient, ensuring that, if transactions $\tx_1$ and $\tx_2$ are created by the same client, then every party outputs them in the same order.
 This requirement was first formalized by Guerraoui~\etal~\cite{DBLP:journals/dc/GuerraouiKMPS22} as the \emph{source-order property}.
-% Notice that this is weaker than the FIFO property, as it allows the output order to be different from the order in which the sender sent the transactions.
-% All protocols have a similar architecture: transactions are created and broadcast by clients, who either drive the whole broadcast instance~\cite{DBLP:conf/aft/BaudetDS20} or outsource it to trusted replicas~\cite{DBLP:conf/dsn/CollinsGKKMPPST20}.
-% The constructions of Guerraoui~\etal~\cite{DBLP:journals/dc/GuerraouiKMPS22} and FastPay~\cite{DBLP:conf/aft/BaudetDS20} satisfy the source-order property by having clients use sequence numbers for their transactions, and by having replicas sign at most one transaction from a client with a given sequence number.
 The constructions of Guerraoui~\etal~\cite{DBLP:journals/dc/GuerraouiKMPS22} and FastPay~\cite{DBLP:conf/aft/BaudetDS20} require clients to maintain sequence numbers.
 ABC~\cite{DBLP:journals/corr/abs-1909-10926} requires clients to reference all previous transaction in a DAG (including its own last transaction).
 % , and, in case of transactions spending the same output, by having replicas sign only one of them.
 Cheating clients might lose liveness~\cite{DBLP:conf/aft/BaudetDS20,DBLP:journals/dc/GuerraouiKMPS22,DBLP:journals/corr/abs-1909-10926}, but equivocating is not possible.
 To the best of our knowledge, previous work in the consensusless literature has not considered or achieved a property like our \emph{past-perfection}, which we show sufficient for implementing auctions.
-
-
-%------------------------------
-%%% OLD INTRO
-\iffalse
-Most distributed systems implementing cryptocurrency schemes~\cite{bitcoin} and smart contracts~\cite{smartcontracts,wood} have been built on the assumption that it is necessary to achieve consensus on \emph{total order} of all users' transactions. This belief sparked a rich line of work on permissionless blockchain protocols~\cite{EC:GarKiaLeo15,C:KRDO17,EC:DGKR18,EC:PasShi18,algorand} and more traditional consensus protocols~\cite{CCS:MXCSS16,PODC:YMRGA19,SP:AMNRY20,sbft,narwhal}, aimed at instantiating large scale high-throughput public ledgers that maintain an (eventually) immutable global order of transactions, while quickly registering honest parties' transactions. However, as much as these protocols have evolved in recent years, the need to maintain total order among all transactions in the ledger introduces fundamental constraints to their efficiency~\cite{antoniadis_et_al:LIPIcs.DISC.2018.7,FOCS:BerGarPer89,10.1007/978-3-319-39028-4_9}. Moreover, the fact that `leaders' get to choose what data to register in the ledger allows them to unfairly order and even briefly censor transactions~\cite{C:KZGJ20}. While solutions to censorship~\cite{DBLP:journals/corr/abs-2307-10185} and order fairness~\cite{CCS:KDLJK23,fairpos} problems have been suggested, they face fundamental limits~\cite{EC:KiaLeoShe24} due to aiming for full consensus guarantees.
-\pagebreak
-
-A recent line of work~\cite{DBLP:journals/corr/abs-1909-10926, DBLP:conf/dsn/CollinsGKKMPPST20,DBLP:conf/aft/BaudetDS20,DBLP:journals/dc/GuerraouiKMPS22} establishes that consensus on a total order of transactions is actually not necessary for digital asset transfer schemes (\textit{e.g.,} cryptocurrencies). The main insight is that a ledger providing a \emph{partial order} of transactions is sufficient for implementing such schemes. More precisely, the ledger only needs to ensure that, if transactions $\tx_1$ and $\tx_2$ are created by the same party, then every party outputs them in the same order.
-
-While this observation allows for highly efficient protocols, previous works focus on the specific case of asset transfer and do not handle censorship.
-Moreover, previous partial-order protocols, being based on broadcast~\cite{DBLP:journals/iandc/Bracha87}, do not offer any notion of `totality' (what we later refer to as \emph{past-perfection}) of the transactions that exist in the system: parties may see $\tx_2$ after $\tx_1$, broadcast by the same sender, but they can not be sure whether a $\tx_3$ will appear after them, or \emph{when} this will happen. While sufficient for implementing payments, this is problematic for implementing protocols like auctions, where the set of all bids submitted \emph{up to a prescribed deadline} must be known.
-
-In this work, we investigate how to further relax consensus guarantees in order to construct distributed systems with better liveness and censorship resistance. As a motivating example, we consider distributed auctions~\cite{trustee,seal,ACNS:DavGenPou22,CCS:TAFWBM23,chitra_et_al:LIPIcs.AFT.2024.19,cryptoeprint:2024/1011}, where bids are usually registered on a public ledger.  In such auctions, parties post their bids (either sealed or open) on the public ledger before a deadline, after which a protocol is executed to determine the winning bid (\textit{e.g.}, the highest bid). Notice that there is no need for the bids in an auction to be ordered, as long as parties agree on the set of bids corresponding to a given protocol execution. Hence, in this application, even the weaker guarantee of partial order among transactions from the same user is redundant, and the parties executing the public ledger can still censor bids. In this context, we ask the following question:
-
-\begin{center}
-	\emph{What are the weakest transaction-ordering guarantees sufficient for building distributed systems with optimal latency and censorship resistance?}
-\end{center}
-
-\subsection{Our Contributions}
-We answer this question by introducing the notion of \podtm, which allows for parties to read and write transactions associated with a \emph{timestamp}. Rather than agreeing on a transaction's timestamp, each party in a \podtm reads different timestamps that may later change, but are guaranteed to stay within certain limits.  This means that we may be able to order some transactions that are written sufficiently far in time from each other, while transactions written around the same time may appear concurrent during the entire execution. A \podtm has a \emph{past-perfection} property, which guarantees that, for each round, there is a point in time by which an honest party will have read all transaction that may ever get associated with a timestamp earlier than that round. A \podtm also guarantees that written transactions can be read by all honest parties (preventing censorship) and every round becomes \emph{past-perfect} within a bounded delays.
-
-We construct \podtm-core, a simple protocol realizing the \podtm notion with minimal interaction among parties and optimal latency, guaranteeing that transactions become \emph{confirmed} and rounds become \emph{past-perfect} as fast as the network allows. Moreover, \podtm-core has accountability, guaranteeing identification (and enabling punishment) of parties that attempt to modify confirmed transactions, or vary their timestamps beyond the allowed limits. Based on \podtm-core, we construct \bidsettm-core, a protocol for agreeing on a unordered set of bids. Since \bidsettm-core inherits these properties, we obtain censorship resistant auctions.
-\fi
-%%% OLD INTRO
-%------------------------------
