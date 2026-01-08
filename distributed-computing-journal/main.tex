@@ -31,7 +31,7 @@
 %%\documentclass[pdflatex,sn-nature]{sn-jnl}% Style for submissions to Nature Portfolio journals
 %%\documentclass[pdflatex,sn-basic]{sn-jnl}% Basic Springer Nature Reference Style/Chemistry Reference Style
 \documentclass[pdflatex,sn-mathphys-num]{sn-jnl}% Math and Physical Sciences Numbered Reference Style
-%%\documentclass[pdflatex,sn-mathphys-ay]{sn-jnl}% Math and Physical Sciences Author Year Reference Style
+%\documentclass[pdflatex,sn-mathphys-ay]{sn-jnl}% Math and Physical Sciences Author Year Reference Style
 %%\documentclass[pdflatex,sn-aps]{sn-jnl}% American Physical Society (APS) Reference Style
 %%\documentclass[pdflatex,sn-vancouver-num]{sn-jnl}% Vancouver Numbered Reference Style
 %%\documentclass[pdflatex,sn-vancouver-ay]{sn-jnl}% Vancouver Author Year Reference Style
@@ -115,7 +115,6 @@
 {\renewcommand\theinnercustomthm{#1}\innercustomthm}
 {\endinnercustomthm}
 
-
 \DeclareMathOperator*{\argmax}{arg\,max}
 \DeclareMathOperator*{\argmin}{arg\,min}
 
@@ -147,10 +146,20 @@
 
 \def \ifempty#1{\def\temp{#1} \ifx\temp\empty }
 
+%Fix weird issue with clever referencing lines in multiple algorithms
+\makeatletter
+\newcounter{algorithmicH}% New algorithmic-like hyperref counter
+\let\oldalgorithmic\algorithmic
+\renewcommand{\algorithmic}{%
+	\stepcounter{algorithmicH}% Step counter
+	\oldalgorithmic}% Do what was always done with algorithmic environment
+\renewcommand{\theHALG@line}{ALG@line.\thealgorithmicH.\arabic{ALG@line}}
+\makeatother
+%end fix
+
 \newtheorem{lemma}{Lemma}
 \crefformat{lemma}{#2lemma #1#3}
 \Crefformat{lemma}{#2Lemma #1#3}
-
 
 \newcommand{\podtm}{\textsf{pod}\xspace}
 \newcommand{\bidsettm}{\textsf{bidset}\xspace}
@@ -413,7 +422,7 @@
 We present \podtm, a novel notion of consensus whose first priority is to achieve the physically-optimal latency of $2\delta$, or one round-trip, \textit{i.e.}, requiring only one network trip (duration $\delta$) for writing a transaction and one for reading it.
 
 To accomplish this, we first eliminate inter-replica communication. Instead, clients send transactions directly to all replicas, which independently process transactions and append them to local logs.
-Replicas assigns a timestamp and a sequence number to each transaction in their logs, allowing clients to extract valuable metadata about the transactions and the system state. Later on, clients retrieve these logs and extract transactions (and associated metadata) from them.
+Replicas assign a timestamp and a sequence number to each transaction in their logs, allowing clients to extract valuable metadata about the transactions and the system state. Later on, clients retrieve these logs and extract transactions (and associated metadata) from them.
 
 Necessarily, this construction achieves weaker properties than a total-order broadcast protocol, due to existing lower bounds.
 Our work models the primitive of \podtm and defines its security properties.
@@ -443,7 +452,7 @@ In order to motivate the notion of \podtm, we first introduce the architecture o
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.27\textwidth]{figures/pod-architecture.pdf}
+    \includegraphics[width=0.4\textwidth]{figures/pod-architecture.pdf}
     \caption{\podtm-core's simple architecture. A writing client (top) sends a transaction to all replicas (middle). Each replica appends it to its own log and transmits it to the reading client (bottom).}
     \label{fig:architecture}
 \end{figure}
@@ -1084,7 +1093,6 @@ We present the results in \Cref{fig:latency}.
 \begin{figure}[h!]
     \centering
     \includegraphics[width=0.9\textwidth]{figures/latency.pdf}
-    \vspace{-5mm}
     \caption{End-to-end confirmation latency from a writing client to a reading client as a transaction traverses across $n = 15, \ldots, 1000$ replicas,
     for two reading clients:
     (1) a client that expects up to $\gamma = \lfloor\frac{1}{3}n\rfloor$ omission faults (blue line, below), and (2) a client that expects up to $\beta = \lfloor\frac{1}{5}n\rfloor$ Byzantine faults (orange line, above).
@@ -1168,7 +1176,6 @@ A \bidsettm protocol satisfies the following liveness and safety properties:
 	A pre-appointed \emph{sequencer} is responsible to reading the \podtm and writing back to it when a specific condition is met. For example, when instantiating \bidsettm-core on top of \podtm-core, a replica can act as sequencer.
 \end{protocol}
 
-\vspace{-5mm}
 \begin{algorithm}[h!]
     \caption{\bidsettm-core: Code for a bidder. It runs a client for a \podtm-core instance \podInst.}
     \label{alg:bid-set-bidder}
@@ -1242,7 +1249,7 @@ Assuming a synchronous network where $\delta \leq \Delta$,
 protocol \bidsettm-core (Construction~\ref{const:bidset}) instantiated with a digital signature and a  secure \podtm protocol that satisfies the \emph{past-perfection within $\parPerf = \delta$}, \emph{confirmation within $\parConf=2\delta$} and \emph{$\delta$-timeliness} properties, is a secure \bidsettm protocol satisfying \emph{termination within $\parAuctionTerm = 3\Delta + \delta$}.
 It satisfies accountable safety with an \identifySequencer{} function that identifies a malicious sequencer.
 \end{theorem}
-\vspace{-3mm}
+
 \begin{proof} The proof and \identifySequencer{} are shown in Appendix~\ref{app:bidsetsec}.
 \end{proof}
 
@@ -1251,7 +1258,7 @@ It satisfies accountable safety with an \identifySequencer{} function that ident
     Moreover, \bidsettm-core is not responsive because \Cref{alg:bid-set-sequencer} waits for a fixed $\Delta$ interval.
     This step can be optimized if the set of bidders is known (i.e., by requiring them to pre-register), which allows for the protocol to be made optimistically responsive (\textit{i.e.}, $\parAuctionTerm = 4\delta$) when all bidders and the sequencer are honest.
 \end{remark}
-\vspace{-2mm}
+
 \dotparagraph{\textbf{Auctions using \bidsettm}} Building on a \bidsettm protocol, it is trivial to construct single-shot first price and second price open auctions as follows: 1. Bidders place their open bids $\bid$ by calling \opSubmitBid{\bid}; 2. Consumers determine the winner by calling \opReadResult{} to obtain $\bag$ and outputting either the first or second highest bid. We conjecture that single-shot sealed bid auction protocols such as those of~~\cite{trustee,seal,ACNS:DavGenPou22,CCS:TAFWBM23,chitra_et_al:LIPIcs.AFT.2024.19,cryptoeprint:2024/1011} can also be instantiated on top of a \bidsettm protocol. Intuitively, this holds because such protocols first agree on a set of sealed bids and then execute extra steps to determine the winner. However, a formal analysis of sealed-bid auction protocols based on \bidsettm is left as future work.
 
 
