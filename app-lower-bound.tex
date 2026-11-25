@@ -1,0 +1,208 @@
+\section{Lower bound on the number of replicas}\label{app:lower-bound}
+
+\Cref{thm:pod-security} requires $n \geq 5\beta + 3\gamma + 1$ replicas. We
+show that the term $5\beta$ is necessary for the properties that \podtm-core
+achieves. The bound does not rely on the architecture of \podtm-core: replicas
+may exchange messages with each other, but clients exchange messages only with
+replicas.
+
+\dotparagraph{Executions}
+Let $\beta \geq 1$ and $n \leq 5\beta$, and consider a protocol with $n$
+replicas, \beta of which are Byzantine. We partition the replicas into sets
+$G_1, \ldots, G_5$ of at most \beta replicas each. We consider a writer
+$\client_0$ and readers $\client_1, \client_2, \client_3$. Let \parTemp be a
+timeliness parameter, which may be a function of $\delta$. Let $\theta_1$ be
+its value for $\delta = 1$, and let $\lambda = \theta_1 + 2$. We define
+executions $E_1, \ldots, E_5$, shown in \Cref{tab:lower-bound-executions}, in
+which all parties use the same keys and random coins.
+
+In every execution, all parties follow the protocol up to round \round, and
+every message sent up to round \round has delay $1$. The only exception are the
+messages of $\client_0$ in round \round. In $E_3$ client $\client_0$ is
+malicious and sends no message from round \round on. In the other executions it
+calls \opwrite{\tx}, and its messages have the delays of
+\Cref{tab:lower-bound-executions}. We call them the \emph{write messages}.  All
+other clients are honest in all executions.
+
+A message sent after round \round has delay $1$ in $E_1$ and delay $\lambda$ in
+the other executions. In $E_4$ and $E_5$ there are two exceptions, for messages
+sent after round \round to a reader $\client_i$. A message from the set that is
+Byzantine in $E_i$ has delay $3\lambda$. Any other message to $\client_1$ has
+delay $1$, as in $E_1$.
+
+In $E_i$, for $i \in \{1, 2, 3\}$, the Byzantine replicas follow the protocol,
+but send nothing to $\client_i$ after round \round. After round \round, the
+Byzantine replicas of $E_4$ and $E_5$ send to each $\client_i$ the messages that
+they send to $\client_i$ in $E_i$, and nothing else. Finally, $E_3$ does not
+involve \tx. We choose \tx as a transaction that $\client_3$ does not output in
+$E_3$ at round $\round + 2\lambda - 1$.
+
+\begin{table}[ht]
+    \centering
+    \caption{The executions of \Cref{app:lower-bound}. The last five columns show the round in which each set receives the write messages.}
+    \label{tab:lower-bound-executions}
+    \setlength{\tabcolsep}{5pt}
+    \renewcommand{\arraystretch}{1.15}
+    \begin{tabular}{|c|c|c|c|c|c|c|c|}
+        \hline
+        & $\delta$ & Byzantine & $G_1$ & $G_2$ & $G_3$ & $G_4$ & $G_5$ \\
+        \hline
+        $E_1$ & $1$ & $G_4$ & $\round + 1$ & $\round + 1$ & $\round + 1$ & $\round + 1$ & $\round + 1$ \\
+        $E_2$ & $\lambda$ & $G_5$ & $\round + 1$ & $\round + 1$ & $\round + \lambda$ & $\round + \lambda$ & $\round + \lambda$ \\
+        $E_3$ & $\lambda$ & $G_2$ & \multicolumn{5}{c|}{no write messages} \\
+        $E_4$ & $\lambda$ & $G_3$ & $\round + 1$ & $\round + 1$ & $\round + 1$ & $\round + \lambda$ & $\round + 1$ \\
+        $E_5$ & $\lambda$ & $G_1$ & $\round + 1$ & $\round + 1$ & $\round + \lambda$ & $\round + \lambda$ & $\round + \lambda$ \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\Cref{lem:lower-bound-replicas} shows that an honest replica sends the same
+messages in two executions until the write messages, or a message sent after
+round \round, reach it. \Cref{lem:lower-bound-readers} uses this to show that
+the readers produce in $E_4$ and $E_5$ the same outputs as in $E_1, E_2, E_3$.
+
+\begin{lemma}\label{lem:lower-bound-replicas}
+    Let $R$ be a replica that is honest in two of the executions, and let $s
+    \leq \round + \lambda$. If one of the two executions is $E_1$, let $s \leq
+    \round + 1$. Assume that $R$ receives the write messages in the same round
+    in both executions, or after round $s$ or never in both. Then $R$ sends the
+    same messages up to round $s$ in both executions.
+\end{lemma}
+\begin{proof}
+    All parties follow the protocol up to round \round, with the same coins, and
+    messages sent up to round \round have delay $1$. By induction on the round,
+    apart from the write messages, every party receives the same messages up to
+    round $\round + 1$ in all executions. A message sent to a replica after
+    round \round is received after round $\round + 1$ in $E_1$, and after round
+    $\round + \lambda$ in the other executions. Hence $R$ receives the same
+    messages up to round $s$ in both executions.
+\end{proof}
+
+\begin{lemma}\label{lem:lower-bound-readers}
+    Assume that the protocol is a \parTemp-timely secure \podtm with
+    confirmation within $\parConf = 2\delta$ and past-perfection within
+    $\parPerf = \delta$. Then the following outputs are valid.
+    \begin{enumerate}
+        \item In $E_1$ and in $E_4$, client $\client_1$ outputs the same
+            $(\Pod_1, \cert_1)$ at round $\round + 2$, where \tx appears in
+            $\Pod_1.\txSet$ with $\rmax^1 \leq \round + \theta_1$.
+        \item In $E_2$, $E_4$ and $E_5$, client $\client_2$ outputs the same
+            $(\Pod_2, \cert_2)$ at round $\round + 2\lambda$, where \tx appears in
+            $\Pod_2.\txSet$ with $\rconf^2 \neq \bot$.
+        \item In $E_3$ and in $E_5$, client $\client_3$ outputs the same
+            $(\Pod_3, \cert_3)$ at round $\round + 2\lambda - 1$, where \tx does
+            not appear in $\Pod_3.\txSet$ and $\Pod_3.\rperf \geq \round +
+            \theta_1 + 1$.
+    \end{enumerate}
+\end{lemma}
+\begin{proof}
+    The three outputs are valid by completeness. The output of a reader
+    $\client_i$ is determined by the messages that it receives up to the round
+    of the output. We derive the output in $E_i$, and show that $\client_i$
+    receives the same messages in the same rounds in $E_4$ or $E_5$. By
+    definition of $E_4$ and $E_5$, these messages have the same delays, and the
+    Byzantine replicas send the same messages as in $E_i$. The replicas that
+    are Byzantine in $E_i$ send nothing to $\client_i$ in $E_i$, and their
+    messages have delay $3\lambda$ in $E_4$ and $E_5$, so they arrive after the
+    output. It remains to show that the other honest replicas send the same
+    messages.
+
+    \emph{Item 1.}
+    In $E_1$ we have $\delta = 1$, and the honest $\client_0$ writes \tx at
+    round \round. Confirmation within $\parConf = 2\delta$ gives that \tx
+    appears in $\Pod_1.\txSet$, and \parTemp-timeliness gives $\rmax^1 \leq
+    \round + \theta_1$. The messages that $\client_1$ receives up to round
+    $\round + 2$ are sent up to round $\round + 1$ by replicas in $G_1, G_2,
+    G_3, G_5$. In $E_4$, the replicas in $G_1, G_2, G_5$ are honest and receive
+    the write messages at round $\round + 1$, as in $E_1$. By
+    \Cref{lem:lower-bound-replicas}, they send the same messages up to round
+    $\round + 1$.
+
+    \emph{Item 2.}
+    In $E_2$ we have $\delta = \lambda$, and the honest $\client_0$ writes \tx
+    at round \round. Confirmation within $\parConf = 2\delta$ gives that \tx
+    appears in $\Pod_2.\txSet$ with $\rconf^2 \neq \bot$. The messages that
+    $\client_2$ receives up to round $\round + 2\lambda$ are sent up to round
+    $\round + \lambda$ by replicas in $G_1, \ldots, G_4$. Among them, the
+    honest replicas of $E_4$ are $G_1, G_2, G_4$ and those of $E_5$ are $G_2,
+    G_3, G_4$. They receive the write messages at the same round as in $E_2$.
+    By \Cref{lem:lower-bound-replicas}, they send the same messages up to round
+    $\round + \lambda$.
+
+    \emph{Item 3.}
+    In $E_3$ we have $\delta = \lambda$. Past-perfection within $\parPerf =
+    \delta$ gives $\Pod_3.\rperf \geq \round + \lambda - 1 = \round + \theta_1 +
+    1$, and \tx does not appear in $\Pod_3.\txSet$ by the choice of \tx. The
+    messages that $\client_3$ receives up to round $\round + 2\lambda - 1$ are
+    sent up to round $\round + \lambda - 1$ by replicas in $G_1, G_3, G_4, G_5$.
+    In $E_5$, the replicas in $G_3, G_4, G_5$ are honest and receive the write
+    messages at round $\round + \lambda$. By \Cref{lem:lower-bound-replicas},
+    they send the same messages up to round $\round + \lambda - 1$ as in $E_3$,
+    where they never receive write messages.
+\end{proof}
+
+\dotparagraph{Intuition}
+\Cref{tab:lower-bound-readers} summarizes \Cref{lem:lower-bound-readers}. For
+each reader, it shows the round at which each set received \tx, according to the
+messages that the reader receives, and the output of the reader. Each row
+occurs in an execution where the four sets that the reader hears from are
+honest, and the fifth set is Byzantine. These are the executions $E_1, E_2,
+E_3$. A reader cannot tell whether a set is honest.
+
+The rows of $\client_1$ and $\client_2$ differ only in $G_3$, apart from dashes.
+Hence both rows occur in $E_4$, where $G_3$ is Byzantine. The confirmation
+bounds property then requires $\rconf \leq \rmax \leq \round + \theta_1$. The
+rows of $\client_2$ and $\client_3$ differ only in $G_1$, because $G_3, G_4$
+receive \tx at round $\round + \lambda$ and $\client_3$ outputs based on
+messages that they sent earlier. Hence both rows occur in $E_5$, where $G_1$ is
+Byzantine. The past-perfection safety property then requires $\rconf \geq
+\rperf > \round + \theta_1$.  No value of \rconf satisfies both requirements.
+
+\begin{table}[ht]
+    \centering
+    \caption{The round at which each set received \tx, according to the messages that each reader receives before it outputs. A dash means that the reader receives no message from the set after round \round. ``None'' means that the set has not received \tx.}
+    \label{tab:lower-bound-readers}
+    \setlength{\tabcolsep}{5pt}
+    \renewcommand{\arraystretch}{1.15}
+    \begin{tabular}{|c|c|c|c|c|c|l|}
+        \hline
+        Reader & $G_1$ & $G_2$ & $G_3$ & $G_4$ & $G_5$ & Output of the reader \\
+        \hline
+        $\client_1$ & $\round + 1$ & $\round + 1$ & $\round + 1$ & -- & $\round + 1$ & \tx with $\rmax \leq \round + \theta_1$ \\
+        $\client_2$ & $\round + 1$ & $\round + 1$ & $\round + \lambda$ & $\round + \lambda$ & -- & \tx \confirmed, with some \rconf \\
+        $\client_3$ & none & -- & none & none & none & no \tx, and $\rperf > \round + \theta_1$ \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\begin{theorem}[Lower bound on the number of replicas]\label{thm:lower-bound}
+    Let $\beta \geq 1$ and $n \leq 5\beta$, and let \parTemp be any function of
+    the network delay $\delta$.  Consider the partially synchronous model with
+    $n$ replicas, \beta of which are Byzantine.  There is no protocol that
+    satisfies, except with negligible probability, the properties of a
+    \parTemp-timely secure \podtm (\Cref{def:podsec,def:pod-timely}) with
+    confirmation within $\parConf = 2\delta$ and past-perfection within
+    $\parPerf = \delta$.
+\end{theorem}
+\begin{proof}
+    Assume, towards a contradiction, that such a protocol exists, and consider the executions $E_1, \ldots, E_5$ defined above.
+    We use a constant number of properties of the protocol in five executions, so a negligible failure probability does not affect the argument.
+    We read the safety properties of \Cref{def:podsec} as excluding any two valid pods of the stated form, including pods that honest clients output.
+    The outputs of \Cref{lem:lower-bound-readers} satisfy $\rmax^1 \leq \round + \theta_1 < \Pod_3.\rperf$.
+
+    \emph{Case 1: $\rconf^2 > \rmax^1$.}
+    In $E_4$, clients $\client_1$ and $\client_2$ output the valid $(\Pod_1, \cert_1)$ and $(\Pod_2, \cert_2)$.
+    Transaction \tx appears in both, with $\rmax^1 < \rconf^2$.
+    This contradicts the confirmation bounds property.
+
+    \emph{Case 2: $\rconf^2 \leq \rmax^1$.}
+    In $E_5$, clients $\client_3$ and $\client_2$ output the valid $(\Pod_3, \cert_3)$ and $(\Pod_2, \cert_2)$.
+    Transaction \tx does not appear in $\Pod_3.\txSet$, and it appears in $\Pod_2.\txSet$ with $\rconf^2 \neq \bot$ and $\rconf^2 < \Pod_3.\rperf$.
+    This contradicts the past-perfection safety property.
+\end{proof}
+
+\begin{remark}
+    For $\gamma = 0$ the bound is tight, since \podtm-core achieves these properties with $n = 5\beta + 1$.
+    The proof relies on $\parPerf = \delta$ and on timeliness.
+    We do not claim the bound for a larger \parPerf, or for a secure \podtm that is not timely.
+\end{remark}

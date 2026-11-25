@@ -61,3 +61,6 @@ env/
 experiments/*.pdf
 __pycache__/
 *.synctex*
+
+# Build output directories
+output/
